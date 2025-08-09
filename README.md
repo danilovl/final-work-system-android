@@ -17,10 +17,24 @@ Experience the system from a student's viewpoint, including project management, 
 
 **Demo Video**:
 
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/e8709c2a-4522-44e7-9bdc-523d75acd2f7"
+         controls
+         style="width: 250px; height: auto; border: 1px solid #ccc; border-radius: 8px;">
+  </video>
+</div>
+
 ### Supervisor perspective
 Explore the supervisor interface with project oversight, event creation, and student management capabilities.
 
 **Demo Video**:
+
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/9315dcf0-9571-4a1b-b99b-e288acb0460e"
+         controls
+         style="width: 250px; height: auto; border: 1px solid #ccc; border-radius: 8px;">
+  </video>
+</div>
 
 ## Features
 
