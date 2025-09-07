@@ -1,11 +1,9 @@
 package com.finalworksystem.presentation.ui.conversation
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -39,13 +37,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.finalworksystem.domain.conversation.model.getDisplayName
 import com.finalworksystem.domain.user.model.User
+import com.finalworksystem.presentation.ui.component.toGeneric
 import com.finalworksystem.presentation.ui.component.SearchModal
 import com.finalworksystem.presentation.ui.component.SearchResetFloatingActionButton
-import com.finalworksystem.presentation.ui.component.toGeneric
 import com.finalworksystem.presentation.ui.conversation.component.MessageForm
 import com.finalworksystem.presentation.ui.conversation.component.MessagesList
 import com.finalworksystem.presentation.ui.conversation.component.ParticipantsFullList
-import com.finalworksystem.presentation.view_model.conversation.ConversationViewModel
+import com.finalworksystem.presentation.view_model.conversation.ConversationDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,7 +51,7 @@ fun ConversationDetailScreen(
     conversationId: Int,
     currentUserId: Int,
     currentUser: User?,
-    viewModel: ConversationViewModel,
+    viewModel: ConversationDetailViewModel,
     onNavigateBack: () -> Unit = {}
 ) {
     val conversationDetailState by viewModel.conversationDetailState.collectAsState()
@@ -70,7 +68,7 @@ fun ConversationDetailScreen(
     }
 
     when (val detailState = conversationDetailState) {
-        is ConversationViewModel.ConversationDetailState.Loading -> {
+        is ConversationDetailViewModel.ConversationDetailState.Loading -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -78,7 +76,7 @@ fun ConversationDetailScreen(
                 CircularProgressIndicator()
             }
         }
-        is ConversationViewModel.ConversationDetailState.Success -> {
+        is ConversationDetailViewModel.ConversationDetailState.Success -> {
             var showParticipantsSheet by remember { mutableStateOf(false) }
             val sheetState = rememberModalBottomSheetState()
             val conversationTitle = detailState.conversation.getDisplayName()
@@ -170,26 +168,9 @@ fun ConversationDetailScreen(
                         },
                         sendMessageState = sendMessageState,
                         currentUser = currentUser,
-                        conversationWork = detailState.conversation.work
+                        conversationWork = detailState.conversation.work,
+                        modifier = Modifier.fillMaxWidth()
                     )
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowUp,
-                            contentDescription = "Swipe up",
-                            modifier = Modifier
-                                .size(24.dp)
-                                .clickable {
-                                    showParticipantsSheet = true
-                                },
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
                 }
             }
 
@@ -204,29 +185,34 @@ fun ConversationDetailScreen(
                     )
                 }
             }
-
-            SearchModal(
-                isVisible = isSearchModalVisible,
-                searchQuery = messageSearchQuery,
-                onSearchQueryChange = { viewModel.updateMessageSearchQuery(it) },
-                onSearch = { query ->
-                    viewModel.performMessageSearch(conversationId, query)
-                },
-                onDismiss = { isSearchModalVisible = false }
-            )
         }
-        is ConversationViewModel.ConversationDetailState.Error -> {
+        is ConversationDetailViewModel.ConversationDetailState.Error -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Error: ${detailState.message}",
-                    color = MaterialTheme.colorScheme.error
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Error: ${detailState.message}",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    IconButton(onClick = {
+                        viewModel.loadConversationDetail(conversationId)
+                        viewModel.loadMessages(conversationId)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowUp,
+                            contentDescription = "Retry",
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+                }
             }
         }
-        else -> {
+        is ConversationDetailViewModel.ConversationDetailState.Idle -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -235,4 +221,14 @@ fun ConversationDetailScreen(
             }
         }
     }
+
+    SearchModal(
+        isVisible = isSearchModalVisible,
+        searchQuery = messageSearchQuery,
+        onSearchQueryChange = { viewModel.updateMessageSearchQuery(it) },
+        onSearch = { query ->
+            viewModel.performMessageSearch(conversationId, query)
+        },
+        onDismiss = { isSearchModalVisible = false }
+    )
 }

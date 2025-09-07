@@ -27,12 +27,12 @@ import androidx.compose.ui.unit.dp
 import com.finalworksystem.domain.conversation.model.ConversationWork
 import com.finalworksystem.domain.user.model.User
 import com.finalworksystem.domain.user.model.UserRole
-import com.finalworksystem.presentation.view_model.conversation.ConversationViewModel
+import com.finalworksystem.presentation.view_model.conversation.ConversationDetailViewModel
 
 @Composable
 fun MessageForm(
     onSendMessage: (String) -> Unit,
-    sendMessageState: ConversationViewModel.SendMessageState,
+    sendMessageState: ConversationDetailViewModel.SendMessageState,
     currentUser: User?,
     conversationWork: ConversationWork?,
     modifier: Modifier = Modifier
@@ -49,7 +49,7 @@ fun MessageForm(
     var messageText by remember { mutableStateOf("") }
 
     LaunchedEffect(sendMessageState) {
-        if (sendMessageState is ConversationViewModel.SendMessageState.Success) {
+        if (sendMessageState is ConversationDetailViewModel.SendMessageState.Success) {
             messageText = ""
         }
     }
@@ -67,9 +67,9 @@ fun MessageForm(
             modifier = Modifier.fillMaxWidth(),
             maxLines = 4,
             minLines = 1,
-            isError = sendMessageState is ConversationViewModel.SendMessageState.Error,
+            isError = sendMessageState is ConversationDetailViewModel.SendMessageState.Error,
             supportingText = {
-                if (sendMessageState is ConversationViewModel.SendMessageState.Error) {
+                if (sendMessageState is ConversationDetailViewModel.SendMessageState.Error) {
                     Text(
                         text = sendMessageState.message,
                         color = MaterialTheme.colorScheme.error
@@ -86,10 +86,10 @@ fun MessageForm(
                     onSendMessage(messageText.trim())
                 }
             },
-            enabled = messageText.isNotBlank() && sendMessageState !is ConversationViewModel.SendMessageState.Loading,
+            enabled = messageText.isNotBlank() && sendMessageState !is ConversationDetailViewModel.SendMessageState.Loading,
             modifier = Modifier.fillMaxWidth()
         ) {
-            if (sendMessageState is ConversationViewModel.SendMessageState.Loading) {
+            if (sendMessageState is ConversationDetailViewModel.SendMessageState.Loading) {
                 CircularProgressIndicator(
                     modifier = Modifier.width(16.dp).height(16.dp),
                     strokeWidth = 2.dp

@@ -25,7 +25,8 @@ import com.finalworksystem.presentation.ui.work.WorkDetailScreen
 import com.finalworksystem.presentation.ui.work.WorkListScreen
 import com.finalworksystem.presentation.ui.network.NoConnectionScreen
 import com.finalworksystem.presentation.view_model.auth.AuthViewModel
-import com.finalworksystem.presentation.view_model.conversation.ConversationViewModel
+import com.finalworksystem.presentation.view_model.conversation.ConversationListViewModel
+import com.finalworksystem.presentation.view_model.conversation.ConversationDetailViewModel
 import com.finalworksystem.presentation.view_model.system_event.SystemEventViewModel
 import com.finalworksystem.presentation.view_model.task.TaskViewModel
 import com.finalworksystem.presentation.view_model.user.UserViewModel
@@ -65,7 +66,8 @@ fun AppNavigation(
     systemEventViewModel: SystemEventViewModel = koinViewModel(),
     workViewModel: WorkViewModel = koinViewModel(),
     taskViewModel: TaskViewModel = koinViewModel(),
-    conversationViewModel: ConversationViewModel = koinViewModel(),
+    conversationListViewModel: ConversationListViewModel = koinViewModel(),
+    conversationDetailViewModel: ConversationDetailViewModel = koinViewModel(),
     userViewModel: UserViewModel = koinViewModel(),
     startDestination: String = AppRoutes.LOGIN
 ) {
@@ -167,10 +169,10 @@ fun AppNavigation(
         composable(AppRoutes.CONVERSATION_LIST) {
             val popupMessageService = koinInject<PopupMessageService>()
             ConversationListScreen(
-                conversationViewModel = conversationViewModel,
-                onNavigateBack = actions.navigateBack,
-                onNavigateToConversationDetail = actions.navigateToConversationDetail,
+                conversationListViewModel = conversationListViewModel,
                 popupMessageService = popupMessageService,
+                onNavigateBack = actions.navigateBack,
+                onNavigateToConversationDetail = actions.navigateToConversationDetail
             )
         }
 
@@ -182,7 +184,7 @@ fun AppNavigation(
                 conversationId = conversationId,
                 currentUserId = currentUser?.id ?: 0,
                 currentUser = currentUser,
-                viewModel = conversationViewModel,
+                viewModel = conversationDetailViewModel,
                 onNavigateBack = actions.navigateBack
             )
         }

@@ -7,7 +7,8 @@ import androidx.navigation.compose.rememberNavController
 import com.finalworksystem.infrastructure.network.NetworkConnectivityService
 import com.finalworksystem.presentation.ui.component.GlobalNavigationDrawer
 import com.finalworksystem.presentation.view_model.auth.AuthViewModel
-import com.finalworksystem.presentation.view_model.conversation.ConversationViewModel
+import com.finalworksystem.presentation.view_model.conversation.ConversationListViewModel
+import com.finalworksystem.presentation.view_model.conversation.ConversationDetailViewModel
 import com.finalworksystem.presentation.view_model.system_event.SystemEventViewModel
 import com.finalworksystem.presentation.view_model.task.TaskViewModel
 import com.finalworksystem.presentation.view_model.user.UserViewModel
@@ -22,7 +23,8 @@ fun AppNavigationWithDrawer(
     systemEventViewModel: SystemEventViewModel = koinViewModel(),
     workViewModel: WorkViewModel = koinViewModel(),
     taskViewModel: TaskViewModel = koinViewModel(),
-    conversationViewModel: ConversationViewModel = koinViewModel(),
+    conversationListViewModel: ConversationListViewModel = koinViewModel(),
+    conversationDetailViewModel: ConversationDetailViewModel = koinViewModel(),
     userViewModel: UserViewModel = koinViewModel(),
     onLogoutNavigation: (() -> Unit)? = null,
     startDestination: String = AppRoutes.LOGIN
@@ -51,7 +53,8 @@ fun AppNavigationWithDrawer(
                 systemEventViewModel = systemEventViewModel,
                 workViewModel = workViewModel,
                 taskViewModel = taskViewModel,
-                conversationViewModel = conversationViewModel,
+                conversationListViewModel = conversationListViewModel,
+                conversationDetailViewModel = conversationDetailViewModel,
                 userViewModel = userViewModel,
                 startDestination = startDestination
             )

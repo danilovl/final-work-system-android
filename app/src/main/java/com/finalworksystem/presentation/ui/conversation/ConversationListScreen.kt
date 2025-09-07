@@ -26,17 +26,17 @@ import com.finalworksystem.presentation.ui.component.DoubleCheckIcon
 import com.finalworksystem.presentation.ui.component.SearchModal
 import com.finalworksystem.presentation.ui.component.SearchResetFloatingActionButton
 import com.finalworksystem.presentation.ui.conversation.component.ConversationsList
-import com.finalworksystem.presentation.view_model.conversation.ConversationViewModel
+import com.finalworksystem.presentation.view_model.conversation.ConversationListViewModel
 
 @Composable
 fun ConversationListScreen(
-    conversationViewModel: ConversationViewModel,
+    conversationListViewModel: ConversationListViewModel,
     popupMessageService: PopupMessageService,
     onNavigateBack: () -> Unit,
     onNavigateToConversationDetail: (Int) -> Unit
 ) {
-    val conversationsState by conversationViewModel.conversationsState.collectAsState()
-    val searchQuery by conversationViewModel.searchQuery.collectAsState()
+    val conversationsState by conversationListViewModel.conversationsState.collectAsState()
+    val searchQuery by conversationListViewModel.searchQuery.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
@@ -50,7 +50,7 @@ fun ConversationListScreen(
 
     LaunchedEffect(Unit) {
         val currentSearchQuery = searchQuery.takeIf { it.isNotBlank() }
-        conversationViewModel.loadConversations(search = currentSearchQuery)
+        conversationListViewModel.loadConversations(search = currentSearchQuery)
     }
 
     Scaffold(
@@ -58,12 +58,12 @@ fun ConversationListScreen(
             BaseTopAppBar(
                 title = "Conversation",
                 onNavigateBack = onNavigateBack,
-                onReload = { conversationViewModel.loadConversations() },
-                loadedCount = (conversationsState as? ConversationViewModel.ConversationsState.Success)?.conversations?.size ?: 0,
-                totalCount = (conversationsState as? ConversationViewModel.ConversationsState.Success)?.totalCount ?: 0,
-                isLoading = conversationsState is ConversationViewModel.ConversationsState.Loading,
+                onReload = { conversationListViewModel.loadConversations() },
+                loadedCount = (conversationsState as? ConversationListViewModel.ConversationsState.Success)?.conversations?.size ?: 0,
+                totalCount = (conversationsState as? ConversationListViewModel.ConversationsState.Success)?.totalCount ?: 0,
+                isLoading = conversationsState is ConversationListViewModel.ConversationsState.Loading,
                 additionalActions = {
-                    IconButton(onClick = { conversationViewModel.markAllMessagesAsRead() }) {
+                    IconButton(onClick = { conversationListViewModel.markAllMessagesAsRead() }) {
                         DoubleCheckIcon()
                     }
                 }
@@ -73,12 +73,12 @@ fun ConversationListScreen(
             SearchResetFloatingActionButton(
                 searchQuery = searchQuery,
                 onSearchClick = { isSearchModalVisible = true },
-                onResetClick = { conversationViewModel.clearSearch() }
+                onResetClick = { conversationListViewModel.clearSearch() }
             )
         }
     ) { paddingValues ->
         when (conversationsState) {
-            is ConversationViewModel.ConversationsState.Loading -> {
+            is ConversationListViewModel.ConversationsState.Loading -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -88,19 +88,19 @@ fun ConversationListScreen(
                     CircularProgressIndicator()
                 }
             }
-            is ConversationViewModel.ConversationsState.Success -> {
-                val successState = conversationsState as ConversationViewModel.ConversationsState.Success
+            is ConversationListViewModel.ConversationsState.Success -> {
+                val successState = conversationsState as ConversationListViewModel.ConversationsState.Success
                 ConversationsList(
                     conversations = successState.conversations,
                     hasMoreConversations = successState.hasMoreConversations,
                     isLoadingMore = successState.isLoadingMore,
-                    onLoadMore = { conversationViewModel.loadMoreConversations() },
+                    onLoadMore = { conversationListViewModel.loadMoreConversations() },
                     onConversationClick = onNavigateToConversationDetail,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
-            is ConversationViewModel.ConversationsState.Error -> {
-                val errorState = conversationsState as ConversationViewModel.ConversationsState.Error
+            is ConversationListViewModel.ConversationsState.Error -> {
+                val errorState = conversationsState as ConversationListViewModel.ConversationsState.Error
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -113,7 +113,7 @@ fun ConversationListScreen(
                     )
                 }
             }
-            is ConversationViewModel.ConversationsState.Idle -> {
+            is ConversationListViewModel.ConversationsState.Idle -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -129,9 +129,9 @@ fun ConversationListScreen(
     SearchModal(
         isVisible = isSearchModalVisible,
         searchQuery = searchQuery,
-        onSearchQueryChange = { conversationViewModel.updateSearchQuery(it) },
+        onSearchQueryChange = { conversationListViewModel.updateSearchQuery(it) },
         onSearch = { query ->
-            conversationViewModel.performSearch(query)
+            conversationListViewModel.performSearch(query)
         },
         onDismiss = { isSearchModalVisible = false }
     )
