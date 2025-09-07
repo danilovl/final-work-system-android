@@ -10,6 +10,9 @@ import com.finalworksystem.application.use_case.conversation.MarkMessageAsReadUs
 import com.finalworksystem.domain.conversation.model.Conversation
 import com.finalworksystem.domain.conversation.model.ConversationMessage
 import com.finalworksystem.infrastructure.popup.PopupMessageService
+import com.finalworksystem.presentation.view_model.conversation.state.ConversationDetailState
+import com.finalworksystem.presentation.view_model.conversation.state.MessagesState
+import com.finalworksystem.presentation.view_model.conversation.state.SendMessageState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -172,30 +175,5 @@ class ConversationDetailViewModel(
     fun clearMessageSearch(conversationId: Int) {
         _messageSearchQuery.value = ""
         loadMessages(conversationId)
-    }
-
-    sealed class ConversationDetailState {
-        data object Idle : ConversationDetailState()
-        data object Loading : ConversationDetailState()
-        data class Success(val conversation: Conversation) : ConversationDetailState()
-        data class Error(val message: String) : ConversationDetailState()
-    }
-
-    sealed class MessagesState {
-        data object Idle : MessagesState()
-        data object Loading : MessagesState()
-        data class Success(
-            val messages: List<ConversationMessage>,
-            val hasMoreMessages: Boolean = false,
-            val isLoadingMore: Boolean = false
-        ) : MessagesState()
-        data class Error(val message: String) : MessagesState()
-    }
-
-    sealed class SendMessageState {
-        data object Idle : SendMessageState()
-        data object Loading : SendMessageState()
-        data object Success : SendMessageState()
-        data class Error(val message: String) : SendMessageState()
     }
 }

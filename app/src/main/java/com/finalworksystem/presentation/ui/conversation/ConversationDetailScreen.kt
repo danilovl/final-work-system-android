@@ -37,7 +37,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.finalworksystem.domain.conversation.model.getDisplayName
 import com.finalworksystem.domain.user.model.User
-import com.finalworksystem.presentation.ui.component.toGeneric
+import com.finalworksystem.presentation.view_model.conversation.state.toGeneric
+import com.finalworksystem.presentation.view_model.conversation.state.ConversationDetailState
 import com.finalworksystem.presentation.ui.component.SearchModal
 import com.finalworksystem.presentation.ui.component.SearchResetFloatingActionButton
 import com.finalworksystem.presentation.ui.conversation.component.MessageForm
@@ -68,7 +69,7 @@ fun ConversationDetailScreen(
     }
 
     when (val detailState = conversationDetailState) {
-        is ConversationDetailViewModel.ConversationDetailState.Loading -> {
+        is ConversationDetailState.Loading -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -76,7 +77,7 @@ fun ConversationDetailScreen(
                 CircularProgressIndicator()
             }
         }
-        is ConversationDetailViewModel.ConversationDetailState.Success -> {
+        is ConversationDetailState.Success -> {
             var showParticipantsSheet by remember { mutableStateOf(false) }
             val sheetState = rememberModalBottomSheetState()
             val conversationTitle = detailState.conversation.getDisplayName()
@@ -186,7 +187,7 @@ fun ConversationDetailScreen(
                 }
             }
         }
-        is ConversationDetailViewModel.ConversationDetailState.Error -> {
+        is ConversationDetailState.Error -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -212,7 +213,7 @@ fun ConversationDetailScreen(
                 }
             }
         }
-        is ConversationDetailViewModel.ConversationDetailState.Idle -> {
+        is ConversationDetailState.Idle -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center

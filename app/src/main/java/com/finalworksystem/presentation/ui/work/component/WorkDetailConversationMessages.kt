@@ -5,7 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.finalworksystem.presentation.ui.component.toGeneric
+import com.finalworksystem.presentation.view_model.work.toGeneric
 import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
 
 @Composable

@@ -28,11 +28,12 @@ import com.finalworksystem.domain.conversation.model.ConversationWork
 import com.finalworksystem.domain.user.model.User
 import com.finalworksystem.domain.user.model.UserRole
 import com.finalworksystem.presentation.view_model.conversation.ConversationDetailViewModel
+import com.finalworksystem.presentation.view_model.conversation.state.SendMessageState
 
 @Composable
 fun MessageForm(
     onSendMessage: (String) -> Unit,
-    sendMessageState: ConversationDetailViewModel.SendMessageState,
+    sendMessageState: SendMessageState,
     currentUser: User?,
     conversationWork: ConversationWork?,
     modifier: Modifier = Modifier
@@ -49,7 +50,7 @@ fun MessageForm(
     var messageText by remember { mutableStateOf("") }
 
     LaunchedEffect(sendMessageState) {
-        if (sendMessageState is ConversationDetailViewModel.SendMessageState.Success) {
+        if (sendMessageState is SendMessageState.Success) {
             messageText = ""
         }
     }
@@ -67,9 +68,9 @@ fun MessageForm(
             modifier = Modifier.fillMaxWidth(),
             maxLines = 4,
             minLines = 1,
-            isError = sendMessageState is ConversationDetailViewModel.SendMessageState.Error,
+            isError = sendMessageState is SendMessageState.Error,
             supportingText = {
-                if (sendMessageState is ConversationDetailViewModel.SendMessageState.Error) {
+                if (sendMessageState is SendMessageState.Error) {
                     Text(
                         text = sendMessageState.message,
                         color = MaterialTheme.colorScheme.error
@@ -86,10 +87,10 @@ fun MessageForm(
                     onSendMessage(messageText.trim())
                 }
             },
-            enabled = messageText.isNotBlank() && sendMessageState !is ConversationDetailViewModel.SendMessageState.Loading,
+            enabled = messageText.isNotBlank() && sendMessageState !is SendMessageState.Loading,
             modifier = Modifier.fillMaxWidth()
         ) {
-            if (sendMessageState is ConversationDetailViewModel.SendMessageState.Loading) {
+            if (sendMessageState is SendMessageState.Loading) {
                 CircularProgressIndicator(
                     modifier = Modifier.width(16.dp).height(16.dp),
                     strokeWidth = 2.dp
