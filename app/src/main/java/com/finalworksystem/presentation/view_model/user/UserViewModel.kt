@@ -91,11 +91,6 @@ class UserViewModel(
         }
     }
 
-    fun resetUserListState() {
-        _userListState.value = UserListState.Idle
-        currentUserListResult = null
-    }
-
     sealed class UserListState {
         object Idle : UserListState()
         object Loading : UserListState()
