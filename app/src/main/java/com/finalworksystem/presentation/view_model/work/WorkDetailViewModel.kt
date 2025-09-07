@@ -18,6 +18,7 @@ import com.finalworksystem.domain.work.model.Work
 import com.finalworksystem.infrastructure.cache.GlobalCacheManager
 import com.finalworksystem.infrastructure.popup.PopupMessageService
 import com.finalworksystem.infrastructure.user.UserService
+import com.finalworksystem.presentation.view_model.work.state.WorkMessagesState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -75,16 +76,6 @@ class WorkDetailViewModel(
         data class Error(val message: String) : EventsState()
     }
 
-    sealed class WorkMessagesState {
-        object Idle : WorkMessagesState()
-        object Loading : WorkMessagesState()
-        data class Success(
-            val messages: List<ConversationMessage>,
-            val hasMoreMessages: Boolean = false,
-            val isLoadingMore: Boolean = false
-        ) : WorkMessagesState()
-        data class Error(val message: String) : WorkMessagesState()
-    }
 
     sealed class ConversationWorkState {
         object Idle : ConversationWorkState()
@@ -227,10 +218,6 @@ class WorkDetailViewModel(
                 )
             }
         }
-    }
-
-    fun resetTasksState() {
-        _tasksState.value = TasksState.Idle
     }
 
     fun loadMoreTasks(workId: Int) {
