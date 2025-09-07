@@ -16,8 +16,3 @@ fun ProvideDrawerState(
         content()
     }
 }
-
-@Composable
-fun rememberGlobalDrawerState(): DrawerState? {
-    return LocalDrawerState.current
-}
