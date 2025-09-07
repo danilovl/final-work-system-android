@@ -1,7 +1,7 @@
 package com.finalworksystem.presentation.ui.component
 
 import com.finalworksystem.domain.conversation.model.ConversationMessage
-import com.finalworksystem.presentation.view_model.work.WorkViewModel
+import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
 import com.finalworksystem.presentation.view_model.conversation.ConversationDetailViewModel
 
 sealed class MessagesState {
@@ -16,18 +16,6 @@ sealed class MessagesState {
 }
 
 
-fun WorkViewModel.WorkMessagesState.toGeneric(): MessagesState {
-    return when (this) {
-        is WorkViewModel.WorkMessagesState.Idle -> MessagesState.Idle
-        is WorkViewModel.WorkMessagesState.Loading -> MessagesState.Loading
-        is WorkViewModel.WorkMessagesState.Success -> MessagesState.Success(
-            messages = this.messages,
-            hasMoreMessages = this.hasMoreMessages,
-            isLoadingMore = this.isLoadingMore
-        )
-        is WorkViewModel.WorkMessagesState.Error -> MessagesState.Error(this.message)
-    }
-}
 
 fun ConversationDetailViewModel.MessagesState.toGeneric(): MessagesState {
     return when (this) {
@@ -39,5 +27,18 @@ fun ConversationDetailViewModel.MessagesState.toGeneric(): MessagesState {
             isLoadingMore = this.isLoadingMore
         )
         is ConversationDetailViewModel.MessagesState.Error -> MessagesState.Error(this.message)
+    }
+}
+
+fun WorkDetailViewModel.WorkMessagesState.toGeneric(): MessagesState {
+    return when (this) {
+        is WorkDetailViewModel.WorkMessagesState.Idle -> MessagesState.Idle
+        is WorkDetailViewModel.WorkMessagesState.Loading -> MessagesState.Loading
+        is WorkDetailViewModel.WorkMessagesState.Success -> MessagesState.Success(
+            messages = this.messages,
+            hasMoreMessages = this.hasMoreMessages,
+            isLoadingMore = this.isLoadingMore
+        )
+        is WorkDetailViewModel.WorkMessagesState.Error -> MessagesState.Error(this.message)
     }
 }

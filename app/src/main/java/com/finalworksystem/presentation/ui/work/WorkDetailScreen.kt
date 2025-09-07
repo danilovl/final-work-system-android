@@ -51,14 +51,14 @@ import com.finalworksystem.presentation.ui.work.component.VersionTabContent
 import com.finalworksystem.presentation.ui.work.component.WorkDetailConversationMessages
 import com.finalworksystem.presentation.ui.work.component.WorkInfoItemWithAvatar
 import com.finalworksystem.presentation.ui.work.component.WorkInfoItemWithIcon
-import com.finalworksystem.presentation.view_model.work.WorkViewModel
+import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkDetailScreen(
     workId: Int,
     currentUserId: Int,
-    workViewModel: WorkViewModel,
+    workDetailViewModel: WorkDetailViewModel,
     onNavigateBack: () -> Unit,
     onNavigateToTaskDetail: ((Int, Int) -> Unit)? = null,
     onNavigateToConversationDetail: ((Int) -> Unit)? = null,
@@ -68,19 +68,19 @@ fun WorkDetailScreen(
     var errorMessage by remember { mutableStateOf("") }
     var showTitleDialog by remember { mutableStateOf(false) }
 
-    val workDetailState by workViewModel.workDetailState.collectAsState()
+    val workDetailState by workDetailViewModel.workDetailState.collectAsState()
 
     LaunchedEffect(workId) {
-        workViewModel.loadWorkDetail(workId, forceRefresh = false)
-        workViewModel.loadTasksForWork(workId, forceRefresh = false)
-        workViewModel.loadConversationWork(workId, forceRefresh = false)
+        workDetailViewModel.loadWorkDetail(workId, forceRefresh = false)
+        workDetailViewModel.loadTasksForWork(workId, forceRefresh = false)
+        workDetailViewModel.loadConversationWork(workId, forceRefresh = false)
     }
 
     LaunchedEffect(workDetailState) {
         when (workDetailState) {
-            is WorkViewModel.WorkDetailState.Error -> {
+            is WorkDetailViewModel.WorkDetailState.Error -> {
                 showError = true
-                errorMessage = (workDetailState as WorkViewModel.WorkDetailState.Error).message
+                errorMessage = (workDetailState as WorkDetailViewModel.WorkDetailState.Error).message
             }
             else -> {
                 showError = false
@@ -94,7 +94,7 @@ fun WorkDetailScreen(
                 title = {
                     val currentState = workDetailState
                     val workTitle = when (currentState) {
-                        is WorkViewModel.WorkDetailState.Success -> currentState.work.title
+                        is WorkDetailViewModel.WorkDetailState.Success -> currentState.work.title
                         else -> "Work Details"
                     }
                     Text(
@@ -102,7 +102,7 @@ fun WorkDetailScreen(
                         style = MaterialTheme.typography.titleMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = if (currentState is WorkViewModel.WorkDetailState.Success) {
+                        modifier = if (currentState is WorkDetailViewModel.WorkDetailState.Success) {
                             Modifier.clickable { showTitleDialog = true }
                         } else {
                             Modifier
@@ -119,12 +119,12 @@ fun WorkDetailScreen(
                 },
                 actions = {
                     IconButton(onClick = {
-                        workViewModel.loadWorkDetail(workId, forceRefresh = true)
-                        workViewModel.loadTasksForWork(workId, forceRefresh = true)
-                        workViewModel.loadVersionsForWork(workId, forceRefresh = true)
-                        workViewModel.loadEventsForWork(workId, forceRefresh = true)
-                        workViewModel.loadWorkMessages(workId, forceRefresh = true)
-                        workViewModel.loadConversationWork(workId, forceRefresh = true)
+                        workDetailViewModel.loadWorkDetail(workId, forceRefresh = true)
+                        workDetailViewModel.loadTasksForWork(workId, forceRefresh = true)
+                        workDetailViewModel.loadVersionsForWork(workId, forceRefresh = true)
+                        workDetailViewModel.loadEventsForWork(workId, forceRefresh = true)
+                        workDetailViewModel.loadWorkMessages(workId, forceRefresh = true)
+                        workDetailViewModel.loadConversationWork(workId, forceRefresh = true)
                     }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
@@ -141,14 +141,14 @@ fun WorkDetailScreen(
                 .padding(paddingValues)
         ) {
             when (workDetailState) {
-                is WorkViewModel.WorkDetailState.Loading -> {
+                is WorkDetailViewModel.WorkDetailState.Loading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
-                is WorkViewModel.WorkDetailState.Success -> {
-                    val work = (workDetailState as WorkViewModel.WorkDetailState.Success).work
-                    WorkDetailContent(work = work, workViewModel = workViewModel, currentUserId = currentUserId, onNavigateToTaskDetail = onNavigateToTaskDetail, onNavigateToConversationDetail = onNavigateToConversationDetail, onNavigateToEventDetail = onNavigateToEventDetail)
+                is WorkDetailViewModel.WorkDetailState.Success -> {
+                    val work = (workDetailState as WorkDetailViewModel.WorkDetailState.Success).work
+                    WorkDetailContent(work = work, workDetailViewModel = workDetailViewModel, currentUserId = currentUserId, onNavigateToTaskDetail = onNavigateToTaskDetail, onNavigateToConversationDetail = onNavigateToConversationDetail, onNavigateToEventDetail = onNavigateToEventDetail)
                 }
                 else -> {
                     // nothing
@@ -168,7 +168,7 @@ fun WorkDetailScreen(
     }
 
     val currentState = workDetailState
-    if (currentState is WorkViewModel.WorkDetailState.Success) {
+    if (currentState is WorkDetailViewModel.WorkDetailState.Success) {
         TitleDialog(
             title = currentState.work.title,
             isVisible = showTitleDialog,
@@ -178,12 +178,12 @@ fun WorkDetailScreen(
 }
 
 @Composable
-fun WorkDetailContent(work: Work, workViewModel: WorkViewModel, currentUserId: Int, onNavigateToTaskDetail: ((Int, Int) -> Unit)? = null, onNavigateToConversationDetail: ((Int) -> Unit)? = null, onNavigateToEventDetail: ((Int) -> Unit)? = null) {
+fun WorkDetailContent(work: Work, workDetailViewModel: WorkDetailViewModel, currentUserId: Int, onNavigateToTaskDetail: ((Int, Int) -> Unit)? = null, onNavigateToConversationDetail: ((Int) -> Unit)? = null, onNavigateToEventDetail: ((Int) -> Unit)? = null) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("Task", "Version", "Message", "Event")
     val scrollState = rememberScrollState()
 
-    val conversationWorkState by workViewModel.conversationWorkState.collectAsState()
+    val conversationWorkState by workDetailViewModel.conversationWorkState.collectAsState()
 
     Column(
         modifier = Modifier
@@ -312,7 +312,7 @@ fun WorkDetailContent(work: Work, workViewModel: WorkViewModel, currentUserId: I
             }
 
             when (val state = conversationWorkState) {
-                is WorkViewModel.ConversationWorkState.Success -> {
+                is WorkDetailViewModel.ConversationWorkState.Success -> {
                     if (state.conversationWork != null) {
                         BaseCard(
                             modifier = Modifier.fillMaxWidth()
@@ -364,16 +364,16 @@ fun WorkDetailContent(work: Work, workViewModel: WorkViewModel, currentUserId: I
                 .padding(16.dp)
         ) {
             when (selectedTabIndex) {
-                0 -> TaskTabContent(workViewModel = workViewModel, workId = work.id, onNavigateToTaskDetail = onNavigateToTaskDetail)
-                1 -> VersionTabContent(workViewModel = workViewModel, workId = work.id)
+                0 -> TaskTabContent(workDetailViewModel = workDetailViewModel, workId = work.id, onNavigateToTaskDetail = onNavigateToTaskDetail)
+                1 -> VersionTabContent(workDetailViewModel = workDetailViewModel, workId = work.id)
                 2 -> WorkDetailConversationMessages(
                     workId = work.id,
                     currentUserId = currentUserId,
-                    workViewModel = workViewModel,
+                    workDetailViewModel = workDetailViewModel,
                     modifier = Modifier.fillMaxSize()
                 )
                 3 -> EventTabContent(
-                    workViewModel = workViewModel,
+                    workDetailViewModel = workDetailViewModel,
                     workId = work.id,
                     onEventClick = { event -> onNavigateToEventDetail?.invoke(event.id) }
                 )

@@ -22,19 +22,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.finalworksystem.presentation.ui.component.BaseCard
 import com.finalworksystem.presentation.ui.task.component.TaskCard
-import com.finalworksystem.presentation.view_model.work.WorkViewModel
+import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
 
 @Composable
 fun TaskTabContent(
-    workViewModel: WorkViewModel,
+    workDetailViewModel: WorkDetailViewModel,
     workId: Int,
     onNavigateToTaskDetail: ((Int, Int) -> Unit)? = null
 ) {
-    val tasksState by workViewModel.tasksState.collectAsState()
+    val tasksState by workDetailViewModel.tasksState.collectAsState()
     val listState = rememberLazyListState()
 
     LaunchedEffect(workId) {
-        workViewModel.loadTasksForWork(workId, forceRefresh = false)
+        workDetailViewModel.loadTasksForWork(workId, forceRefresh = false)
     }
 
     val shouldLoadMore by remember {
@@ -48,16 +48,16 @@ fun TaskTabContent(
     }
 
     LaunchedEffect(shouldLoadMore) {
-        if (shouldLoadMore && tasksState is WorkViewModel.TasksState.Success) {
-            val currentState = tasksState as WorkViewModel.TasksState.Success
+        if (shouldLoadMore && tasksState is WorkDetailViewModel.TasksState.Success) {
+            val currentState = tasksState as WorkDetailViewModel.TasksState.Success
             if (currentState.hasMoreTasks && !currentState.isLoadingMore) {
-                workViewModel.loadMoreTasks(workId)
+                workDetailViewModel.loadMoreTasks(workId)
             }
         }
     }
 
     when (tasksState) {
-        is WorkViewModel.TasksState.Loading -> {
+        is WorkDetailViewModel.TasksState.Loading -> {
             BaseCard(modifier = Modifier.fillMaxWidth()) {
                 Box(
                     modifier = Modifier
@@ -69,8 +69,8 @@ fun TaskTabContent(
                 }
             }
         }
-        is WorkViewModel.TasksState.Success -> {
-            val successState = tasksState as WorkViewModel.TasksState.Success
+        is WorkDetailViewModel.TasksState.Success -> {
+            val successState = tasksState as WorkDetailViewModel.TasksState.Success
             val tasks = successState.tasks
             if (tasks.isEmpty()) {
                 BaseCard(modifier = Modifier.fillMaxWidth()) {
@@ -110,8 +110,8 @@ fun TaskTabContent(
                 }
             }
         }
-        is WorkViewModel.TasksState.Error -> {
-            val errorState = tasksState as WorkViewModel.TasksState.Error
+        is WorkDetailViewModel.TasksState.Error -> {
+            val errorState = tasksState as WorkDetailViewModel.TasksState.Error
             val errorMessage = errorState.message
             BaseCard(modifier = Modifier.fillMaxWidth()) {
                 Text(

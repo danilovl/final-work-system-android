@@ -13,7 +13,8 @@ import com.finalworksystem.presentation.view_model.system_event.SystemEventViewM
 import com.finalworksystem.presentation.view_model.task.TaskListViewModel
 import com.finalworksystem.presentation.view_model.task.TaskDetailViewModel
 import com.finalworksystem.presentation.view_model.user.UserViewModel
-import com.finalworksystem.presentation.view_model.work.WorkViewModel
+import com.finalworksystem.presentation.view_model.work.WorkListViewModel
+import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
@@ -22,7 +23,8 @@ fun AppNavigationWithDrawer(
     navController: NavHostController = rememberNavController(),
     authViewModel: AuthViewModel = koinViewModel(),
     systemEventViewModel: SystemEventViewModel = koinViewModel(),
-    workViewModel: WorkViewModel = koinViewModel(),
+    workListViewModel: WorkListViewModel = koinViewModel(),
+    workDetailViewModel: WorkDetailViewModel = koinViewModel(),
     taskListViewModel: TaskListViewModel = koinViewModel(),
     taskDetailViewModel: TaskDetailViewModel = koinViewModel(),
     conversationListViewModel: ConversationListViewModel = koinViewModel(),
@@ -32,7 +34,7 @@ fun AppNavigationWithDrawer(
     startDestination: String = AppRoutes.LOGIN
 ) {
     val networkConnectivityService = koinInject<NetworkConnectivityService>()
-    val actions = remember(navController) { AppActions(navController, workViewModel, networkConnectivityService) }
+    val actions = remember(navController) { AppActions(navController, workListViewModel, networkConnectivityService) }
 
     GlobalNavigationDrawer(
         onNavigateToHome = actions.navigateToHome,
@@ -53,7 +55,8 @@ fun AppNavigationWithDrawer(
                 navController = navController,
                 authViewModel = authViewModel,
                 systemEventViewModel = systemEventViewModel,
-                workViewModel = workViewModel,
+                workListViewModel = workListViewModel,
+                workDetailViewModel = workDetailViewModel,
                 taskListViewModel = taskListViewModel,
                 taskDetailViewModel = taskDetailViewModel,
                 conversationListViewModel = conversationListViewModel,

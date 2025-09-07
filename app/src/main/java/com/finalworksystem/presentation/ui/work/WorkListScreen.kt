@@ -22,29 +22,29 @@ import com.finalworksystem.presentation.ui.component.BaseTopAppBar
 import com.finalworksystem.presentation.ui.component.SearchModal
 import com.finalworksystem.presentation.ui.component.SearchResetFloatingActionButton
 import com.finalworksystem.presentation.ui.work.component.WorksList
-import com.finalworksystem.presentation.view_model.work.WorkViewModel
+import com.finalworksystem.presentation.view_model.work.WorkListViewModel
 
 @Composable
 fun WorkListScreen(
     workListType: String = "author",
-    workViewModel: WorkViewModel,
+    workListViewModel: WorkListViewModel,
     onNavigateBack: () -> Unit,
     onNavigateToWorkDetail: (Int) -> Unit
 ) {
-    val worksState by workViewModel.worksState.collectAsState()
-    val searchQuery by workViewModel.searchQuery.collectAsState()
+    val worksState by workListViewModel.worksState.collectAsState()
+    val searchQuery by workListViewModel.searchQuery.collectAsState()
     val workListTypeEnum = WorkListType.fromString(workListType)
 
     var isSearchModalVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(workListType) {
-        workViewModel.loadWorks(workListTypeEnum)
+        workListViewModel.loadWorks(workListTypeEnum)
     }
 
     DisposableEffect(Unit) {
-        workViewModel.markEnteredWorkListSection()
+        workListViewModel.markEnteredWorkListSection()
         onDispose {
-            workViewModel.markLeftWorkListSection()
+            workListViewModel.markLeftWorkListSection()
         }
     }
 
@@ -53,17 +53,17 @@ fun WorkListScreen(
             BaseTopAppBar(
                 title = "${workListTypeEnum.value.replaceFirstChar { it.uppercase() }} works",
                 onNavigateBack = onNavigateBack,
-                onReload = { workViewModel.loadWorks(workListTypeEnum, forceRefresh = true) },
-                loadedCount = (worksState as? WorkViewModel.WorksState.Success)?.works?.size ?: 0,
-                totalCount = (worksState as? WorkViewModel.WorksState.Success)?.totalCount ?: 0,
-                isLoading = worksState is WorkViewModel.WorksState.Loading
+                onReload = { workListViewModel.loadWorks(workListTypeEnum, forceRefresh = true) },
+                loadedCount = (worksState as? WorkListViewModel.WorksState.Success)?.works?.size ?: 0,
+                totalCount = (worksState as? WorkListViewModel.WorksState.Success)?.totalCount ?: 0,
+                isLoading = worksState is WorkListViewModel.WorksState.Loading
             )
         },
         floatingActionButton = {
             SearchResetFloatingActionButton(
                 searchQuery = searchQuery,
                 onSearchClick = { isSearchModalVisible = true },
-                onResetClick = { workViewModel.clearSearch() }
+                onResetClick = { workListViewModel.clearSearch() }
             )
         }
     ) { paddingValues ->
@@ -73,13 +73,13 @@ fun WorkListScreen(
                 .padding(paddingValues)
         ) {
             when (worksState) {
-                is WorkViewModel.WorksState.Loading -> {
+                is WorkListViewModel.WorksState.Loading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
-                is WorkViewModel.WorksState.Success -> {
-                    val works = (worksState as WorkViewModel.WorksState.Success).works
+                is WorkListViewModel.WorksState.Success -> {
+                    val works = (worksState as WorkListViewModel.WorksState.Success).works
                     if (works.isEmpty()) {
                         Text(
                             text = "No works found",
@@ -90,18 +90,18 @@ fun WorkListScreen(
                     } else {
                         WorksList(
                             works = works,
-                            hasMoreWorks = (worksState as WorkViewModel.WorksState.Success).hasMoreWorks,
-                            isLoadingMore = (worksState as WorkViewModel.WorksState.Success).isLoadingMore,
+                            hasMoreWorks = (worksState as WorkListViewModel.WorksState.Success).hasMoreWorks,
+                            isLoadingMore = (worksState as WorkListViewModel.WorksState.Success).isLoadingMore,
                             onWorkClick = onNavigateToWorkDetail,
                             onLoadMore = {
-                                workViewModel.loadMoreWorks()
+                                workListViewModel.loadMoreWorks()
                             }
                         )
                     }
                 }
-                is WorkViewModel.WorksState.Error -> {
+                is WorkListViewModel.WorksState.Error -> {
                     Text(
-                        text = "Error: ${(worksState as WorkViewModel.WorksState.Error).message}",
+                        text = "Error: ${(worksState as WorkListViewModel.WorksState.Error).message}",
                         modifier = Modifier
                             .align(Alignment.Center)
                             .padding(8.dp),
@@ -118,9 +118,9 @@ fun WorkListScreen(
     SearchModal(
         isVisible = isSearchModalVisible,
         searchQuery = searchQuery,
-        onSearchQueryChange = { workViewModel.updateSearchQuery(it) },
+        onSearchQueryChange = { workListViewModel.updateSearchQuery(it) },
         onSearch = { query ->
-            workViewModel.performSearch(query)
+            workListViewModel.performSearch(query)
         },
         onDismiss = { isSearchModalVisible = false }
     )

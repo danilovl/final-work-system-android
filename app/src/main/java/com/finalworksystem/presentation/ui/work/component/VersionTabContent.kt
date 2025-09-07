@@ -20,18 +20,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.finalworksystem.presentation.ui.component.BaseCard
-import com.finalworksystem.presentation.view_model.work.WorkViewModel
+import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
 
 @Composable
 fun VersionTabContent(
-    workViewModel: WorkViewModel,
+    workDetailViewModel: WorkDetailViewModel,
     workId: Int
 ) {
-    val versionsState by workViewModel.versionsState.collectAsState()
+    val versionsState by workDetailViewModel.versionsState.collectAsState()
     val listState = rememberLazyListState()
 
     LaunchedEffect(workId) {
-        workViewModel.loadVersionsForWork(workId, forceRefresh = false)
+        workDetailViewModel.loadVersionsForWork(workId, forceRefresh = false)
     }
 
     val shouldLoadMore by remember {
@@ -45,16 +45,16 @@ fun VersionTabContent(
     }
 
     LaunchedEffect(shouldLoadMore) {
-        if (shouldLoadMore && versionsState is WorkViewModel.VersionsState.Success) {
-            val successState = versionsState as WorkViewModel.VersionsState.Success
+        if (shouldLoadMore && versionsState is WorkDetailViewModel.VersionsState.Success) {
+            val successState = versionsState as WorkDetailViewModel.VersionsState.Success
             if (successState.hasMoreVersions && !successState.isLoadingMore) {
-                workViewModel.loadMoreVersions(workId)
+                workDetailViewModel.loadMoreVersions(workId)
             }
         }
     }
 
     when (versionsState) {
-        is WorkViewModel.VersionsState.Loading -> {
+        is WorkDetailViewModel.VersionsState.Loading -> {
             BaseCard(modifier = Modifier.fillMaxWidth()) {
                 Box(
                     modifier = Modifier
@@ -66,8 +66,8 @@ fun VersionTabContent(
                 }
             }
         }
-        is WorkViewModel.VersionsState.Success -> {
-            val successState = versionsState as WorkViewModel.VersionsState.Success
+        is WorkDetailViewModel.VersionsState.Success -> {
+            val successState = versionsState as WorkDetailViewModel.VersionsState.Success
             val versions = successState.versions
 
             if (versions.isEmpty()) {
@@ -103,8 +103,8 @@ fun VersionTabContent(
                 }
             }
         }
-        is WorkViewModel.VersionsState.Error -> {
-            val errorMessage = (versionsState as WorkViewModel.VersionsState.Error).message
+        is WorkDetailViewModel.VersionsState.Error -> {
+            val errorMessage = (versionsState as WorkDetailViewModel.VersionsState.Error).message
             BaseCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "Error loading versions: $errorMessage",

@@ -9,14 +9,12 @@ import com.finalworksystem.application.use_case.event.GetEventsForWorkUseCase
 import com.finalworksystem.application.use_case.task.GetTasksForWorkUseCase
 import com.finalworksystem.application.use_case.version.GetVersionsForWorkWithPaginationUseCase
 import com.finalworksystem.application.use_case.work.GetWorkDetailUseCase
-import com.finalworksystem.application.use_case.work.GetWorkListWithPaginationUseCase
 import com.finalworksystem.domain.conversation.model.ConversationMessage
 import com.finalworksystem.domain.conversation.model.response.ConversationWorkResponse
 import com.finalworksystem.domain.event.model.Event
 import com.finalworksystem.domain.task.model.Task
 import com.finalworksystem.domain.version.model.Version
 import com.finalworksystem.domain.work.model.Work
-import com.finalworksystem.domain.work.model.WorkListType
 import com.finalworksystem.infrastructure.cache.GlobalCacheManager
 import com.finalworksystem.infrastructure.popup.PopupMessageService
 import com.finalworksystem.infrastructure.user.UserService
@@ -26,9 +24,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class WorkViewModel(
+class WorkDetailViewModel(
     application: Application,
-    private val getWorkListWithPaginationUseCase: GetWorkListWithPaginationUseCase,
     private val getWorkDetailUseCase: GetWorkDetailUseCase,
     private val getTasksForWorkUseCase: GetTasksForWorkUseCase,
     private val getEventsForWorkUseCase: GetEventsForWorkUseCase,
@@ -40,8 +37,61 @@ class WorkViewModel(
     private val globalCacheManager: GlobalCacheManager
 ) : AndroidViewModel(application) {
 
-    private val _worksState = MutableStateFlow<WorksState>(WorksState.Idle)
-    val worksState: StateFlow<WorksState> = _worksState.asStateFlow()
+    sealed class WorkDetailState {
+        object Idle : WorkDetailState()
+        object Loading : WorkDetailState()
+        data class Success(val work: Work) : WorkDetailState()
+        data class Error(val message: String) : WorkDetailState()
+    }
+
+    sealed class TasksState {
+        object Idle : TasksState()
+        object Loading : TasksState()
+        data class Success(
+            val tasks: List<Task>,
+            val hasMoreTasks: Boolean = false,
+            val isLoadingMore: Boolean = false,
+            val totalCount: Int = 0
+        ) : TasksState()
+        data class Error(val message: String) : TasksState()
+    }
+
+    sealed class VersionsState {
+        object Idle : VersionsState()
+        object Loading : VersionsState()
+        data class Success(
+            val versions: List<Version>,
+            val hasMoreVersions: Boolean = false,
+            val isLoadingMore: Boolean = false,
+            val totalCount: Int = 0
+        ) : VersionsState()
+        data class Error(val message: String) : VersionsState()
+    }
+
+    sealed class EventsState {
+        object Idle : EventsState()
+        object Loading : EventsState()
+        data class Success(val events: List<Event>) : EventsState()
+        data class Error(val message: String) : EventsState()
+    }
+
+    sealed class WorkMessagesState {
+        object Idle : WorkMessagesState()
+        object Loading : WorkMessagesState()
+        data class Success(
+            val messages: List<ConversationMessage>,
+            val hasMoreMessages: Boolean = false,
+            val isLoadingMore: Boolean = false
+        ) : WorkMessagesState()
+        data class Error(val message: String) : WorkMessagesState()
+    }
+
+    sealed class ConversationWorkState {
+        object Idle : ConversationWorkState()
+        object Loading : ConversationWorkState()
+        data class Success(val conversationWork: ConversationWorkResponse?) : ConversationWorkState()
+        data class Error(val message: String) : ConversationWorkState()
+    }
 
     private val _workDetailState = MutableStateFlow<WorkDetailState>(WorkDetailState.Idle)
     val workDetailState: StateFlow<WorkDetailState> = _workDetailState.asStateFlow()
@@ -61,35 +111,29 @@ class WorkViewModel(
     private val _conversationWorkState = MutableStateFlow<ConversationWorkState>(ConversationWorkState.Idle)
     val conversationWorkState: StateFlow<ConversationWorkState> = _conversationWorkState.asStateFlow()
 
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
-
     private var hasLeftWorkListSection = false
 
-    private var cachedWorks: Map<WorkListType, List<Work>> = mapOf()
-
     private var cachedWorkDetails: Map<Int, Work> = mapOf()
-
     private var cachedTasks: Map<Int, List<Task>> = mapOf()
-
     private var cachedVersions: Map<Int, List<Version>> = mapOf()
-
     private var cachedEvents: Map<Int, List<Event>> = mapOf()
-
     private var cachedWorkMessages: Map<Int, List<ConversationMessage>> = mapOf()
-
     private var cachedConversationWork: Map<Int, ConversationWorkResponse?> = mapOf()
-
-    private var currentPage = 1
-    private val pageSize = 20
-    private var currentType = WorkListType.AUTHOR
-    private var currentSearch: String? = null
-    private var isLoadingMore = false
 
     private var currentTasksPageMap: MutableMap<Int, Int> = mutableMapOf()
     private var totalTasksCountMap: MutableMap<Int, Int> = mutableMapOf()
     private val tasksPageSize = 15
     private var isLoadingMoreTasks = false
+
+    private val messagesPageSize = 20
+    private var isLoadingMoreMessages = false
+    private val currentMessagesPageMap = mutableMapOf<Int, Int>()
+    private val totalMessagesCountMap = mutableMapOf<Int, Int>()
+
+    private val versionsPageSize = 20
+    private var isLoadingMoreVersions = false
+    private val currentVersionsPageMap = mutableMapOf<Int, Int>()
+    private val totalVersionsCountMap = mutableMapOf<Int, Int>()
 
     private var currentUserId: Int? = null
 
@@ -110,75 +154,6 @@ class WorkViewModel(
                 popupMessageService.showMessage(
                     "Cache cleared due to ${cacheCleanupEvent.reason.name.lowercase()}", 
                     PopupMessageService.MessageLevel.INFO
-                )
-            }
-        }
-    }
-
-    fun loadWorks(type: WorkListType = WorkListType.AUTHOR, forceRefresh: Boolean = false, search: String? = null) {
-        if (!forceRefresh && !hasLeftWorkListSection && cachedWorks.containsKey(type) && search == null) {
-            val cachedWorksList = cachedWorks[type]
-            if (cachedWorksList != null && cachedWorksList.isNotEmpty()) {
-                _worksState.value = WorksState.Success(cachedWorksList, false, false, cachedWorksList.size)
-                return
-            }
-        }
-
-        viewModelScope.launch {
-            _worksState.value = WorksState.Loading
-            currentPage = 1
-            currentType = type
-            currentSearch = search
-
-            getWorkListWithPaginationUseCase(type, currentPage, pageSize, search).collect { result ->
-                result.fold(
-                    onSuccess = { paginatedWorks ->
-                        val works = paginatedWorks.works
-                        val hasMore = paginatedWorks.currentItemCount + ((currentPage - 1) * pageSize) < paginatedWorks.totalCount
-
-                        cachedWorks = cachedWorks + (type to works)
-                        hasLeftWorkListSection = false
-
-                        _worksState.value = WorksState.Success(works, hasMore, false, paginatedWorks.totalCount)
-                    },
-                    onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        _worksState.value = WorksState.Error(errorMessage)
-                        popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
-                    }
-                )
-            }
-        }
-    }
-
-    fun loadMoreWorks() {
-        val currentState = _worksState.value
-        if (currentState !is WorksState.Success || !currentState.hasMoreWorks || isLoadingMore || currentState.isLoadingMore) {
-            return
-        }
-
-        isLoadingMore = true
-        _worksState.value = currentState.copy(isLoadingMore = true)
-
-        viewModelScope.launch {
-            currentPage++
-
-            getWorkListWithPaginationUseCase(currentType, currentPage, pageSize, currentSearch).collect { result ->
-                isLoadingMore = false
-                result.fold(
-                    onSuccess = { paginatedWorks ->
-                        val newWorks = paginatedWorks.works
-                        val currentWorks = currentState.works
-                        val updatedWorks = currentWorks + newWorks
-                        val hasMore = updatedWorks.size < paginatedWorks.totalCount
-
-                        _worksState.value = WorksState.Success(updatedWorks, hasMore, false, paginatedWorks.totalCount)
-                    },
-                    onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        _worksState.value = currentState.copy(isLoadingMore = false)
-                        popupMessageService.showMessage("Failed to load more works: $errorMessage", PopupMessageService.MessageLevel.ERROR)
-                    }
                 )
             }
         }
@@ -211,45 +186,6 @@ class WorkViewModel(
                 )
             }
         }
-    }
-
-    fun markLeftWorkListSection() {
-        hasLeftWorkListSection = true
-    }
-
-    fun markEnteredWorkListSection() {
-        hasLeftWorkListSection = false
-        val wasErrorState = _worksState.value is WorksState.Error
-        if (wasErrorState) {
-            _worksState.value = WorksState.Idle
-        }
-
-        if (_searchQuery.value.isNotBlank() || wasErrorState) {
-            loadWorks(currentType, forceRefresh = true, search = _searchQuery.value.takeIf { it.isNotBlank() })
-        }
-    }
-
-    fun clearWorkCache() {
-        cachedWorks = mapOf()
-        cachedWorkDetails = mapOf()
-        cachedTasks = mapOf()
-        cachedVersions = mapOf()
-        cachedEvents = mapOf()
-        cachedWorkMessages = mapOf()
-        cachedConversationWork = mapOf()
-    }
-
-    fun updateSearchQuery(query: String) {
-        _searchQuery.value = query
-    }
-
-    fun performSearch(query: String) {
-        loadWorks(currentType, forceRefresh = true, search = query.takeIf { it.isNotBlank() })
-    }
-
-    fun clearSearch() {
-        _searchQuery.value = ""
-        loadWorks(currentType, forceRefresh = true, search = null)
     }
 
     fun loadTasksForWork(workId: Int, forceRefresh: Boolean = false) {
@@ -444,18 +380,6 @@ class WorkViewModel(
         }
     }
 
-    private val messagesPageSize = 20
-    private var isLoadingMoreMessages = false
-
-    private val currentMessagesPageMap = mutableMapOf<Int, Int>()
-    private val totalMessagesCountMap = mutableMapOf<Int, Int>()
-
-    private val versionsPageSize = 20
-    private var isLoadingMoreVersions = false
-
-    private val currentVersionsPageMap = mutableMapOf<Int, Int>()
-    private val totalVersionsCountMap = mutableMapOf<Int, Int>()
-
     fun loadWorkMessages(workId: Int, forceRefresh: Boolean = false) {
         if (!forceRefresh && cachedWorkMessages.containsKey(workId)) {
             val cachedMessagesList = cachedWorkMessages[workId]
@@ -560,71 +484,12 @@ class WorkViewModel(
         }
     }
 
-    sealed class WorksState {
-        object Idle : WorksState()
-        object Loading : WorksState()
-        data class Success(
-            val works: List<Work>,
-            val hasMoreWorks: Boolean = false,
-            val isLoadingMore: Boolean = false,
-            val totalCount: Int = 0
-        ) : WorksState()
-        data class Error(val message: String) : WorksState()
-    }
-
-    sealed class WorkDetailState {
-        object Idle : WorkDetailState()
-        object Loading : WorkDetailState()
-        data class Success(val work: Work) : WorkDetailState()
-        data class Error(val message: String) : WorkDetailState()
-    }
-
-    sealed class TasksState {
-        object Idle : TasksState()
-        object Loading : TasksState()
-        data class Success(
-            val tasks: List<Task>,
-            val hasMoreTasks: Boolean = false,
-            val isLoadingMore: Boolean = false,
-            val totalCount: Int = 0
-        ) : TasksState()
-        data class Error(val message: String) : TasksState()
-    }
-
-    sealed class VersionsState {
-        object Idle : VersionsState()
-        object Loading : VersionsState()
-        data class Success(
-            val versions: List<Version>,
-            val hasMoreVersions: Boolean = false,
-            val isLoadingMore: Boolean = false,
-            val totalCount: Int = 0
-        ) : VersionsState()
-        data class Error(val message: String) : VersionsState()
-    }
-
-    sealed class EventsState {
-        object Idle : EventsState()
-        object Loading : EventsState()
-        data class Success(val events: List<Event>) : EventsState()
-        data class Error(val message: String) : EventsState()
-    }
-
-    sealed class WorkMessagesState {
-        object Idle : WorkMessagesState()
-        object Loading : WorkMessagesState()
-        data class Success(
-            val messages: List<ConversationMessage>,
-            val hasMoreMessages: Boolean = false,
-            val isLoadingMore: Boolean = false
-        ) : WorkMessagesState()
-        data class Error(val message: String) : WorkMessagesState()
-    }
-
-    sealed class ConversationWorkState {
-        object Idle : ConversationWorkState()
-        object Loading : ConversationWorkState()
-        data class Success(val conversationWork: ConversationWorkResponse?) : ConversationWorkState()
-        data class Error(val message: String) : ConversationWorkState()
+    fun clearWorkCache() {
+        cachedWorkDetails = mapOf()
+        cachedTasks = mapOf()
+        cachedVersions = mapOf()
+        cachedEvents = mapOf()
+        cachedWorkMessages = mapOf()
+        cachedConversationWork = mapOf()
     }
 }

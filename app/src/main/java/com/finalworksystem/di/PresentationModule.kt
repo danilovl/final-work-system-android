@@ -9,7 +9,8 @@ import com.finalworksystem.presentation.view_model.system_event.SystemEventViewM
 import com.finalworksystem.presentation.view_model.task.TaskListViewModel
 import com.finalworksystem.presentation.view_model.task.TaskDetailViewModel
 import com.finalworksystem.presentation.view_model.user.UserViewModel
-import com.finalworksystem.presentation.view_model.work.WorkViewModel
+import com.finalworksystem.presentation.view_model.work.WorkListViewModel
+import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
@@ -20,7 +21,8 @@ val presentationModule = module {
     viewModel { ConversationDetailViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { EventDetailViewModel(get(), get()) }
     viewModel { SystemEventViewModel(get(), get(), get(), get(), get()) }
-    viewModel { WorkViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { WorkListViewModel(get(), get(), get(), get(), get()) }
+    viewModel { WorkDetailViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { TaskListViewModel(get(), get(), get(), get()) }
     viewModel { TaskDetailViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { UserViewModel(get(), get(), get()) }

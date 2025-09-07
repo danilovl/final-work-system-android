@@ -31,7 +31,8 @@ import com.finalworksystem.presentation.view_model.system_event.SystemEventViewM
 import com.finalworksystem.presentation.view_model.task.TaskListViewModel
 import com.finalworksystem.presentation.view_model.task.TaskDetailViewModel
 import com.finalworksystem.presentation.view_model.user.UserViewModel
-import com.finalworksystem.presentation.view_model.work.WorkViewModel
+import com.finalworksystem.presentation.view_model.work.WorkListViewModel
+import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
@@ -65,7 +66,8 @@ fun AppNavigation(
     navController: NavHostController = rememberNavController(),
     authViewModel: AuthViewModel = koinViewModel(),
     systemEventViewModel: SystemEventViewModel = koinViewModel(),
-    workViewModel: WorkViewModel = koinViewModel(),
+    workListViewModel: WorkListViewModel = koinViewModel(),
+    workDetailViewModel: WorkDetailViewModel = koinViewModel(),
     taskListViewModel: TaskListViewModel = koinViewModel(),
     taskDetailViewModel: TaskDetailViewModel = koinViewModel(),
     conversationListViewModel: ConversationListViewModel = koinViewModel(),
@@ -74,7 +76,7 @@ fun AppNavigation(
     startDestination: String = AppRoutes.LOGIN
 ) {
     val networkConnectivityService = koinInject<NetworkConnectivityService>()
-    val actions = remember(navController) { AppActions(navController, workViewModel, networkConnectivityService) }
+    val actions = remember(navController) { AppActions(navController, workListViewModel, networkConnectivityService) }
 
     NavHost(
         navController = navController,
@@ -113,7 +115,7 @@ fun AppNavigation(
             val workListType = backStackEntry.arguments?.getString("type") ?: "author"
             WorkListScreen(
                 workListType = workListType,
-                workViewModel = workViewModel,
+                workListViewModel = workListViewModel,
                 onNavigateBack = actions.navigateBack,
                 onNavigateToWorkDetail = actions.navigateToWorkDetail
             )
@@ -126,7 +128,7 @@ fun AppNavigation(
             WorkDetailScreen(
                 workId = workId,
                 currentUserId = currentUser?.id ?: 0,
-                workViewModel = workViewModel,
+                workDetailViewModel = workDetailViewModel,
                 onNavigateBack = actions.navigateBack,
                 onNavigateToTaskDetail = actions.navigateToTaskDetail,
                 onNavigateToConversationDetail = actions.navigateToConversationDetail,
@@ -231,32 +233,32 @@ fun AppNavigation(
 
 class AppActions(
     private val navController: NavHostController,
-    private val workViewModel: WorkViewModel,
+    private val workListViewModel: WorkListViewModel,
     networkConnectivityService: NetworkConnectivityService
 ) {
     private val connectivityAwareNavController = ConnectivityAwareNavController(navController, networkConnectivityService)
     
     val navigateToHome: () -> Unit = {
-        workViewModel.markLeftWorkListSection()
+        workListViewModel.markLeftWorkListSection()
         connectivityAwareNavController.navigate(AppRoutes.HOME) {
             popUpTo(AppRoutes.LOGIN) { inclusive = true }
         }
     }
 
     val navigateToLogin: () -> Unit = {
-        workViewModel.markLeftWorkListSection()
+        workListViewModel.markLeftWorkListSection()
         navController.navigate(AppRoutes.LOGIN) {
             popUpTo(AppRoutes.HOME) { inclusive = true }
         }
     }
 
     val navigateToUserDetail: () -> Unit = {
-        workViewModel.markLeftWorkListSection()
+        workListViewModel.markLeftWorkListSection()
         connectivityAwareNavController.navigate(AppRoutes.USER_DETAIL)
     }
 
     val navigateToWorkList: (String) -> Unit = { type ->
-        workViewModel.markEnteredWorkListSection()
+        workListViewModel.markEnteredWorkListSection()
         connectivityAwareNavController.navigate(AppRoutes.workListRoute(type))
     }
 
@@ -277,7 +279,6 @@ class AppActions(
     }
 
     val navigateToWorkDetail: (Int) -> Unit = { workId ->
-        workViewModel.clearWorkCache()
         connectivityAwareNavController.navigate(AppRoutes.workDetailRoute(workId))
     }
 

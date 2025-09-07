@@ -17,22 +17,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.finalworksystem.presentation.ui.component.BaseCard
-import com.finalworksystem.presentation.view_model.work.WorkViewModel
+import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
 
 @Composable
 fun EventTabContent(
-    workViewModel: WorkViewModel,
+    workDetailViewModel: WorkDetailViewModel,
     workId: Int,
     onEventClick: ((com.finalworksystem.domain.event.model.Event) -> Unit)? = null
 ) {
-    val eventsState by workViewModel.eventsState.collectAsState()
+    val eventsState by workDetailViewModel.eventsState.collectAsState()
 
     LaunchedEffect(workId) {
-        workViewModel.loadEventsForWork(workId, forceRefresh = false)
+        workDetailViewModel.loadEventsForWork(workId, forceRefresh = false)
     }
 
     when (eventsState) {
-        is WorkViewModel.EventsState.Loading -> {
+        is WorkDetailViewModel.EventsState.Loading -> {
             BaseCard(modifier = Modifier.fillMaxWidth()) {
                 Box(
                     modifier = Modifier
@@ -44,8 +44,8 @@ fun EventTabContent(
                 }
             }
         }
-        is WorkViewModel.EventsState.Success -> {
-            val events = (eventsState as WorkViewModel.EventsState.Success).events
+        is WorkDetailViewModel.EventsState.Success -> {
+            val events = (eventsState as WorkDetailViewModel.EventsState.Success).events
             if (events.isEmpty()) {
                 BaseCard(modifier = Modifier.fillMaxWidth()) {
                     Text(
@@ -68,8 +68,8 @@ fun EventTabContent(
                 }
             }
         }
-        is WorkViewModel.EventsState.Error -> {
-            val errorMessage = (eventsState as WorkViewModel.EventsState.Error).message
+        is WorkDetailViewModel.EventsState.Error -> {
+            val errorMessage = (eventsState as WorkDetailViewModel.EventsState.Error).message
             BaseCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "Error loading events: $errorMessage",

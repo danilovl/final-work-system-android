@@ -6,25 +6,25 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.finalworksystem.presentation.ui.component.toGeneric
-import com.finalworksystem.presentation.view_model.work.WorkViewModel
+import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
 
 @Composable
 fun WorkDetailConversationMessages(
     workId: Int,
     currentUserId: Int,
-    workViewModel: WorkViewModel,
+    workDetailViewModel: WorkDetailViewModel,
     modifier: Modifier = Modifier
 ) {
-    val workMessagesState by workViewModel.workMessagesState.collectAsState()
+    val workMessagesState by workDetailViewModel.workMessagesState.collectAsState()
 
     LaunchedEffect(workId) {
-        workViewModel.loadWorkMessages(workId)
+        workDetailViewModel.loadWorkMessages(workId)
     }
 
     WorkMessagesList(
         messagesState = workMessagesState.toGeneric(),
         currentUserId = currentUserId,
-        onLoadMore = { workViewModel.loadMoreWorkMessages(workId) },
+        onLoadMore = { workDetailViewModel.loadMoreWorkMessages(workId) },
         modifier = modifier
     )
 }
