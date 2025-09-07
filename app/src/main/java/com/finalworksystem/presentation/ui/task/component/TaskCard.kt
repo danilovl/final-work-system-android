@@ -31,12 +31,12 @@ import androidx.compose.ui.unit.dp
 import com.finalworksystem.domain.common.util.DateUtils
 import com.finalworksystem.domain.task.model.Task
 import com.finalworksystem.presentation.ui.component.BaseCard
-import com.finalworksystem.presentation.view_model.task.TaskViewModel
+import com.finalworksystem.presentation.view_model.task.TaskDetailViewModel
 
 @Composable
 fun TaskCard(
     task: Task,
-    taskViewModel: TaskViewModel? = null,
+    taskViewModel: TaskDetailViewModel? = null,
     onClick: ((Task) -> Unit)? = null
 ) {
     var isStudent by remember { mutableStateOf(false) }

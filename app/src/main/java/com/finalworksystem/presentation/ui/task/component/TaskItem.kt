@@ -28,7 +28,6 @@ import com.finalworksystem.domain.common.util.DateUtils
 import com.finalworksystem.domain.task.model.Task
 import com.finalworksystem.infrastructure.user.UserService
 import com.finalworksystem.presentation.ui.component.BaseCard
-import com.finalworksystem.presentation.view_model.task.TaskViewModel
 import org.koin.compose.koinInject
 
 @Composable
@@ -36,11 +35,9 @@ fun TaskItem(
     task: Task,
     onClick: ((Task) -> Unit)? = null,
     showSupervisorStatus: Boolean = false,
-    taskViewModel: TaskViewModel? = null,
     userService: UserService = koinInject()
 ) {
     var isSupervisor by remember { mutableStateOf(false) }
-    var isStudent by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         if (showSupervisorStatus) {
@@ -48,14 +45,6 @@ fun TaskItem(
                 isSupervisor = userService.isSupervisor()
             } catch (_: Exception) {
                 isSupervisor = false
-            }
-        }
-
-        taskViewModel?.let {
-            try {
-                isStudent = it.isStudent()
-            } catch (_: Exception) {
-                isStudent = false
             }
         }
     }
@@ -91,32 +80,6 @@ fun TaskItem(
                     color = if (task.complete) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                 )
 
-                if (isStudent && taskViewModel != null && task.work != null) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = "Notify Complete:",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Checkbox(
-                            checked = task.notifyComplete,
-                            onCheckedChange = { isChecked ->
-                                if (isChecked && !task.notifyComplete) {
-                                    taskViewModel.notifyTaskComplete(task.id, task.work.id) { success -> }
-                                }
-                            },
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = if (task.notifyComplete) Color.Green else MaterialTheme.colorScheme.primary,
-                                uncheckedColor = if (!task.notifyComplete) Color.Red else MaterialTheme.colorScheme.outline,
-                                checkmarkColor = Color.White
-                            ),
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
             }
 
             if (showSupervisorStatus && isSupervisor) {

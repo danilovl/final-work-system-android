@@ -10,7 +10,8 @@ import com.finalworksystem.presentation.view_model.auth.AuthViewModel
 import com.finalworksystem.presentation.view_model.conversation.ConversationListViewModel
 import com.finalworksystem.presentation.view_model.conversation.ConversationDetailViewModel
 import com.finalworksystem.presentation.view_model.system_event.SystemEventViewModel
-import com.finalworksystem.presentation.view_model.task.TaskViewModel
+import com.finalworksystem.presentation.view_model.task.TaskListViewModel
+import com.finalworksystem.presentation.view_model.task.TaskDetailViewModel
 import com.finalworksystem.presentation.view_model.user.UserViewModel
 import com.finalworksystem.presentation.view_model.work.WorkViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -22,7 +23,8 @@ fun AppNavigationWithDrawer(
     authViewModel: AuthViewModel = koinViewModel(),
     systemEventViewModel: SystemEventViewModel = koinViewModel(),
     workViewModel: WorkViewModel = koinViewModel(),
-    taskViewModel: TaskViewModel = koinViewModel(),
+    taskListViewModel: TaskListViewModel = koinViewModel(),
+    taskDetailViewModel: TaskDetailViewModel = koinViewModel(),
     conversationListViewModel: ConversationListViewModel = koinViewModel(),
     conversationDetailViewModel: ConversationDetailViewModel = koinViewModel(),
     userViewModel: UserViewModel = koinViewModel(),
@@ -52,7 +54,8 @@ fun AppNavigationWithDrawer(
                 authViewModel = authViewModel,
                 systemEventViewModel = systemEventViewModel,
                 workViewModel = workViewModel,
-                taskViewModel = taskViewModel,
+                taskListViewModel = taskListViewModel,
+                taskDetailViewModel = taskDetailViewModel,
                 conversationListViewModel = conversationListViewModel,
                 conversationDetailViewModel = conversationDetailViewModel,
                 userViewModel = userViewModel,

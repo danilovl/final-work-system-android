@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.finalworksystem.domain.task.model.Task
 import com.finalworksystem.presentation.ui.task.component.TaskItem
-import com.finalworksystem.presentation.view_model.task.TaskViewModel
 
 @Composable
 fun TaskListScreen(
@@ -33,7 +32,6 @@ fun TaskListScreen(
     onTaskClick: ((Task) -> Unit)? = null,
     onLoadMore: () -> Unit = {},
     showSupervisorStatus: Boolean = false,
-    taskViewModel: TaskViewModel? = null,
     modifier: Modifier = Modifier
 ) {
     if (isLoading) {
@@ -109,8 +107,7 @@ fun TaskListScreen(
                 TaskItem(
                     task = task,
                     onClick = onTaskClick,
-                    showSupervisorStatus = showSupervisorStatus,
-                    taskViewModel = taskViewModel
+                    showSupervisorStatus = showSupervisorStatus
                 )
             }
 

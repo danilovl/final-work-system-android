@@ -34,23 +34,23 @@ import com.finalworksystem.presentation.ui.task.component.TaskDetailTopBar
 import com.finalworksystem.presentation.ui.task.component.TaskInformationCard
 import com.finalworksystem.presentation.ui.task.component.TaskStatusDialog
 import com.finalworksystem.presentation.ui.task.component.TaskWorkInfoCard
-import com.finalworksystem.presentation.view_model.task.TaskViewModel
+import com.finalworksystem.presentation.view_model.task.TaskDetailViewModel
 
 @Composable
 fun TaskDetailScreen(
     workId: Int,
     taskId: Int,
-    taskViewModel: TaskViewModel,
+    taskDetailViewModel: TaskDetailViewModel,
     userService: UserService,
     isOwner: Boolean = false,
     onNavigateBack: () -> Unit,
     onNavigateToWorkDetail: (Int) -> Unit
 ) {
-    val taskDetailState by taskViewModel.taskDetailState.collectAsState()
+    val taskDetailState by taskDetailViewModel.taskDetailState.collectAsState()
     var showTitleDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(workId, taskId) {
-        taskViewModel.loadTaskDetail(workId, taskId)
+        taskDetailViewModel.loadTaskDetail(workId, taskId)
     }
 
     Scaffold(
@@ -58,7 +58,7 @@ fun TaskDetailScreen(
             TaskDetailTopBar(
                 taskDetailState = taskDetailState,
                 onNavigateBack = onNavigateBack,
-                onRefresh = { taskViewModel.loadTaskDetail(workId, taskId) },
+                onRefresh = { taskDetailViewModel.loadTaskDetail(workId, taskId) },
                 onTitleClick = { showTitleDialog = true }
             )
         }
@@ -69,16 +69,16 @@ fun TaskDetailScreen(
                 .padding(paddingValues)
         ) {
             when (val state = taskDetailState) {
-                is TaskViewModel.TaskDetailState.Loading -> {
+                is TaskDetailViewModel.TaskDetailState.Loading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
-                is TaskViewModel.TaskDetailState.Success -> {
+                is TaskDetailViewModel.TaskDetailState.Success -> {
                     TaskDetailContent(
                         task = state.task,
                         workId = workId,
-                        taskViewModel = taskViewModel,
+                        taskDetailViewModel = taskDetailViewModel,
                         userService = userService,
                         isOwner = isOwner,
                         modifier = Modifier.fillMaxSize(),
@@ -86,7 +86,7 @@ fun TaskDetailScreen(
                         onNavigateBack = onNavigateBack
                     )
                 }
-                is TaskViewModel.TaskDetailState.Error -> {
+                is TaskDetailViewModel.TaskDetailState.Error -> {
                     Column(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -98,7 +98,7 @@ fun TaskDetailScreen(
                         )
                     }
                 }
-                is TaskViewModel.TaskDetailState.Idle -> {
+                is TaskDetailViewModel.TaskDetailState.Idle -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center)
                     )
@@ -108,7 +108,7 @@ fun TaskDetailScreen(
     }
 
     val currentState = taskDetailState
-    if (currentState is TaskViewModel.TaskDetailState.Success) {
+    if (currentState is TaskDetailViewModel.TaskDetailState.Success) {
         TitleDialog(
             title = currentState.task.name,
             isVisible = showTitleDialog,
@@ -121,7 +121,7 @@ fun TaskDetailScreen(
 fun TaskDetailContent(
     task: Task,
     workId: Int,
-    taskViewModel: TaskViewModel,
+    taskDetailViewModel: TaskDetailViewModel,
     userService: UserService,
     isOwner: Boolean,
     modifier: Modifier = Modifier,
@@ -150,7 +150,7 @@ fun TaskDetailContent(
 
         LaunchedEffect(Unit) {
             isSupervisor = userService.isSupervisor()
-            isStudent = taskViewModel.isStudent()
+            isStudent = taskDetailViewModel.isStudent()
         }
 
         TaskStatusDialog(
@@ -165,7 +165,7 @@ fun TaskDetailContent(
             onConfirm = {
                 selectedStatus?.let { status ->
                     isChangingStatus = true
-                    taskViewModel.changeTaskStatus(task.id, workId, status) { success ->
+                    taskDetailViewModel.changeTaskStatus(task.id, workId, status) { success ->
                         isChangingStatus = false
                         if (success) {
                             showStatusDialog = false
@@ -186,7 +186,7 @@ fun TaskDetailContent(
                         onClick = {
                             showDeleteConfirmDialog = false
                             isDeletingTask = true
-                            taskViewModel.deleteTask(task.id, workId) { success ->
+                            taskDetailViewModel.deleteTask(task.id, workId) { success ->
                                 isDeletingTask = false
                                 if (success) {
                                     onNavigateBack()
@@ -229,7 +229,7 @@ fun TaskDetailContent(
             onChangeStatusClick = { showStatusDialog = true },
             onNotifyCompleteClick = {
                 isNotifyingComplete = true
-                taskViewModel.notifyTaskComplete(task.id, workId) { success ->
+                taskDetailViewModel.notifyTaskComplete(task.id, workId) { success ->
                     isNotifyingComplete = false
                 }
             },

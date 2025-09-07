@@ -8,18 +8,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.finalworksystem.presentation.ui.component.BaseTopAppBar
-import com.finalworksystem.presentation.view_model.task.TaskViewModel
+import com.finalworksystem.presentation.view_model.task.TaskListViewModel
 
 @Composable
 fun TaskListSolverScreen(
-    taskViewModel: TaskViewModel,
+    taskListViewModel: TaskListViewModel,
     onNavigateBack: () -> Unit,
     onTaskClick: ((Int, Int) -> Unit)? = null
 ) {
-    val tasksState by taskViewModel.tasksState.collectAsState()
+    val tasksState by taskListViewModel.tasksState.collectAsState()
 
     LaunchedEffect(Unit) {
-        taskViewModel.loadTasksForSolver(forceRefresh = false)
+        taskListViewModel.loadTasksForSolver(forceRefresh = false)
     }
 
     Scaffold(
@@ -27,27 +27,26 @@ fun TaskListSolverScreen(
             BaseTopAppBar(
                 title = "Assigned task",
                 onNavigateBack = onNavigateBack,
-                onReload = { taskViewModel.loadTasksForSolver(forceRefresh = true) },
-                loadedCount = (tasksState as? TaskViewModel.TasksState.Success)?.tasks?.size ?: 0,
-                totalCount = (tasksState as? TaskViewModel.TasksState.Success)?.totalCount?.let { if (it > 0) it else -1 } ?: -1,
-                isLoading = tasksState is TaskViewModel.TasksState.Loading
+                onReload = { taskListViewModel.loadTasksForSolver(forceRefresh = true) },
+                loadedCount = (tasksState as? TaskListViewModel.TasksState.Success)?.tasks?.size ?: 0,
+                totalCount = (tasksState as? TaskListViewModel.TasksState.Success)?.totalCount?.let { if (it > 0) it else -1 } ?: -1,
+                isLoading = tasksState is TaskListViewModel.TasksState.Loading
             )
         }
     ) { paddingValues ->
         when (tasksState) {
-            is TaskViewModel.TasksState.Loading -> {
+            is TaskListViewModel.TasksState.Loading -> {
                 TaskListScreen(
                     tasks = emptyList(),
                     isLoading = true,
                     onTaskClick = onTaskClick?.let { navFunction ->
                         { task -> navFunction(task.work?.id ?: 0, task.id) }
                     },
-                    taskViewModel = taskViewModel,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
-            is TaskViewModel.TasksState.Success -> {
-                val successState = tasksState as TaskViewModel.TasksState.Success
+            is TaskListViewModel.TasksState.Success -> {
+                val successState = tasksState as TaskListViewModel.TasksState.Success
                 TaskListScreen(
                     tasks = successState.tasks,
                     hasMoreTasks = successState.hasMoreTasks,
@@ -56,19 +55,17 @@ fun TaskListSolverScreen(
                         { task -> navFunction(task.work?.id ?: 0, task.id) }
                     },
                     onLoadMore = {
-                        taskViewModel.loadMoreTasks()
+                        taskListViewModel.loadMoreTasks()
                     },
-                    taskViewModel = taskViewModel,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
-            is TaskViewModel.TasksState.Error -> {
+            is TaskListViewModel.TasksState.Error -> {
                 TaskListScreen(
                     tasks = emptyList(),
                     onTaskClick = onTaskClick?.let { navFunction ->
                         { task -> navFunction(task.work?.id ?: 0, task.id) }
                     },
-                    taskViewModel = taskViewModel,
                     modifier = Modifier.padding(paddingValues)
                 )
             }

@@ -13,12 +13,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
-import com.finalworksystem.presentation.view_model.task.TaskViewModel
+import com.finalworksystem.presentation.view_model.task.TaskDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskDetailTopBar(
-    taskDetailState: TaskViewModel.TaskDetailState,
+    taskDetailState: TaskDetailViewModel.TaskDetailState,
     onNavigateBack: () -> Unit,
     onRefresh: () -> Unit,
     onTitleClick: () -> Unit
@@ -26,7 +26,7 @@ fun TaskDetailTopBar(
     TopAppBar(
         title = {
             val taskTitle = when (taskDetailState) {
-                is TaskViewModel.TaskDetailState.Success -> taskDetailState.task.name
+                is TaskDetailViewModel.TaskDetailState.Success -> taskDetailState.task.name
                 else -> "Task detail"
             }
             Text(
@@ -34,7 +34,7 @@ fun TaskDetailTopBar(
                 style = MaterialTheme.typography.titleMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = if (taskDetailState is TaskViewModel.TaskDetailState.Success) {
+                modifier = if (taskDetailState is TaskDetailViewModel.TaskDetailState.Success) {
                     Modifier.clickable { onTitleClick() }
                 } else {
                     Modifier

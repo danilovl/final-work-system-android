@@ -28,7 +28,8 @@ import com.finalworksystem.presentation.view_model.auth.AuthViewModel
 import com.finalworksystem.presentation.view_model.conversation.ConversationListViewModel
 import com.finalworksystem.presentation.view_model.conversation.ConversationDetailViewModel
 import com.finalworksystem.presentation.view_model.system_event.SystemEventViewModel
-import com.finalworksystem.presentation.view_model.task.TaskViewModel
+import com.finalworksystem.presentation.view_model.task.TaskListViewModel
+import com.finalworksystem.presentation.view_model.task.TaskDetailViewModel
 import com.finalworksystem.presentation.view_model.user.UserViewModel
 import com.finalworksystem.presentation.view_model.work.WorkViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -65,7 +66,8 @@ fun AppNavigation(
     authViewModel: AuthViewModel = koinViewModel(),
     systemEventViewModel: SystemEventViewModel = koinViewModel(),
     workViewModel: WorkViewModel = koinViewModel(),
-    taskViewModel: TaskViewModel = koinViewModel(),
+    taskListViewModel: TaskListViewModel = koinViewModel(),
+    taskDetailViewModel: TaskDetailViewModel = koinViewModel(),
     conversationListViewModel: ConversationListViewModel = koinViewModel(),
     conversationDetailViewModel: ConversationDetailViewModel = koinViewModel(),
     userViewModel: UserViewModel = koinViewModel(),
@@ -134,7 +136,7 @@ fun AppNavigation(
 
         composable(AppRoutes.TASK_LIST_OWNER) {
             TaskListOwnerScreen(
-                taskViewModel = taskViewModel,
+                taskListViewModel = taskListViewModel,
                 onNavigateBack = actions.navigateBack,
                 onTaskClick = actions.navigateToTaskDetail
             )
@@ -142,7 +144,7 @@ fun AppNavigation(
 
         composable(AppRoutes.TASK_LIST_SOLVER) {
             TaskListSolverScreen(
-                taskViewModel = taskViewModel,
+                taskListViewModel = taskListViewModel,
                 onNavigateBack = actions.navigateBack,
                 onTaskClick = actions.navigateToTaskDetail
             )
@@ -158,7 +160,7 @@ fun AppNavigation(
             TaskDetailScreen(
                 workId = workId,
                 taskId = taskId,
-                taskViewModel = taskViewModel,
+                taskDetailViewModel = taskDetailViewModel,
                 userService = userService,
                 isOwner = isOwner,
                 onNavigateBack = actions.navigateBack,
