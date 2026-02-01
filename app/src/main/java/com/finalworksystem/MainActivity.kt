@@ -66,11 +66,10 @@ class MainActivity : ComponentActivity() {
             if (language == "INITIAL_LOADING" || isLoggedIn == null) {
                 LoadingScreen()
             } else {
-                val currentLanguage = language as String?
                 val context = LocalContext.current
-                val localeContext = remember(currentLanguage) {
-                    if (currentLanguage != null) {
-                        val locale = Locale(currentLanguage)
+                val localeContext = remember(language) {
+                    if (language != null) {
+                        val locale = Locale.forLanguageTag(language)
                         Locale.setDefault(locale)
                         val config = Configuration(context.resources.configuration)
                         config.setLocale(locale)
@@ -80,11 +79,13 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                LaunchedEffect(currentLanguage) {
-                    if (currentLanguage != null) {
+                LaunchedEffect(language) {
+                    if (language != null) {
                         val currentLocale = AppCompatDelegate.getApplicationLocales().toLanguageTags()
-                        if (currentLanguage != currentLocale) {
-                            val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(currentLanguage)
+                        if (language != currentLocale) {
+                            val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(
+                                language
+                            )
                             AppCompatDelegate.setApplicationLocales(appLocale)
                         }
                     } else {
@@ -130,7 +131,6 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        // Force refresh of localized strings from resources when locale changes
                         val currentLocale = LocalContext.current.resources.configuration.locales[0]
                         key(currentLocale) {
                             Scaffold(
@@ -183,7 +183,7 @@ class MainActivity : ComponentActivity() {
                                                         popUpTo(navController.graph.startDestinationId) { inclusive = true }
                                                     }
                                                 },
-                                                startDestination = if (isLoggedIn == true) AppRoutes.HOME else AppRoutes.LOGIN
+                                                startDestination = if (isLoggedIn) AppRoutes.HOME else AppRoutes.LOGIN
                                             )
                                         }
                                     }
