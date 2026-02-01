@@ -26,8 +26,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.event.model.EventAddress
 import com.finalworksystem.presentation.ui.component.BaseCard
 import com.google.android.gms.maps.model.CameraPosition
@@ -51,7 +53,7 @@ fun EventAddressCard(address: EventAddress) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Location",
+                text = stringResource(R.string.location),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -63,7 +65,7 @@ fun EventAddressCard(address: EventAddress) {
             ) {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.location),
                     modifier = Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -127,7 +129,7 @@ fun EventAddressCard(address: EventAddress) {
                             val markerState = remember { MarkerState(position = location) }
                             Marker(
                                 state = markerState,
-                                title = address.name ?: "Event Location",
+                                title = address.name ?: stringResource(R.string.location),
                                 snippet = address.street
                             )
                         }
@@ -140,7 +142,7 @@ fun EventAddressCard(address: EventAddress) {
                         ) {
                             Icon(
                                 imageVector = Icons.Default.OpenInFull,
-                                contentDescription = "Expand to fullscreen",
+                                contentDescription = stringResource(R.string.expand_to_fullscreen),
                                 tint = MaterialTheme.colorScheme.onSurface
                             )
                         }

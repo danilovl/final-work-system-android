@@ -29,8 +29,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.common.util.DateUtils
 import com.finalworksystem.domain.work.model.Work
 import com.finalworksystem.presentation.ui.component.BaseCard
@@ -64,10 +66,10 @@ fun WorksList(works: List<Work>, onNavigateToWorkDetail: (Int) -> Unit) {
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.List,
-                contentDescription = "Works",
+                contentDescription = stringResource(R.string.works),
                 modifier = Modifier.padding(end = 8.dp)
             )
-            Text("Works (${works.size})")
+            Text(stringResource(R.string.works_with_count, works.size))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -104,7 +106,7 @@ fun WorksFullList(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Works (${works.size})",
+                text = stringResource(R.string.works_with_count, works.size),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -112,7 +114,7 @@ fun WorksFullList(
             IconButton(onClick = onDismiss) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Close"
+                    contentDescription = stringResource(R.string.close)
                 )
             }
         }
@@ -158,25 +160,25 @@ fun WorkFullWidthItem(work: Work, onClick: () -> Unit) {
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "Type: ${work.type.name}",
+                text = stringResource(R.string.type_prefix, work.type.name),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Text(
-                text = "Status: ${work.status.name}",
+                text = stringResource(R.string.status_prefix, work.status.name),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Text(
-                text = "Deadline: ${DateUtils.formatToReadable(work.deadline)}",
+                text = stringResource(R.string.deadline_prefix, DateUtils.formatToReadable(work.deadline)),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Text(
-                text = "Supervisor: ${work.supervisor?.let { "${it.firstname} ${it.lastname}" } ?: "N/A"}",
+                text = stringResource(R.string.supervisor) + ": ${work.supervisor?.let { "${it.firstname} ${it.lastname}" } ?: "N/A"}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

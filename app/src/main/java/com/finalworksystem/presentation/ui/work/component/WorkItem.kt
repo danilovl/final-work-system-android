@@ -12,8 +12,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.common.util.DateUtils
 import com.finalworksystem.domain.work.model.Work
 import com.finalworksystem.presentation.ui.component.BaseCard
@@ -42,12 +44,12 @@ fun WorkItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Type: ${work.type.name}",
+                    text = stringResource(R.string.type_prefix, work.type.name),
                     style = MaterialTheme.typography.bodyMedium
                 )
 
                 Text(
-                    text = "Status: ${work.status.name}",
+                    text = stringResource(R.string.status_prefix, work.status.name),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -55,7 +57,7 @@ fun WorkItem(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "Deadline: ${DateUtils.formatToYmd(work.deadline)}",
+                text = stringResource(R.string.deadline_prefix, DateUtils.formatToYmd(work.deadline)),
                 style = MaterialTheme.typography.bodySmall
             )
 
@@ -66,12 +68,12 @@ fun WorkItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Author: ${work.author?.fullName ?: work.author?.let { "${it.firstname} ${it.lastname}" } ?: "N/A"}",
+                    text = stringResource(R.string.author) + ": ${work.author?.fullName ?: work.author?.let { "${it.firstname} ${it.lastname}" } ?: stringResource(R.string.none)}",
                     style = MaterialTheme.typography.bodySmall
                 )
 
                 Text(
-                    text = "ID: ${work.id}",
+                    text = stringResource(R.string.id_prefix, work.id.toString()),
                     style = MaterialTheme.typography.bodySmall
                 )
             }

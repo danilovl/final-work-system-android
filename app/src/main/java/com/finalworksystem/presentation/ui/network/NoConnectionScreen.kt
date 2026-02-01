@@ -21,10 +21,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.finalworksystem.R
 import kotlinx.coroutines.launch
 
 @Composable
@@ -46,13 +48,13 @@ fun NoConnectionScreen(
         ) {
             Icon(
                 imageVector = Icons.Default.WifiOff,
-                contentDescription = "No Internet Connection",
+                contentDescription = stringResource(R.string.no_internet),
                 modifier = Modifier.size(80.dp),
                 tint = MaterialTheme.colorScheme.error
             )
             
             Text(
-                text = "No Internet Connection",
+                text = stringResource(R.string.no_internet),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -60,7 +62,7 @@ fun NoConnectionScreen(
             )
             
             Text(
-                text = "Check your network connection and try again",
+                text = stringResource(R.string.no_internet_description),
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -88,7 +90,7 @@ fun NoConnectionScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text("Try Again")
+                    Text(stringResource(R.string.try_again))
                 }
             }
         }

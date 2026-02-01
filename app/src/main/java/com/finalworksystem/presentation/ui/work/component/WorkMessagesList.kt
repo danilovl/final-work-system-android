@@ -18,7 +18,9 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.conversation.model.ConversationMessage
 import com.finalworksystem.presentation.ui.component.MessagesState
 
@@ -54,7 +56,7 @@ fun WorkMessagesList(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Error loading messages: ${messagesState.message}",
+                    text = stringResource(R.string.error_loading_messages, messagesState.message),
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(16.dp)
                 )
@@ -65,7 +67,7 @@ fun WorkMessagesList(
                 modifier = modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No messages")
+                Text(stringResource(R.string.no_messages))
             }
         }
     }
@@ -87,7 +89,7 @@ private fun WorkMessagesContent(
             modifier = modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("No messages")
+            Text(stringResource(R.string.no_messages))
         }
         return
     }

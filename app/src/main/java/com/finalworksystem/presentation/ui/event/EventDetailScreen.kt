@@ -29,7 +29,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.event.model.Event
 import com.finalworksystem.infrastructure.user.UserService
 import com.finalworksystem.presentation.ui.event.component.EventActionsCard
@@ -84,12 +86,12 @@ fun EventDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Event Detail") },
+                title = { Text(stringResource(R.string.event_detail)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 },
@@ -99,7 +101,7 @@ fun EventDetailScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "Refresh"
+                            contentDescription = stringResource(R.string.refresh)
                         )
                     }
                 }
@@ -142,7 +144,7 @@ fun EventDetailScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Text(
-                            text = "Error: ${errorState.message}",
+                            text = stringResource(R.string.error_prefix, errorState.message),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.error
                         )
@@ -151,7 +153,7 @@ fun EventDetailScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Refresh,
-                                contentDescription = "Retry"
+                                contentDescription = stringResource(R.string.retry)
                             )
                         }
                     }
@@ -163,8 +165,8 @@ fun EventDetailScreen(
     if (showDeleteConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmDialog = false },
-            title = { Text("Delete Event") },
-            text = { Text("Are you sure you want to delete this event? This action cannot be undone.") },
+            title = { Text(stringResource(R.string.delete_event)) },
+            text = { Text(stringResource(R.string.delete_event_confirm)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -172,14 +174,14 @@ fun EventDetailScreen(
                         eventDetailViewModel.deleteEvent(eventId)
                     }
                 ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showDeleteConfirmDialog = false }
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )

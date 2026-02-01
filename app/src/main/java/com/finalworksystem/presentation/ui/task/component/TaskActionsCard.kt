@@ -18,8 +18,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.task.model.Task
 import com.finalworksystem.presentation.ui.component.BaseCard
 
@@ -46,7 +48,7 @@ fun TaskActionsCard(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = "Actions",
+                    text = stringResource(R.string.actions),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.primary
@@ -64,7 +66,7 @@ fun TaskActionsCard(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Change Status")
+                        Text(stringResource(R.string.change_status))
                     }
 
                     OutlinedButton(
@@ -84,9 +86,9 @@ fun TaskActionsCard(
                                 strokeWidth = 2.dp
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Deleting...")
+                            Text(stringResource(R.string.deleting))
                         } else {
-                            Text("Delete Task")
+                            Text(stringResource(R.string.delete_task))
                         }
                     }
                 }
@@ -109,9 +111,9 @@ fun TaskActionsCard(
                                 strokeWidth = 2.dp
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Notifying...")
+                            Text(stringResource(R.string.notifying))
                         } else {
-                            Text(if (task.notifyComplete) "Already Notified" else "Notify Complete")
+                            Text(if (task.notifyComplete) stringResource(R.string.already_notified) else stringResource(R.string.notify_complete))
                         }
                     }
                 }

@@ -101,9 +101,15 @@ class WorkListViewModel(
                         _worksState.value = WorksState.Success(works, hasMore, false, paginatedWorks.totalCount)
                     },
                     onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        _worksState.value = WorksState.Error(errorMessage)
-                        popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        val errorMessage = error.message
+                        if (errorMessage != null) {
+                            _worksState.value = WorksState.Error(errorMessage)
+                            popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        } else {
+                            val fallbackMessage = getApplication<Application>().getString(com.finalworksystem.R.string.unknown_error)
+                            _worksState.value = WorksState.Error(fallbackMessage)
+                            popupMessageService.showMessageResource(com.finalworksystem.R.string.unknown_error, PopupMessageService.MessageLevel.ERROR)
+                        }
                     }
                 )
             }
@@ -134,9 +140,13 @@ class WorkListViewModel(
                         _worksState.value = WorksState.Success(updatedWorks, hasMore, false, paginatedWorks.totalCount)
                     },
                     onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
+                        val errorMessage = error.message
                         _worksState.value = currentState.copy(isLoadingMore = false)
-                        popupMessageService.showMessage("Failed to load more works: $errorMessage", PopupMessageService.MessageLevel.ERROR)
+                        if (errorMessage != null) {
+                            popupMessageService.showMessage("Failed to load more works: $errorMessage", PopupMessageService.MessageLevel.ERROR)
+                        } else {
+                            popupMessageService.showMessageResource(com.finalworksystem.R.string.unknown_error, PopupMessageService.MessageLevel.ERROR)
+                        }
                     }
                 )
             }

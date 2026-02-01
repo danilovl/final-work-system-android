@@ -23,8 +23,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.common.util.DateUtils
 import com.finalworksystem.domain.common.util.HtmlUtils
 import com.finalworksystem.domain.conversation.model.ConversationMessage
@@ -84,7 +86,7 @@ fun MessageItem(
                     verticalAlignment = Alignment.Top
                 ) {
                     Text(
-                        text = "${message.owner.firstname} ${message.owner.lastname}",
+                        text = message.owner.fullName ?: "${message.owner.firstname} ${message.owner.lastname}",
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Bold,
                         color = if (isOwner) 
@@ -101,7 +103,7 @@ fun MessageItem(
                         ) {
                             Icon(
                                 imageVector = if (!message.isRead) Icons.Default.Check else Icons.Default.Close,
-                                contentDescription = if (!message.isRead) "Mark as read" else "Mark as unread",
+                                contentDescription = if (!message.isRead) stringResource(R.string.mark_as_viewed) else null,
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(16.dp)
                             )

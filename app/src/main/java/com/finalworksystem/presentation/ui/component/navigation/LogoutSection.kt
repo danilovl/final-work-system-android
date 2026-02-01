@@ -8,6 +8,8 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.res.stringResource
+import com.finalworksystem.R
 import kotlinx.coroutines.launch
 
 @Composable
@@ -18,11 +20,11 @@ fun LogoutSection(
     val scope = rememberCoroutineScope()
 
     NavigationDrawerItem(
-        label = { Text("Logout") },
+        label = { Text(stringResource(R.string.logout)) },
         icon = { 
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                contentDescription = "Logout"
+                contentDescription = stringResource(R.string.logout)
             )
         },
         selected = false,

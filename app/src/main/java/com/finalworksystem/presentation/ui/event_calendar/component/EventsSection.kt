@@ -13,8 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import com.finalworksystem.domain.event_calendar.model.CalendarEvent as DomainCalendarEvent
@@ -33,7 +35,7 @@ fun EventsSection(
 ) {
     Column {
         Text(
-            text = "Events for ${selectedDate.format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"))}",
+            text = stringResource(R.string.events_for_date, selectedDate.format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"))),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
@@ -52,7 +54,7 @@ fun EventsSection(
 
             errorMessage != null -> {
                 Text(
-                    text = "Error: $errorMessage",
+                    text = stringResource(R.string.error_prefix, errorMessage),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -75,7 +77,7 @@ fun EventsSection(
 
                 if (eventsForSelectedDate.isEmpty()) {
                     Text(
-                        text = "No events for this date",
+                        text = stringResource(R.string.no_events_for_date),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

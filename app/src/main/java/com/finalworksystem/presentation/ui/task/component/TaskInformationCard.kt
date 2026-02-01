@@ -13,8 +13,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.common.util.DateUtils
 import com.finalworksystem.domain.task.model.Task
 import com.finalworksystem.presentation.ui.component.BaseCard
@@ -32,7 +34,7 @@ fun TaskInformationCard(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Task Information",
+                text = stringResource(R.string.task_information),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary
@@ -40,22 +42,22 @@ fun TaskInformationCard(
 
             TaskInfoItemWithIcon(
                 icon = if (task.complete) Icons.Default.CheckCircle else Icons.Default.Info,
-                label = "Status",
-                value = if (task.complete) "Completed" else "Pending",
+                label = stringResource(R.string.status),
+                value = if (task.complete) stringResource(R.string.task_status_completed) else stringResource(R.string.task_status_pending),
                 iconTint = if (task.complete) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             TaskInfoItemWithIcon(
                 icon = Icons.Default.Info,
-                label = "Active",
-                value = if (task.active) "Yes" else "No",
+                label = stringResource(R.string.active),
+                value = if (task.active) stringResource(R.string.yes) else stringResource(R.string.no),
                 iconTint = if (task.active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             task.deadline?.let { deadline ->
                 TaskInfoItemWithIcon(
                     icon = Icons.Default.DateRange,
-                    label = "Deadline",
+                    label = stringResource(R.string.deadline),
                     value = DateUtils.formatToYmd(deadline),
                     iconTint = MaterialTheme.colorScheme.error
                 )
@@ -63,14 +65,14 @@ fun TaskInformationCard(
 
             TaskInfoItemWithIcon(
                 icon = Icons.Default.Notifications,
-                label = "Notify on complete",
-                value = if (task.notifyComplete) "Yes" else "No",
+                label = stringResource(R.string.notify_on_complete),
+                value = if (task.notifyComplete) stringResource(R.string.yes) else stringResource(R.string.no),
                 iconTint = if (task.notifyComplete) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             TaskInfoItemWithIcon(
                 icon = Icons.Default.Info,
-                label = "ID",
+                label = stringResource(R.string.id),
                 value = task.id.toString(),
                 iconTint = MaterialTheme.colorScheme.onSurfaceVariant
             )

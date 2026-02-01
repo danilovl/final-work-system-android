@@ -39,7 +39,7 @@ fun Header(
 
             Column {
                 Text(
-                    text = "${user.firstname} ${user.lastname}",
+                    text = user.fullName ?: "${user.firstname} ${user.lastname}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )

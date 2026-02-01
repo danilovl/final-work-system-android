@@ -31,8 +31,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.conversation.model.ConversationParticipant
 import com.finalworksystem.presentation.ui.user.component.UserAvatar
 
@@ -51,10 +53,10 @@ fun ParticipantsList(participants: List<ConversationParticipant>) {
         ) {
             Icon(
                 imageVector = Icons.Default.Person,
-                contentDescription = "Participants",
+                contentDescription = stringResource(R.string.participants_count, participants.size),
                 modifier = Modifier.padding(end = 8.dp)
             )
-            Text("Participants (${participants.size})")
+            Text(stringResource(R.string.participants_count, participants.size))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -89,7 +91,7 @@ fun ParticipantsFullList(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Participants (${participants.size})",
+                text = stringResource(R.string.participants_count, participants.size),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -97,7 +99,7 @@ fun ParticipantsFullList(
             IconButton(onClick = onDismiss) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Close"
+                    contentDescription = stringResource(R.string.close)
                 )
             }
         }
@@ -144,7 +146,7 @@ fun ParticipantFullWidthItem(participant: ConversationParticipant) {
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = "${participant.user.firstname} ${participant.user.lastname}",
+                    text = participant.user.fullName ?: "${participant.user.firstname} ${participant.user.lastname}",
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium
                 )

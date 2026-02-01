@@ -23,8 +23,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.system_event.model.SystemEvent
 import com.finalworksystem.presentation.ui.component.BaseCard
 
@@ -58,7 +60,7 @@ fun SystemEventItem(
 
                     if (isTitleLong) {
                         Text(
-                            text = if (isExpanded) "Tap to collapse" else "Tap to expand",
+                            text = if (isExpanded) stringResource(R.string.tap_to_collapse) else stringResource(R.string.tap_to_expand),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -73,7 +75,7 @@ fun SystemEventItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "By: ${event.owner}",
+                    text = stringResource(R.string.by_prefix, event.owner),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -95,7 +97,7 @@ fun SystemEventItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "ID: ${event.id}",
+                    text = stringResource(R.string.id_prefix, event.id.toString()),
                     style = MaterialTheme.typography.bodySmall
                 )
 
@@ -107,7 +109,7 @@ fun SystemEventItem(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Check,
-                        contentDescription = "Mark as viewed",
+                        contentDescription = stringResource(R.string.mark_as_viewed),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }

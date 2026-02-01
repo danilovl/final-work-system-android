@@ -16,8 +16,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.event.model.Comment
 import com.finalworksystem.presentation.ui.component.BaseCard
 
@@ -34,13 +36,13 @@ fun EventCommentsCard(comments: List<Comment>) {
             ) {
                 Icon(
                     imageVector = Icons.Default.Comment,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.comments_count, comments.size),
                     modifier = Modifier.size(20.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Comments (${comments.size})",
+                    text = stringResource(R.string.comments_count, comments.size),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -55,7 +57,7 @@ fun EventCommentsCard(comments: List<Comment>) {
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = "${comment.owner.firstname} ${comment.owner.lastname}",
+                        text = comment.owner.fullName ?: "${comment.owner.firstname} ${comment.owner.lastname}",
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.primary

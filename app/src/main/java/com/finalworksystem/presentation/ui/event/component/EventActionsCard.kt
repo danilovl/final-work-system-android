@@ -16,8 +16,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.presentation.ui.component.BaseCard
 
 @Composable
@@ -36,7 +38,7 @@ fun EventActionsCard(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = "Actions",
+                    text = stringResource(R.string.actions),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.primary
@@ -49,7 +51,7 @@ fun EventActionsCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.delete_event),
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -59,9 +61,9 @@ fun EventActionsCard(
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Deleting...")
+                        Text(stringResource(R.string.deleting))
                     } else {
-                        Text("Delete Event")
+                        Text(stringResource(R.string.delete_event))
                     }
                 }
             }

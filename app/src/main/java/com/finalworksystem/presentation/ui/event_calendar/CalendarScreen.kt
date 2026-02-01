@@ -31,7 +31,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.application.use_case.event_calendar.DeleteEventUseCase
 import com.finalworksystem.application.use_case.event_calendar.GetEventCalendarManageCreateDataUseCase
 import com.finalworksystem.application.use_case.event_calendar.GetEventCalendarUseCase
@@ -274,7 +276,7 @@ fun CalendarScreen(
     Scaffold(
         topBar = {
             BaseTopAppBar(
-                title = "Calendar",
+                title = stringResource(R.string.calendar),
                 onNavigateBack = onNavigateBack,
                 onReload = { 
                     loadCalendarEvents()
@@ -292,7 +294,7 @@ fun CalendarScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Today,
-                            contentDescription = "Go to Today"
+                            contentDescription = stringResource(R.string.go_to_today)
                         )
                     }
                 }
@@ -312,7 +314,7 @@ fun CalendarScreen(
                     } else {
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = "Create Event"
+                            contentDescription = stringResource(R.string.create_event)
                         )
                     }
                 }
@@ -462,8 +464,8 @@ fun CalendarScreen(
                     showDeleteConfirmDialog = false
                     eventToDelete = null
                 },
-                title = { Text("Delete Event") },
-                text = { Text("Are you sure you want to delete the event \"${eventToDelete!!.title}\"?") },
+                title = { Text(stringResource(R.string.delete_event)) },
+                text = { Text(stringResource(R.string.delete_event_confirm_named, eventToDelete!!.title)) },
                 confirmButton = {
                     TextButton(
                         onClick = { confirmDeleteEvent() },
@@ -475,7 +477,7 @@ fun CalendarScreen(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text("Delete")
+                            Text(stringResource(R.string.delete))
                         }
                     }
                 },
@@ -487,7 +489,7 @@ fun CalendarScreen(
                         },
                         enabled = !isDeletingEvent
                     ) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             )

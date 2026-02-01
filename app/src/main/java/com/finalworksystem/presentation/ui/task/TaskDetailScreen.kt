@@ -22,7 +22,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.task.model.Task
 import com.finalworksystem.domain.task.model.TaskStatus
 import com.finalworksystem.infrastructure.user.UserService
@@ -92,7 +94,7 @@ fun TaskDetailScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Error: ${state.message}",
+                            text = stringResource(R.string.error_prefix, state.message),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.error
                         )
@@ -179,8 +181,8 @@ fun TaskDetailContent(
         if (showDeleteConfirmDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteConfirmDialog = false },
-                title = { Text("Delete Task") },
-                text = { Text("Are you sure you want to delete this task? This action cannot be undone.") },
+                title = { Text(stringResource(R.string.delete_task)) },
+                text = { Text(stringResource(R.string.delete_task_confirm)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -194,14 +196,14 @@ fun TaskDetailContent(
                             }
                         }
                     ) {
-                        Text("Delete", color = MaterialTheme.colorScheme.error)
+                        Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                     }
                 },
                 dismissButton = {
                     TextButton(
                         onClick = { showDeleteConfirmDialog = false }
                     ) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             )

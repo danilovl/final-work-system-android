@@ -23,8 +23,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.event_calendar.model.CalendarEvent as DomainCalendarEvent
 
 @Composable
@@ -84,7 +86,7 @@ fun EventItem(
 
                 if (isSameDay(event.start, event.end)) {
                     Text(
-                        text = "Date: ${formatDate(event.start)}",
+                        text = stringResource(R.string.date_prefix, formatDate(event.start)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -92,13 +94,13 @@ fun EventItem(
                     Spacer(modifier = Modifier.height(2.dp))
 
                     Text(
-                        text = "Time: ${formatTime(event.start)} - ${formatTime(event.end)}",
+                        text = stringResource(R.string.time_range, formatTime(event.start), formatTime(event.end)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
                     Text(
-                        text = "Start: ${formatDateTime(event.start)}",
+                        text = stringResource(R.string.start_prefix, formatDateTime(event.start)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -106,7 +108,7 @@ fun EventItem(
                     Spacer(modifier = Modifier.height(2.dp))
 
                     Text(
-                        text = "End: ${formatDateTime(event.end)}",
+                        text = stringResource(R.string.end_prefix, formatDateTime(event.end)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -120,7 +122,7 @@ fun EventItem(
                 ) {
                     Icon(
                         imageVector = Icons.Default.BookmarkAdd,
-                        contentDescription = "Reserve event",
+                        contentDescription = stringResource(R.string.reserve_event),
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -133,7 +135,7 @@ fun EventItem(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete event",
+                        contentDescription = stringResource(R.string.delete_event),
                         tint = MaterialTheme.colorScheme.error
                     )
                 }

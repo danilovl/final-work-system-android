@@ -12,7 +12,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import com.finalworksystem.R
 import com.finalworksystem.presentation.view_model.task.TaskDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,7 +29,7 @@ fun TaskDetailTopBar(
         title = {
             val taskTitle = when (taskDetailState) {
                 is TaskDetailViewModel.TaskDetailState.Success -> taskDetailState.task.name
-                else -> "Task detail"
+                else -> stringResource(R.string.task_detail)
             }
             Text(
                 text = taskTitle,
@@ -43,12 +45,12 @@ fun TaskDetailTopBar(
         },
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
             }
         },
         actions = {
             IconButton(onClick = onRefresh) {
-                Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.refresh))
             }
         }
     )

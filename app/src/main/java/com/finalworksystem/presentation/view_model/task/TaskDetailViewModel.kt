@@ -38,9 +38,15 @@ class TaskDetailViewModel(
                         _taskDetailState.value = TaskDetailState.Success(task)
                     },
                     onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        _taskDetailState.value = TaskDetailState.Error(errorMessage)
-                        popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        val errorMessage = error.message
+                        if (errorMessage != null) {
+                            _taskDetailState.value = TaskDetailState.Error(errorMessage)
+                            popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        } else {
+                            val fallbackMessage = getApplication<Application>().getString(com.finalworksystem.R.string.unknown_error)
+                            _taskDetailState.value = TaskDetailState.Error(fallbackMessage)
+                            popupMessageService.showMessageResource(com.finalworksystem.R.string.unknown_error, PopupMessageService.MessageLevel.ERROR)
+                        }
                     }
                 )
             }
@@ -57,11 +63,14 @@ class TaskDetailViewModel(
                 result.fold(
                     onSuccess = {
                         updateTaskStatusInState(taskId, status)
-                        popupMessageService.showMessage("Task status changed successfully", PopupMessageService.MessageLevel.SUCCESS)
+                        popupMessageService.showMessage(
+                            getApplication<Application>().getString(com.finalworksystem.R.string.task_status_changed_success), 
+                            PopupMessageService.MessageLevel.SUCCESS
+                        )
                         onResult(true)
                     },
                     onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
+                        val errorMessage = error.message ?: getApplication<Application>().getString(com.finalworksystem.R.string.unknown_error)
                         popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
                         onResult(false)
                     }
@@ -84,11 +93,14 @@ class TaskDetailViewModel(
                 result.fold(
                     onSuccess = {
                         updateTaskNotifyCompleteInState(taskId, true)
-                        popupMessageService.showMessage("Task completion notification sent successfully", PopupMessageService.MessageLevel.SUCCESS)
+                        popupMessageService.showMessage(
+                            getApplication<Application>().getString(com.finalworksystem.R.string.task_notify_complete_success), 
+                            PopupMessageService.MessageLevel.SUCCESS
+                        )
                         onResult(true)
                     },
                     onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
+                        val errorMessage = error.message ?: getApplication<Application>().getString(com.finalworksystem.R.string.unknown_error)
                         popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
                         onResult(false)
                     }
@@ -102,11 +114,14 @@ class TaskDetailViewModel(
             deleteTaskUseCase(taskId = taskId, workId = workId).collect { result ->
                 result.fold(
                     onSuccess = {
-                        popupMessageService.showMessage("Task deleted successfully", PopupMessageService.MessageLevel.SUCCESS)
+                        popupMessageService.showMessage(
+                            getApplication<Application>().getString(com.finalworksystem.R.string.task_deleted_success), 
+                            PopupMessageService.MessageLevel.SUCCESS
+                        )
                         onResult(true)
                     },
                     onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
+                        val errorMessage = error.message ?: getApplication<Application>().getString(com.finalworksystem.R.string.unknown_error)
                         popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
                         onResult(false)
                     }

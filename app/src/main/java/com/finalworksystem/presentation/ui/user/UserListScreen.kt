@@ -26,7 +26,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.user.model.UserType
 import com.finalworksystem.presentation.ui.component.BaseTopAppBar
 import com.finalworksystem.presentation.ui.user.component.UserWithWorksCard
@@ -73,10 +75,18 @@ fun UserListScreen(
         }
     }
 
+    val title = when (enumUserType) {
+        UserType.AUTHOR -> stringResource(R.string.author)
+        UserType.OPPONENT -> stringResource(R.string.opponent)
+        UserType.CONSULTANT -> stringResource(R.string.consultant)
+        UserType.SUPERVISOR -> stringResource(R.string.supervisor)
+        else -> userType.replaceFirstChar { it.uppercase() }
+    }
+
     Scaffold(
         topBar = {
             BaseTopAppBar(
-                title = enumUserType?.displayName ?: userType.replaceFirstChar { it.uppercase() },
+                title = title,
                 onNavigateBack = onNavigateBack,
                 onReload = {
                     enumUserType?.let { type ->
@@ -172,59 +182,59 @@ fun UserListScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "No users found",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    } else {
-                        LazyColumn(
-                            state = listState,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            item {
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
-
-                            items(userListResult.result) { userWithWorks ->
-                                UserWithWorksCard(
-                                    userWithWorks = userWithWorks,
-                                    onNavigateToWorkDetail = onNavigateToWorkDetail
-                                )
-                            }
-
-                            item {
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
-                        }
+                            text = stringResource(R.string.no_users_found),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
-                }
-
-                is UserViewModel.UserListState.Error -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                } else {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "Error loading users",
-                                style = MaterialTheme.typography.headlineSmall,
-                                color = MaterialTheme.colorScheme.error
-                            )
+                        item {
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = (userListState as UserViewModel.UserListState.Error).message,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+
+                        items(userListResult.result) { userWithWorks ->
+                            UserWithWorksCard(
+                                userWithWorks = userWithWorks,
+                                onNavigateToWorkDetail = onNavigateToWorkDetail
                             )
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(8.dp))
                         }
                     }
                 }
+            }
+
+            is UserViewModel.UserListState.Error -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(R.string.error_loading_users),
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = (userListState as UserViewModel.UserListState.Error).message,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
             }
         }
     }

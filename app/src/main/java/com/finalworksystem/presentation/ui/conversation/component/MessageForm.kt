@@ -23,11 +23,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.conversation.model.ConversationWork
 import com.finalworksystem.domain.user.model.User
 import com.finalworksystem.domain.user.model.UserRole
-import com.finalworksystem.presentation.view_model.conversation.ConversationDetailViewModel
 import com.finalworksystem.presentation.view_model.conversation.state.SendMessageState
 
 @Composable
@@ -64,7 +65,7 @@ fun MessageForm(
         OutlinedTextField(
             value = messageText,
             onValueChange = { messageText = it },
-            placeholder = { Text("Type your message...") },
+            placeholder = { Text(stringResource(R.string.type_message_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
             maxLines = 4,
             minLines = 1,
@@ -96,14 +97,14 @@ fun MessageForm(
                     strokeWidth = 2.dp
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Sending...")
+                Text(stringResource(R.string.sending))
             } else {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Send,
-                    contentDescription = "Send Message"
+                    contentDescription = stringResource(R.string.send_message)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Send Message")
+                Text(stringResource(R.string.send_message))
             }
         }
     }

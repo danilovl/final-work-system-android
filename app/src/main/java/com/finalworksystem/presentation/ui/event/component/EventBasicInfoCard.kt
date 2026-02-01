@@ -18,8 +18,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.common.util.DateUtils
 import com.finalworksystem.domain.event.model.Event
 import com.finalworksystem.presentation.ui.component.BaseCard
@@ -32,7 +34,7 @@ fun EventBasicInfoCard(event: Event) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Event Information",
+                text = stringResource(R.string.event_information),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -44,7 +46,7 @@ fun EventBasicInfoCard(event: Event) {
             ) {
                 Icon(
                     imageVector = Icons.Default.Info,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.event_information),
                     modifier = Modifier.size(20.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -69,7 +71,7 @@ fun EventBasicInfoCard(event: Event) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
                     Text(
-                        text = "Type: ${event.type.name}",
+                        text = stringResource(R.string.type_prefix, event.type.name),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     event.type.description?.let { description ->
@@ -95,11 +97,11 @@ fun EventBasicInfoCard(event: Event) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
                     Text(
-                        text = "Start: ${DateUtils.formatToReadableDateTime(event.start)}",
+                        text = stringResource(R.string.start_prefix, DateUtils.formatToReadableDateTime(event.start)),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "End: ${DateUtils.formatToReadableDateTime(event.end)}",
+                        text = stringResource(R.string.end_prefix, DateUtils.formatToReadableDateTime(event.end)),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -117,7 +119,7 @@ fun EventBasicInfoCard(event: Event) {
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Owner: ${event.owner.firstname} ${event.owner.lastname}",
+                    text = stringResource(R.string.owner_prefix, event.owner.fullName ?: "${event.owner.firstname} ${event.owner.lastname}"),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -135,7 +137,7 @@ fun EventBasicInfoCard(event: Event) {
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Participant: ${participant.user.firstname} ${participant.user.lastname}",
+                        text = stringResource(R.string.participant_prefix, participant.user.fullName ?: "${participant.user.firstname} ${participant.user.lastname}"),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

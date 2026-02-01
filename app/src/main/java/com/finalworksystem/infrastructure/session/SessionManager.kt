@@ -37,6 +37,7 @@ class SessionManager(private val context: Context) {
         private val USER_KEY = stringPreferencesKey("user")
         private val USER_PROFILE_IMAGE_KEY = stringPreferencesKey("user_profile_image")
         private val AUTH_DATA_KEY = stringPreferencesKey("auth_data")
+        private val LANGUAGE_KEY = stringPreferencesKey("app_language")
     }
 
     private val gson = Gson()
@@ -131,6 +132,16 @@ class SessionManager(private val context: Context) {
     suspend fun clearAllData() {
         context.dataStore.edit { preferences ->
             preferences.clear()
+        }
+    }
+
+    val languageFlow: Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[LANGUAGE_KEY]
+    }
+
+    suspend fun saveLanguage(languageCode: String) {
+        context.dataStore.edit { preferences ->
+            preferences[LANGUAGE_KEY] = languageCode
         }
     }
 }

@@ -37,10 +37,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.finalworksystem.R
 import com.finalworksystem.domain.common.util.DateUtils
 import com.finalworksystem.domain.work.model.Work
 import com.finalworksystem.presentation.ui.component.BaseCard
@@ -95,7 +97,7 @@ fun WorkDetailScreen(
                     val currentState = workDetailState
                     val workTitle = when (currentState) {
                         is WorkDetailViewModel.WorkDetailState.Success -> currentState.work.title
-                        else -> "Work Details"
+                        else -> stringResource(R.string.work_details)
                     }
                     Text(
                         text = workTitle,
@@ -113,7 +115,7 @@ fun WorkDetailScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 },
@@ -128,7 +130,7 @@ fun WorkDetailScreen(
                     }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "Refresh"
+                            contentDescription = stringResource(R.string.refresh)
                         )
                     }
                 }
@@ -180,7 +182,12 @@ fun WorkDetailScreen(
 @Composable
 fun WorkDetailContent(work: Work, workDetailViewModel: WorkDetailViewModel, currentUserId: Int, onNavigateToTaskDetail: ((Int, Int) -> Unit)? = null, onNavigateToConversationDetail: ((Int) -> Unit)? = null, onNavigateToEventDetail: ((Int) -> Unit)? = null) {
     var selectedTabIndex by remember { mutableStateOf(0) }
-    val tabs = listOf("Task", "Version", "Message", "Event")
+    val tabs = listOf(
+        stringResource(R.string.task_tab),
+        stringResource(R.string.version_tab),
+        stringResource(R.string.message_tab),
+        stringResource(R.string.event_tab)
+    )
     val scrollState = rememberScrollState()
 
     val conversationWorkState by workDetailViewModel.conversationWorkState.collectAsState()
@@ -217,7 +224,7 @@ fun WorkDetailContent(work: Work, workDetailViewModel: WorkDetailViewModel, curr
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
-                        text = "Work Information",
+                        text = stringResource(R.string.work_information),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.primary
@@ -225,21 +232,21 @@ fun WorkDetailContent(work: Work, workDetailViewModel: WorkDetailViewModel, curr
 
                     WorkInfoItemWithIcon(
                         icon = Icons.Default.Info,
-                        label = "Type",
+                        label = stringResource(R.string.type),
                         value = work.type.name,
                         iconTint = MaterialTheme.colorScheme.primary
                     )
 
                     WorkInfoItemWithIcon(
                         icon = Icons.Default.CheckCircle,
-                        label = "Status",
+                        label = stringResource(R.string.status),
                         value = work.status.name,
                         iconTint = MaterialTheme.colorScheme.primary
                     )
 
                     WorkInfoItemWithIcon(
                         icon = Icons.Default.DateRange,
-                        label = "Deadline",
+                        label = stringResource(R.string.deadline),
                         value = DateUtils.formatToYmd(work.deadline),
                         iconTint = MaterialTheme.colorScheme.error
                     )
@@ -247,7 +254,7 @@ fun WorkDetailContent(work: Work, workDetailViewModel: WorkDetailViewModel, curr
                     work.deadlineProgram?.let { deadlineProgram ->
                         WorkInfoItemWithIcon(
                             icon = Icons.Default.DateRange,
-                            label = "Program Deadline",
+                            label = stringResource(R.string.program_deadline),
                             value = DateUtils.formatToYmd(deadlineProgram),
                             iconTint = MaterialTheme.colorScheme.error
                         )
@@ -263,7 +270,7 @@ fun WorkDetailContent(work: Work, workDetailViewModel: WorkDetailViewModel, curr
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
-                        text = "People",
+                        text = stringResource(R.string.people),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.primary
@@ -274,7 +281,7 @@ fun WorkDetailContent(work: Work, workDetailViewModel: WorkDetailViewModel, curr
                             firstname = author.firstname,
                             lastname = author.lastname,
                             userId = author.id,
-                            label = "Author",
+                            label = stringResource(R.string.author),
                             value = author.fullName ?: "${author.firstname} ${author.lastname}"
                         )
                     }
@@ -284,7 +291,7 @@ fun WorkDetailContent(work: Work, workDetailViewModel: WorkDetailViewModel, curr
                             firstname = supervisor.firstname,
                             lastname = supervisor.lastname,
                             userId = supervisor.id,
-                            label = "Supervisor",
+                            label = stringResource(R.string.supervisor),
                             value = supervisor.fullName ?: "${supervisor.firstname} ${supervisor.lastname}"
                         )
                     }
@@ -294,7 +301,7 @@ fun WorkDetailContent(work: Work, workDetailViewModel: WorkDetailViewModel, curr
                             firstname = opponent.firstname,
                             lastname = opponent.lastname,
                             userId = opponent.id,
-                            label = "Opponent",
+                            label = stringResource(R.string.opponent),
                             value = opponent.fullName ?: "${opponent.firstname} ${opponent.lastname}"
                         )
                     }
@@ -304,7 +311,7 @@ fun WorkDetailContent(work: Work, workDetailViewModel: WorkDetailViewModel, curr
                             firstname = consultant.firstname,
                             lastname = consultant.lastname,
                             userId = consultant.id,
-                            label = "Consultant",
+                            label = stringResource(R.string.consultant),
                             value = consultant.fullName ?: "${consultant.firstname} ${consultant.lastname}"
                         )
                     }
@@ -322,7 +329,7 @@ fun WorkDetailContent(work: Work, workDetailViewModel: WorkDetailViewModel, curr
                                 verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 Text(
-                                    text = "Communication",
+                                    text = stringResource(R.string.communication),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.primary
@@ -332,7 +339,7 @@ fun WorkDetailContent(work: Work, workDetailViewModel: WorkDetailViewModel, curr
                                     onClick = { onNavigateToConversationDetail?.invoke(state.conversationWork!!.id) },
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Text("Open conversation")
+                                    Text(stringResource(R.string.open_conversation))
                                 }
                             }
                         }

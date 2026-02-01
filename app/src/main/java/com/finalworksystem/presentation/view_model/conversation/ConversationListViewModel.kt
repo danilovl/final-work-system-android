@@ -45,9 +45,15 @@ class ConversationListViewModel(
                         _conversationsState.value = ConversationsState.Success(conversations, hasMore, false, conversationsResponse.totalCount)
                     },
                     onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        _conversationsState.value = ConversationsState.Error(errorMessage)
-                        popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        val errorMessage = error.message
+                        if (errorMessage != null) {
+                            _conversationsState.value = ConversationsState.Error(errorMessage)
+                            popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        } else {
+                            val fallbackMessage = getApplication<Application>().getString(com.finalworksystem.R.string.unknown_error)
+                            _conversationsState.value = ConversationsState.Error(fallbackMessage)
+                            popupMessageService.showMessageResource(com.finalworksystem.R.string.unknown_error, PopupMessageService.MessageLevel.ERROR)
+                        }
                     }
                 )
             }

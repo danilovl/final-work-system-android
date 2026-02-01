@@ -22,7 +22,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.system_event.model.SystemEventTypeEnum
 import com.finalworksystem.presentation.ui.component.DoubleCheckIcon
 import com.finalworksystem.presentation.ui.component.LoadingProgressIndicator
@@ -56,7 +58,7 @@ fun HomeScreen(systemEventViewModel: SystemEventViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("System events") },
+                title = { Text(stringResource(R.string.system_events)) },
                 actions = {
                     LoadingProgressIndicator(
                         loadedCount = (systemEventsState as? SystemEventViewModel.SystemEventsState.Success)?.events?.size ?: 0,
@@ -73,7 +75,7 @@ fun HomeScreen(systemEventViewModel: SystemEventViewModel) {
                     }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "Refresh"
+                            contentDescription = stringResource(R.string.refresh)
                         )
                     }
                 }
@@ -95,7 +97,7 @@ fun HomeScreen(systemEventViewModel: SystemEventViewModel) {
                     val events = (systemEventsState as SystemEventViewModel.SystemEventsState.Success).events
                     if (events.isEmpty()) {
                         Text(
-                            text = "No unread system events",
+                            text = stringResource(R.string.no_unread_events),
                             modifier = Modifier
                                 .align(Alignment.Center)
                                 .padding(16.dp)

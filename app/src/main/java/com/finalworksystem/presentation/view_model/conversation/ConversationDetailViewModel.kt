@@ -7,8 +7,6 @@ import com.finalworksystem.application.use_case.conversation.CreateMessageUseCas
 import com.finalworksystem.application.use_case.conversation.GetConversationDetailUseCase
 import com.finalworksystem.application.use_case.conversation.GetConversationMessagesUseCase
 import com.finalworksystem.application.use_case.conversation.MarkMessageAsReadUseCase
-import com.finalworksystem.domain.conversation.model.Conversation
-import com.finalworksystem.domain.conversation.model.ConversationMessage
 import com.finalworksystem.infrastructure.popup.PopupMessageService
 import com.finalworksystem.presentation.view_model.conversation.state.ConversationDetailState
 import com.finalworksystem.presentation.view_model.conversation.state.MessagesState

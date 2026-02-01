@@ -18,7 +18,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.task.model.Task
 import com.finalworksystem.presentation.ui.task.component.TaskItem
 
@@ -50,7 +52,7 @@ fun TaskListScreen(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Error: $errorMessage",
+                text = stringResource(R.string.error_prefix, errorMessage),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.error
             )
@@ -64,7 +66,7 @@ fun TaskListScreen(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "No tasks available",
+                text = stringResource(R.string.no_tasks_available),
                 style = MaterialTheme.typography.bodyLarge
             )
         }

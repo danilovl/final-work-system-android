@@ -18,7 +18,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.presentation.ui.component.BaseCard
 import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
 
@@ -73,7 +75,7 @@ fun VersionTabContent(
             if (versions.isEmpty()) {
                 BaseCard(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "No versions available",
+                        text = stringResource(R.string.no_versions_available),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(20.dp)
@@ -107,7 +109,7 @@ fun VersionTabContent(
             val errorMessage = (versionsState as WorkDetailViewModel.VersionsState.Error).message
             BaseCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Error loading versions: $errorMessage",
+                    text = stringResource(R.string.error_loading_versions, errorMessage),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(20.dp)

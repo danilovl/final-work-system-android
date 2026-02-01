@@ -18,8 +18,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.task.model.TaskStatus
 
 @Composable
@@ -35,12 +37,12 @@ fun TaskStatusDialog(
         AlertDialog(
             onDismissRequest = onDismiss,
             title = {
-                Text("Change Task Status")
+                Text(stringResource(R.string.change_task_status))
             },
             text = {
                 Column {
                     Text(
-                        text = "Select new status for the task:",
+                        text = stringResource(R.string.select_new_status),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
@@ -81,13 +83,13 @@ fun TaskStatusDialog(
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Text("Change Status")
+                        Text(stringResource(R.string.change_status))
                     }
                 }
             },
             dismissButton = {
                 TextButton(onClick = onDismiss) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )

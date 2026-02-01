@@ -33,18 +33,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.conversation.model.getDisplayName
 import com.finalworksystem.domain.user.model.User
-import com.finalworksystem.presentation.view_model.conversation.state.toGeneric
-import com.finalworksystem.presentation.view_model.conversation.state.ConversationDetailState
 import com.finalworksystem.presentation.ui.component.SearchModal
 import com.finalworksystem.presentation.ui.component.SearchResetFloatingActionButton
 import com.finalworksystem.presentation.ui.conversation.component.MessageForm
 import com.finalworksystem.presentation.ui.conversation.component.MessagesList
 import com.finalworksystem.presentation.ui.conversation.component.ParticipantsFullList
 import com.finalworksystem.presentation.view_model.conversation.ConversationDetailViewModel
+import com.finalworksystem.presentation.view_model.conversation.state.ConversationDetailState
+import com.finalworksystem.presentation.view_model.conversation.state.toGeneric
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,7 +102,7 @@ fun ConversationDetailScreen(
                             }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back"
+                                    contentDescription = stringResource(R.string.back)
                                 )
                             }
                         },
@@ -111,7 +113,7 @@ fun ConversationDetailScreen(
                                 }) {
                                     Icon(
                                         imageVector = Icons.Default.Clear,
-                                        contentDescription = "Clear search"
+                                        contentDescription = stringResource(R.string.clear_search)
                                     )
                                 }
                             }
@@ -121,7 +123,7 @@ fun ConversationDetailScreen(
                             }) {
                                 Icon(
                                     imageVector = Icons.Default.Refresh,
-                                    contentDescription = "Refresh"
+                                    contentDescription = stringResource(R.string.refresh)
                                 )
                             }
                         }
@@ -187,32 +189,32 @@ fun ConversationDetailScreen(
                 }
             }
         }
-        is ConversationDetailState.Error -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "Error: ${detailState.message}",
-                        color = MaterialTheme.colorScheme.error
-                    )
-                    IconButton(onClick = {
-                        viewModel.loadConversationDetail(conversationId)
-                        viewModel.loadMessages(conversationId)
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowUp,
-                            contentDescription = "Retry",
-                            modifier = Modifier.size(40.dp)
-                        )
+                is ConversationDetailState.Error -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = stringResource(R.string.error_prefix, detailState.message),
+                                color = MaterialTheme.colorScheme.error
+                            )
+                            IconButton(onClick = {
+                                viewModel.loadConversationDetail(conversationId)
+                                viewModel.loadMessages(conversationId)
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.KeyboardArrowUp,
+                                    contentDescription = stringResource(R.string.retry),
+                                    modifier = Modifier.size(40.dp)
+                                )
+                            }
+                        }
                     }
                 }
-            }
-        }
         is ConversationDetailState.Idle -> {
             Box(
                 modifier = Modifier.fillMaxSize(),

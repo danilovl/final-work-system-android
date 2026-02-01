@@ -20,7 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.application.use_case.user.GetCachedProfileImageUseCase
 import org.koin.compose.koinInject
 
@@ -54,7 +56,7 @@ fun UserAvatar(
                 if (bitmap != null) {
                     Image(
                         bitmap = bitmap.asImageBitmap(),
-                        contentDescription = "Profile image for $firstname $lastname",
+                        contentDescription = stringResource(R.string.profile_image_for, "$firstname $lastname"),
                         modifier = Modifier
                             .fillMaxSize()
                             .clip(CircleShape),
@@ -63,7 +65,7 @@ fun UserAvatar(
                 } else {
                     Icon(
                         imageVector = Icons.Default.Person,
-                        contentDescription = "User Avatar for $firstname $lastname",
+                        contentDescription = stringResource(R.string.user_avatar_for, "$firstname $lastname"),
                         tint = MaterialTheme.colorScheme.onSecondary,
                         modifier = Modifier.size(24.dp)
                     )
@@ -71,7 +73,7 @@ fun UserAvatar(
             } else {
                 Icon(
                     imageVector = Icons.Default.Person,
-                    contentDescription = "User Avatar for $firstname $lastname",
+                    contentDescription = stringResource(R.string.user_avatar_for, "$firstname $lastname"),
                     tint = MaterialTheme.colorScheme.onSecondary,
                     modifier = Modifier.size(24.dp)
                 )

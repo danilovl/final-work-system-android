@@ -33,7 +33,11 @@ class PopupMessageService {
     }
 
     fun showMessage(message: String, level: MessageLevel) {
-        _messageQueue.add(PopupMessage(message, level))
+        _messageQueue.add(PopupMessage(message = message, level = level))
+    }
+
+    fun showMessageResource(resourceId: Int, level: MessageLevel) {
+        _messageQueue.add(PopupMessage(resourceId = resourceId, level = level))
     }
 
     fun processNextMessage(): PopupMessage? {
@@ -56,7 +60,8 @@ class PopupMessageService {
     }
 
     data class PopupMessage(
-        val message: String,
+        val message: String? = null,
+        val resourceId: Int? = null,
         val level: MessageLevel
     )
 }

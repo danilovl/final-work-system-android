@@ -16,8 +16,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.common.util.DateUtils
 import com.finalworksystem.domain.work.model.Work
 import com.finalworksystem.presentation.ui.component.BaseCard
@@ -30,7 +32,7 @@ fun EventWorkInfoCard(work: Work) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Work Information",
+                text = stringResource(R.string.work_information),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -42,7 +44,7 @@ fun EventWorkInfoCard(work: Work) {
             ) {
                 Icon(
                     imageVector = Icons.Default.Work,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.work_information),
                     modifier = Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -54,18 +56,18 @@ fun EventWorkInfoCard(work: Work) {
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = "Type: ${work.type.name}",
+                        text = stringResource(R.string.type_prefix, work.type.name),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "Status: ${work.status.name}",
+                        text = stringResource(R.string.status_prefix, work.status.name),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     work.deadline?.let { deadline ->
                         Text(
-                            text = "Deadline: ${DateUtils.formatToReadableDateTime(deadline)}",
+                            text = stringResource(R.string.deadline_prefix, DateUtils.formatToReadableDateTime(deadline)),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

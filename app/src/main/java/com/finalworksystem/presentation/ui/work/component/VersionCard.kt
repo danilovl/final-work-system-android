@@ -18,8 +18,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.common.util.FileUtils
 import com.finalworksystem.domain.version.model.Version
 import com.finalworksystem.presentation.ui.component.BaseCard
@@ -92,7 +94,7 @@ fun VersionCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "${version.originalExtension?.uppercase() ?: "UNKNOWN"} • ${FileUtils.formatFileSize(version.mediaSize)}",
+                        text = "${version.originalExtension?.uppercase() ?: stringResource(R.string.none)} • ${FileUtils.formatFileSize(version.mediaSize)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

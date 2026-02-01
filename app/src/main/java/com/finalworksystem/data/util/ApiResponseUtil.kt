@@ -2,6 +2,8 @@ package com.finalworksystem.data.util
 
 import retrofit2.Response
 
+class UnauthorizedException(message: String) : Exception(message)
+
 object ApiResponseUtil {
     fun <T, R> handleApiResponse(
         response: Response<T>,
@@ -20,6 +22,7 @@ object ApiResponseUtil {
                 }
             }
             204 -> Result.failure(Exception("Unexpected content for no-content response"))
+            401 -> Result.failure(UnauthorizedException("Invalid credentials"))
             404 -> Result.failure(Exception(notFoundMessage))
             403 -> Result.failure(Exception(accessDeniedMessage))
             else -> {
@@ -45,6 +48,7 @@ object ApiResponseUtil {
     ): Result<Unit> {
         return when (response.code()) {
             200, 204 -> Result.success(Unit)
+            401 -> Result.failure(UnauthorizedException("Invalid credentials"))
             404 -> Result.failure(Exception(notFoundMessage))
             403 -> Result.failure(Exception(accessDeniedMessage))
             else -> {
@@ -63,6 +67,7 @@ object ApiResponseUtil {
     ): Result<R?> {
         return when (response.code()) {
             404 -> Result.success(null)
+            401 -> Result.failure(UnauthorizedException("Invalid credentials"))
             200 -> {
                 val body = response.body()
                 if (body != null) {

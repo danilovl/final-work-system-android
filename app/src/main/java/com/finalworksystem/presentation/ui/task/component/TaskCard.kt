@@ -26,8 +26,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.common.util.DateUtils
 import com.finalworksystem.domain.task.model.Task
 import com.finalworksystem.presentation.ui.component.BaseCard
@@ -104,7 +106,7 @@ fun TaskCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = if (task.complete) "Completed" else "Pending",
+                        text = if (task.complete) stringResource(R.string.task_status_completed) else stringResource(R.string.task_status_pending),
                         style = MaterialTheme.typography.labelMedium,
                         color = if (task.complete) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                         fontWeight = FontWeight.Medium

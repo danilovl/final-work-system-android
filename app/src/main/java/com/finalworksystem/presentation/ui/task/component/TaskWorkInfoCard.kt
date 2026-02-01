@@ -11,8 +11,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.common.util.DateUtils
 import com.finalworksystem.domain.task.model.WorkInfo
 import com.finalworksystem.presentation.ui.component.BaseCard
@@ -31,7 +33,7 @@ fun TaskWorkInfoCard(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Work Information",
+                text = stringResource(R.string.work_information),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary
@@ -39,7 +41,7 @@ fun TaskWorkInfoCard(
 
             TaskInfoItemWithIcon(
                 icon = Icons.Default.Info,
-                label = "Title",
+                label = stringResource(R.string.title),
                 value = work.title,
                 iconTint = MaterialTheme.colorScheme.primary,
                 onClick = { onNavigateToWorkDetail(work.id) }
@@ -48,7 +50,7 @@ fun TaskWorkInfoCard(
             if (work.shortcut != null) {
                 TaskInfoItemWithIcon(
                     icon = Icons.Default.Info,
-                    label = "Shortcut",
+                    label = stringResource(R.string.shortcut),
                     value = work.shortcut,
                     iconTint = MaterialTheme.colorScheme.onSurfaceVariant,
                     onClick = { onNavigateToWorkDetail(work.id) }
@@ -57,7 +59,7 @@ fun TaskWorkInfoCard(
 
             TaskInfoItemWithIcon(
                 icon = Icons.Default.DateRange,
-                label = "Deadline",
+                label = stringResource(R.string.deadline),
                 value = DateUtils.formatToYmd(work.deadline),
                 iconTint = MaterialTheme.colorScheme.error,
                 onClick = { onNavigateToWorkDetail(work.id) }
@@ -66,7 +68,7 @@ fun TaskWorkInfoCard(
             if (work.deadlineProgram != null) {
                 TaskInfoItemWithIcon(
                     icon = Icons.Default.DateRange,
-                    label = "Program deadline",
+                    label = stringResource(R.string.program_deadline),
                     value = DateUtils.formatToYmd(work.deadlineProgram),
                     iconTint = MaterialTheme.colorScheme.error,
                     onClick = { onNavigateToWorkDetail(work.id) }
@@ -75,7 +77,7 @@ fun TaskWorkInfoCard(
 
             TaskInfoItemWithIcon(
                 icon = Icons.Default.Info,
-                label = "ID",
+                label = stringResource(R.string.id),
                 value = work.id.toString(),
                 iconTint = MaterialTheme.colorScheme.onSurfaceVariant,
                 onClick = { onNavigateToWorkDetail(work.id) }

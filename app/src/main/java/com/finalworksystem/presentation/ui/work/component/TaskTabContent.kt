@@ -19,7 +19,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.presentation.ui.component.BaseCard
 import com.finalworksystem.presentation.ui.task.component.TaskCard
 import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
@@ -75,7 +77,7 @@ fun TaskTabContent(
             if (tasks.isEmpty()) {
                 BaseCard(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "No tasks available",
+                        text = stringResource(R.string.no_tasks_available),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(20.dp)
@@ -115,7 +117,7 @@ fun TaskTabContent(
             val errorMessage = errorState.message
             BaseCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Error loading tasks: $errorMessage",
+                    text = stringResource(R.string.error_loading_tasks, errorMessage),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(20.dp)

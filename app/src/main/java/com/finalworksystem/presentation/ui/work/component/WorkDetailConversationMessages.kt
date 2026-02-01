@@ -5,8 +5,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.finalworksystem.presentation.view_model.work.state.toGeneric
 import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
+import com.finalworksystem.presentation.view_model.work.state.toGeneric
 
 @Composable
 fun WorkDetailConversationMessages(

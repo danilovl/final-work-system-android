@@ -10,6 +10,8 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.res.stringResource
+import com.finalworksystem.R
 import com.finalworksystem.domain.user.model.User
 import com.finalworksystem.domain.user.model.UserRole
 import kotlinx.coroutines.launch
@@ -26,11 +28,11 @@ fun StudentSection(
 
     if (user.roles.contains(UserRole.STUDENT.value)) {
         NavigationDrawerItem(
-            label = { Text("Author work") },
+            label = { Text(stringResource(R.string.author_work)) },
             icon = { 
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.Article,
-                    contentDescription = "Author work"
+                    contentDescription = stringResource(R.string.author_work)
                 )
             },
             selected = false,
@@ -43,11 +45,11 @@ fun StudentSection(
         )
 
         NavigationDrawerItem(
-            label = { Text("Calendar reservation") },
+            label = { Text(stringResource(R.string.calendar_reservation)) },
             icon = { 
                 Icon(
                     imageVector = Icons.Default.DateRange,
-                    contentDescription = "Calendar reservation"
+                    contentDescription = stringResource(R.string.calendar_reservation)
                 )
             },
             selected = false,
@@ -60,11 +62,11 @@ fun StudentSection(
         )
 
         NavigationDrawerItem(
-            label = { Text("Assigned task") },
+            label = { Text(stringResource(R.string.assigned_task)) },
             icon = { 
                 Icon(
                     imageVector = Icons.Default.Task,
-                    contentDescription = "Assigned task"
+                    contentDescription = stringResource(R.string.assigned_task)
                 )
             },
             selected = false,

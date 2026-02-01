@@ -18,7 +18,9 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.domain.conversation.model.ConversationMessage
 import com.finalworksystem.presentation.ui.conversation.component.MessageItem
 
@@ -53,7 +55,7 @@ fun CommonMessagesList(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Error loading messages: $errorMessage",
+                    text = stringResource(R.string.error_loading_messages, errorMessage),
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(16.dp)
                 )
@@ -64,7 +66,7 @@ fun CommonMessagesList(
                 modifier = modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No messages")
+                Text(stringResource(R.string.no_messages))
             }
         }
         else -> {

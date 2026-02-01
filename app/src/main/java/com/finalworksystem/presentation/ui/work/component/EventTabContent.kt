@@ -15,7 +15,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.R
 import com.finalworksystem.presentation.ui.component.BaseCard
 import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
 
@@ -49,7 +51,7 @@ fun EventTabContent(
             if (events.isEmpty()) {
                 BaseCard(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "No events available",
+                        text = stringResource(R.string.no_events_available),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(20.dp)
@@ -72,7 +74,7 @@ fun EventTabContent(
             val errorMessage = (eventsState as WorkDetailViewModel.EventsState.Error).message
             BaseCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Error loading events: $errorMessage",
+                    text = stringResource(R.string.error_loading_events, errorMessage),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(20.dp)

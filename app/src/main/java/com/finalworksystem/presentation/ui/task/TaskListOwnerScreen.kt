@@ -7,6 +7,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.finalworksystem.R
 import com.finalworksystem.presentation.ui.component.BaseTopAppBar
 import com.finalworksystem.presentation.view_model.task.TaskListViewModel
 
@@ -25,7 +27,7 @@ fun TaskListOwnerScreen(
     Scaffold(
         topBar = {
             BaseTopAppBar(
-                title = "Task",
+                title = stringResource(R.string.task),
                 onNavigateBack = onNavigateBack,
                 onReload = { taskListViewModel.loadTasksForOwner(forceRefresh = true) },
                 loadedCount = (tasksState as? TaskListViewModel.TasksState.Success)?.tasks?.size ?: 0,

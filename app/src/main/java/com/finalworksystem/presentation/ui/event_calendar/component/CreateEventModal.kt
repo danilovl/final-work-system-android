@@ -40,11 +40,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.finalworksystem.R
 import com.finalworksystem.data.event_calendar.model.request.EventCalendarCreateRequest
 import com.finalworksystem.domain.event_calendar.model.EventCalendarManageCreateData
 import java.time.LocalDate
@@ -94,7 +96,7 @@ fun CreateEventModal(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = "Create Event",
+                    text = stringResource(R.string.create_event),
                     style = MaterialTheme.typography.headlineSmall.copy(fontSize = 20.sp),
                     fontWeight = FontWeight.Bold
                 )
@@ -108,7 +110,7 @@ fun CreateEventModal(
                         value = createData.types.find { it.id == selectedTypeId }?.name ?: "",
                         onValueChange = { },
                         readOnly = true,
-                        label = { Text("Event Type", fontSize = 12.sp) },
+                        label = { Text(stringResource(R.string.event_type), fontSize = 12.sp) },
                         textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedType) },
                         modifier = Modifier
@@ -134,7 +136,7 @@ fun CreateEventModal(
                 OutlinedTextField(
                     value = eventName,
                     onValueChange = onNameChanged,
-                    label = { Text("Event Name (Optional)", fontSize = 12.sp) },
+                    label = { Text(stringResource(R.string.event_name_optional), fontSize = 12.sp) },
                     textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -148,7 +150,7 @@ fun CreateEventModal(
                         value = createData.addresses.find { it.id == selectedAddressId }?.name ?: "",
                         onValueChange = { },
                         readOnly = true,
-                        label = { Text("Address", fontSize = 12.sp) },
+                        label = { Text(stringResource(R.string.address), fontSize = 12.sp) },
                         textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedAddress) },
                         modifier = Modifier
@@ -161,7 +163,7 @@ fun CreateEventModal(
                     ) {
                         createData.addresses.forEach { address ->
                             DropdownMenuItem(
-                                text = { Text(address.name ?: "Unknown Address", fontSize = 14.sp) },
+                                text = { Text(address.name ?: stringResource(R.string.unknown_address), fontSize = 14.sp) },
                                 onClick = {
                                     onAddressSelected(address.id)
                                     expandedAddress = false
@@ -178,11 +180,11 @@ fun CreateEventModal(
                 ) {
                     OutlinedTextField(
                         value = createData.participants.find { it.user.id == selectedUserId }?.let { 
-                            "${it.user.firstname} ${it.user.lastname}"
-                        } ?: if (selectedUserId == null) "None" else "",
+                            it.user.fullName ?: "${it.user.firstname} ${it.user.lastname}"
+                        } ?: if (selectedUserId == null) stringResource(R.string.none) else "",
                         onValueChange = { },
                         readOnly = true,
-                        label = { Text("Participant", fontSize = 12.sp) },
+                        label = { Text(stringResource(R.string.participant), fontSize = 12.sp) },
                         textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedParticipant) },
                         modifier = Modifier
@@ -196,7 +198,7 @@ fun CreateEventModal(
                         DropdownMenuItem(
                             text = { 
                                 Text(
-                                    text = "None",
+                                    text = stringResource(R.string.none),
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -213,7 +215,7 @@ fun CreateEventModal(
                                 text = { 
                                     Column {
                                         Text(
-                                            text = "${participant.user.firstname} ${participant.user.lastname}",
+                                            text = participant.user.fullName ?: "${participant.user.firstname} ${participant.user.lastname}",
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.Medium
                                         )
@@ -250,8 +252,8 @@ fun CreateEventModal(
                         value = startDateTime?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) ?: "",
                         onValueChange = { },
                         readOnly = true,
-                        label = { Text("Start Date Time", fontSize = 12.sp) },
-                        placeholder = { Text("Select date and time", fontSize = 12.sp) },
+                        label = { Text(stringResource(R.string.start_date_time), fontSize = 12.sp) },
+                        placeholder = { Text(stringResource(R.string.select_date_time), fontSize = 12.sp) },
                         textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
                         modifier = Modifier.fillMaxWidth(),
                         enabled = false
@@ -270,8 +272,8 @@ fun CreateEventModal(
                         value = endDateTime?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) ?: "",
                         onValueChange = { },
                         readOnly = true,
-                        label = { Text("End Date Time", fontSize = 12.sp) },
-                        placeholder = { Text("Select date and time", fontSize = 12.sp) },
+                        label = { Text(stringResource(R.string.end_date_time), fontSize = 12.sp) },
+                        placeholder = { Text(stringResource(R.string.select_date_time), fontSize = 12.sp) },
                         textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
                         modifier = Modifier.fillMaxWidth(),
                         enabled = false

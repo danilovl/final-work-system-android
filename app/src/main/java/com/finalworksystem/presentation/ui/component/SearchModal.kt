@@ -24,10 +24,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.finalworksystem.R
 
 @Composable
 fun SearchModal(
@@ -62,14 +64,14 @@ fun SearchModal(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Search",
+                            text = stringResource(R.string.search),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold
                         )
                         IconButton(onClick = onDismiss) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Close"
+                                contentDescription = stringResource(R.string.close)
                             )
                         }
                     }
@@ -79,12 +81,12 @@ fun SearchModal(
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = onSearchQueryChange,
-                        label = { Text("search") },
-                        placeholder = { Text("Search by title..") },
+                        label = { Text(stringResource(R.string.search)) },
+                        placeholder = { Text(stringResource(R.string.search_placeholder)) },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Search,
-                                contentDescription = "Search"
+                                contentDescription = stringResource(R.string.search)
                             )
                         },
                         minLines = 1,
@@ -98,7 +100,7 @@ fun SearchModal(
                         horizontalArrangement = Arrangement.End
                     ) {
                         TextButton(onClick = onDismiss) {
-                            Text("Cancel")
+                            Text(stringResource(R.string.cancel))
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(
@@ -107,7 +109,7 @@ fun SearchModal(
                                 onDismiss()
                             }
                         ) {
-                            Text("Search")
+                            Text(stringResource(R.string.search))
                         }
                     }
                 }

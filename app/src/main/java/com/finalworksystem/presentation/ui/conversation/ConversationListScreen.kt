@@ -19,6 +19,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.finalworksystem.R
 import com.finalworksystem.infrastructure.popup.PopupMessageHandler
 import com.finalworksystem.infrastructure.popup.PopupMessageService
 import com.finalworksystem.presentation.ui.component.BaseTopAppBar
@@ -56,7 +58,7 @@ fun ConversationListScreen(
     Scaffold(
         topBar = {
             BaseTopAppBar(
-                title = "Conversation",
+                title = stringResource(R.string.conversation),
                 onNavigateBack = onNavigateBack,
                 onReload = { conversationListViewModel.loadConversations() },
                 loadedCount = (conversationsState as? ConversationListViewModel.ConversationsState.Success)?.conversations?.size ?: 0,
@@ -108,7 +110,7 @@ fun ConversationListScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Error: ${errorState.message}",
+                        text = stringResource(R.string.error_prefix, errorState.message),
                         color = MaterialTheme.colorScheme.error
                     )
                 }
@@ -120,7 +122,7 @@ fun ConversationListScreen(
                         .padding(paddingValues),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Loading conversations...")
+                    Text(stringResource(R.string.loading_conversations))
                 }
             }
         }

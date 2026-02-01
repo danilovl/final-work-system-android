@@ -48,9 +48,15 @@ class TaskListViewModel(
                         _tasksState.value = TasksState.Success(paginatedTasks.tasks, hasMoreOwnerTasks, false, paginatedTasks.totalCount)
                     },
                     onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        _tasksState.value = TasksState.Error(errorMessage)
-                        popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        val errorMessage = error.message
+                        if (errorMessage != null) {
+                            _tasksState.value = TasksState.Error(errorMessage)
+                            popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        } else {
+                            val fallbackMessage = getApplication<Application>().getString(com.finalworksystem.R.string.unknown_error)
+                            _tasksState.value = TasksState.Error(fallbackMessage)
+                            popupMessageService.showMessageResource(com.finalworksystem.R.string.unknown_error, PopupMessageService.MessageLevel.ERROR)
+                        }
                     }
                 )
             }
@@ -71,9 +77,15 @@ class TaskListViewModel(
                         _tasksState.value = TasksState.Success(paginatedTasks.tasks, hasMoreSolverTasks, false, paginatedTasks.totalCount)
                     },
                     onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        _tasksState.value = TasksState.Error(errorMessage)
-                        popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        val errorMessage = error.message
+                        if (errorMessage != null) {
+                            _tasksState.value = TasksState.Error(errorMessage)
+                            popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        } else {
+                            val fallbackMessage = getApplication<Application>().getString(com.finalworksystem.R.string.unknown_error)
+                            _tasksState.value = TasksState.Error(fallbackMessage)
+                            popupMessageService.showMessageResource(com.finalworksystem.R.string.unknown_error, PopupMessageService.MessageLevel.ERROR)
+                        }
                     }
                 )
             }
@@ -110,9 +122,13 @@ class TaskListViewModel(
                                 _tasksState.value = TasksState.Success(updatedTasks, hasMoreOwnerTasks, false, paginatedTasks.totalCount)
                             },
                             onFailure = { error ->
-                                val errorMessage = error.message ?: "Unknown error"
+                                val errorMessage = error.message
                                 _tasksState.value = currentState.copy(isLoadingMore = false)
-                                popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                                if (errorMessage != null) {
+                                    popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                                } else {
+                                    popupMessageService.showMessageResource(com.finalworksystem.R.string.unknown_error, PopupMessageService.MessageLevel.ERROR)
+                                }
                             }
                         )
                         isLoadingMore = false
@@ -128,9 +144,13 @@ class TaskListViewModel(
                                 _tasksState.value = TasksState.Success(updatedTasks, hasMoreSolverTasks, false, paginatedTasks.totalCount)
                             },
                             onFailure = { error ->
-                                val errorMessage = error.message ?: "Unknown error"
+                                val errorMessage = error.message
                                 _tasksState.value = currentState.copy(isLoadingMore = false)
-                                popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                                if (errorMessage != null) {
+                                    popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                                } else {
+                                    popupMessageService.showMessageResource(com.finalworksystem.R.string.unknown_error, PopupMessageService.MessageLevel.ERROR)
+                                }
                             }
                         )
                         isLoadingMore = false

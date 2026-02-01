@@ -18,6 +18,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
+import com.finalworksystem.R
 import com.finalworksystem.domain.user.model.User
 import com.finalworksystem.domain.user.model.UserRole
 import kotlinx.coroutines.launch
@@ -36,11 +38,11 @@ fun SupervisorSection(
 
     if (user.roles.contains(UserRole.SUPERVISOR.value)) {
         NavigationDrawerItem(
-            label = { Text("Consultant work") },
+            label = { Text(stringResource(R.string.consultant_work)) },
             icon = { 
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.Article,
-                    contentDescription = "Consultant work"
+                    contentDescription = stringResource(R.string.consultant_work)
                 )
             },
             selected = false,
@@ -53,11 +55,11 @@ fun SupervisorSection(
         )
 
         NavigationDrawerItem(
-            label = { Text("Supervisor works") },
+            label = { Text(stringResource(R.string.supervisor_works)) },
             icon = { 
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.Article,
-                    contentDescription = "Supervisor work"
+                    contentDescription = stringResource(R.string.supervisor_works)
                 )
             },
             selected = false,
@@ -70,11 +72,11 @@ fun SupervisorSection(
         )
 
         NavigationDrawerItem(
-            label = { Text("Calendar manage") },
+            label = { Text(stringResource(R.string.calendar_manage)) },
             icon = { 
                 Icon(
                     imageVector = Icons.Default.DateRange,
-                    contentDescription = "Calendar manage"
+                    contentDescription = stringResource(R.string.calendar_manage)
                 )
             },
             selected = false,
@@ -87,11 +89,11 @@ fun SupervisorSection(
         )
 
         NavigationDrawerItem(
-            label = { Text("Task") },
+            label = { Text(stringResource(R.string.task)) },
             icon = { 
                 Icon(
                     imageVector = Icons.Default.Task,
-                    contentDescription = "Task"
+                    contentDescription = stringResource(R.string.task)
                 )
             },
             selected = false,
@@ -104,11 +106,11 @@ fun SupervisorSection(
         )
 
         NavigationDrawerItem(
-            label = { Text("Users") },
+            label = { Text(stringResource(R.string.users)) },
             icon = { 
                 Icon(
                     imageVector = Icons.Default.Groups,
-                    contentDescription = "Users"
+                    contentDescription = stringResource(R.string.users)
                 )
             },
             selected = false,
@@ -125,11 +127,11 @@ fun SupervisorSection(
 
         if (isUsersMenuExpanded) {
             NavigationDrawerItem(
-                label = { Text("  Author") },
+                label = { Text("  " + stringResource(R.string.author)) },
                 icon = { 
                     Icon(
                         imageVector = Icons.Default.Person,
-                        contentDescription = "Author"
+                        contentDescription = stringResource(R.string.author)
                     )
                 },
                 selected = false,
@@ -142,11 +144,11 @@ fun SupervisorSection(
             )
 
             NavigationDrawerItem(
-                label = { Text("  Opponent") },
+                label = { Text("  " + stringResource(R.string.opponent)) },
                 icon = { 
                     Icon(
                         imageVector = Icons.Default.Person,
-                        contentDescription = "Opponent"
+                        contentDescription = stringResource(R.string.opponent)
                     )
                 },
                 selected = false,
@@ -159,11 +161,11 @@ fun SupervisorSection(
             )
 
             NavigationDrawerItem(
-                label = { Text("  Consultant") },
+                label = { Text("  " + stringResource(R.string.consultant)) },
                 icon = { 
                     Icon(
                         imageVector = Icons.Default.Person,
-                        contentDescription = "Consultant"
+                        contentDescription = stringResource(R.string.consultant)
                     )
                 },
                 selected = false,
@@ -176,11 +178,11 @@ fun SupervisorSection(
             )
 
             NavigationDrawerItem(
-                label = { Text("  Supervisor") },
+                label = { Text("  " + stringResource(R.string.supervisor)) },
                 icon = { 
                     Icon(
                         imageVector = Icons.Default.Person,
-                        contentDescription = "Supervisor"
+                        contentDescription = stringResource(R.string.supervisor)
                     )
                 },
                 selected = false,

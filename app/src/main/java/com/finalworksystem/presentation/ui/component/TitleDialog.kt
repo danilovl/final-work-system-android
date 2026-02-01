@@ -5,6 +5,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.finalworksystem.R
 
 @Composable
 fun TitleDialog(
@@ -25,7 +27,7 @@ fun TitleDialog(
                 TextButton(
                     onClick = onDismiss
                 ) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok))
                 }
             }
         )

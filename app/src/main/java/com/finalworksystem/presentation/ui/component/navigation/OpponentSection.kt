@@ -8,6 +8,8 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.res.stringResource
+import com.finalworksystem.R
 import com.finalworksystem.domain.user.model.User
 import com.finalworksystem.domain.user.model.UserRole
 import kotlinx.coroutines.launch
@@ -22,11 +24,11 @@ fun OpponentSection(
 
     if (user.roles.contains(UserRole.OPPONENT.value)) {
         NavigationDrawerItem(
-            label = { Text("Opponent work") },
+            label = { Text(stringResource(R.string.opponent_work)) },
             icon = { 
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.Article,
-                    contentDescription = "Opponent work"
+                    contentDescription = stringResource(R.string.opponent_work)
                 )
             },
             selected = false,
