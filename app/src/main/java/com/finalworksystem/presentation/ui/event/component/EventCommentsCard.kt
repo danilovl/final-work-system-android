@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Comment
+import androidx.compose.material.icons.automirrored.filled.Comment
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,7 +35,7 @@ fun EventCommentsCard(comments: List<Comment>) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Default.Comment,
+                    imageVector = Icons.AutoMirrored.Filled.Comment,
                     contentDescription = stringResource(R.string.comments_count, comments.size),
                     modifier = Modifier.size(20.dp),
                     tint = MaterialTheme.colorScheme.primary

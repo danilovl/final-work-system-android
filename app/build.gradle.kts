@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -17,25 +19,16 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        val localProperties = Properties()
         val localPropertiesFile = rootProject.file("local.properties")
-        val localProperties = mutableMapOf<String, String>()
-
         if (localPropertiesFile.exists()) {
-            val lines = localPropertiesFile.readLines()
-            for (line in lines) {
-                if (line.contains("=") && !line.startsWith("#")) {
-                    val parts = line.split("=", limit = 2)
-                    if (parts.size == 2) {
-                        localProperties[parts[0].trim()] = parts[1].trim()
-                    }
-                }
-            }
+            localPropertiesFile.inputStream().use { localProperties.load(it) }
         }
 
-        val baseUrl = localProperties["BASE_URL"] ?: (project.findProperty("BASE_URL") as? String) ?: "http://localhost:8080/"
-        val apiKey = localProperties["API_KEY"] ?: (project.findProperty("API_KEY") as? String) ?: "default_api_key"
-        val apiGoogleKey = localProperties["API_GOOGLE_KEY"] ?: (project.findProperty("API_GOOGLE_KEY") as? String) ?: "default_google_key"
-        val apiCacheRequest = localProperties["API_CACHE_REQUEST"] ?: (project.findProperty("API_CACHE_REQUEST") as? String) ?: "true"
+        val baseUrl = localProperties.getProperty("BASE_URL") ?: (project.findProperty("BASE_URL") as? String) ?: "http://localhost:8080/"
+        val apiKey = localProperties.getProperty("API_KEY") ?: (project.findProperty("API_KEY") as? String) ?: "default_api_key"
+        val apiGoogleKey = localProperties.getProperty("API_GOOGLE_KEY") ?: (project.findProperty("API_GOOGLE_KEY") as? String) ?: "default_google_key"
+        val apiCacheRequest = localProperties.getProperty("API_CACHE_REQUEST") ?: (project.findProperty("API_CACHE_REQUEST") as? String) ?: "true"
         val apiCacheRequestBoolean = apiCacheRequest.toBoolean() || apiCacheRequest == "1"
 
         buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
@@ -48,7 +41,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -56,11 +50,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true

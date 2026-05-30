@@ -1,9 +1,9 @@
-# Final work system - android application
+# Final Work System - Android Application
 
 ## Overview
 
 This Android application is a mobile companion to
-the [Final work system](https://github.com/danilovl/final-work-system) - a comprehensive web-based
+the [Final Work System](https://github.com/danilovl/final-work-system) - a comprehensive web-based
 platform for managing academic final works, thesis projects, and dissertations.
 
 This mobile application extends the functionality of the main system by providing students and supervisors with
@@ -60,52 +60,61 @@ Explore the supervisor interface with project oversight, event creation, and stu
 - **Real-time updates**: Live synchronization of project status and notifications
 - **User authentication**: Secure login system with role-based access control
 
-## Getting started
+## Getting Started
 
 ### Prerequisites
 
 #### Development Environment
-- **Android Studio**: Hedgehog (2023.1.1) or later recommended
-- **Java Development Kit (JDK)**: Java 11 or higher
-- **Kotlin**: 1.8+ (automatically managed by Android Studio)
-- **Gradle**: 8.0+ (wrapper included in project)
+- **Android Studio**: Ladybug (2024.2.1) or later recommended
+- **Java Development Kit (JDK)**: Java 17 or higher
+- **Kotlin**: 2.0+ (automatically managed by Android Studio)
+- **Gradle**: 8.13+ (wrapper included in project)
 
 #### Android SDK Requirements
 - **Minimum SDK**: Android 14 (API level 34)
+- **Target SDK**: Android 16 (API level 36)
 
 ### Installation
 
 #### Backend Setup
 This Android application requires a backend server to function properly. You need to have the backend project running:
 
-**Backend Project**: [Final work system backend](https://github.com/danilovl/final-work-system)
+**Backend Project**: [Final Work System Backend](https://github.com/danilovl/final-work-system)
 
 Please follow the backend project's installation instructions to set up the server before proceeding with the Android application setup.
 
-#### Android application Setup
+#### Android Application Setup
 1. Clone the repository
 2. Open the project in Android Studio
-3. Configure the required variables in configuration files:
+3. Configure the required variables. You can add them to either `local.properties` (recommended for local development) or `gradle.properties`:
 
-   **in `local.properties`:**
+   **In `local.properties`:**
    ```properties
    # API Configuration
    BASE_URL=http://your-backend-server-url/
    API_KEY=your-api-key-here
    API_GOOGLE_KEY=your-google-api-key-here
+   
+   # Optional Configuration
+   API_CACHE_REQUEST=true
    ```
 
-   **in `gradle.properties`:**
+   **In `gradle.properties`:**
    ```properties
    # API Configuration
    BASE_URL=http://your-backend-server-url/
    API_KEY=your-api-key-here
    API_GOOGLE_KEY=your-google-api-key-here
+   
+   # Optional Configuration
+   API_CACHE_REQUEST=true
    ```
 
    > **Note**: The `API_KEY` is a unique authentication key that must be added to the `api_user` table in the backend database. This key is used to authenticate API requests between the Android application and the backend server.
    >
    > **Note**: The `API_GOOGLE_KEY` is a Google Maps API key used for map functionality.
+   >
+   > **Note**: `API_CACHE_REQUEST` (optional) enables or disables API request caching (default: `true`).
 
 4. Sync the project with Gradle files
 5. Build and run the application
@@ -114,7 +123,7 @@ Please follow the backend project's installation instructions to set up the serv
 
 MIT License
 
-FinalWork application is completely free and released under the [MIT License](https://github.com/danilovl/final-work-system-android/LICENSE).
+Final Work application is completely free and released under the [MIT License](https://github.com/danilovl/final-work-system-android/LICENSE).
 
 ## Author
 

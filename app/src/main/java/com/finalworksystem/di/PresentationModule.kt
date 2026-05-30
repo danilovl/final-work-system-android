@@ -11,7 +11,7 @@ import com.finalworksystem.presentation.view_model.task.TaskListViewModel
 import com.finalworksystem.presentation.view_model.user.UserViewModel
 import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
 import com.finalworksystem.presentation.view_model.work.WorkListViewModel
-import org.koin.androidx.viewmodel.dsl.viewModel
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val presentationModule = module {
