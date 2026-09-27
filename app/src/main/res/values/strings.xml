@@ -167,4 +167,17 @@
     <string name="tap_to_expand">Tap to expand</string>
     <string name="no_events_for_date">No events for this date</string>
     <string name="id_prefix">ID: %1$s</string>
+    <string name="create_work">Create Work</string>
+    <string name="category">Category</string>
+    <string name="categories">Categories</string>
+    <string name="select_author">Select Author</string>
+    <string name="select_supervisor">Select Supervisor</string>
+    <string name="select_opponent">Select Opponent</string>
+    <string name="select_consultant">Select Consultant</string>
+    <string name="create">Create</string>
+    <string name="select_type">Select Type</string>
+    <string name="select_status">Select Status</string>
+    <string name="select_category">Select Category</string>
+    <string name="access_denied_supervisor">Work creation is available only to supervisors</string>
+    <string name="object_not_found">The object no longer exists</string>
 </resources>

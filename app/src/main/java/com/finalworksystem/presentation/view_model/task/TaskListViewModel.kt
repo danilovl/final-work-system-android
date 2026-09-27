@@ -93,10 +93,14 @@ class TaskListViewModel(
     }
 
     fun loadMoreTasks() {
-        if (isLoadingMore) return
+        if (isLoadingMore) {
+            return
+        }
 
         val currentState = _tasksState.value
-        if (currentState !is TasksState.Success) return
+        if (currentState !is TasksState.Success) {
+            return
+        }
 
         val hasMore = when (currentTaskType) {
             TaskType.OWNER -> hasMoreOwnerTasks
@@ -104,7 +108,9 @@ class TaskListViewModel(
             null -> false
         }
 
-        if (!hasMore) return
+        if (!hasMore) {
+            return
+        }
 
         viewModelScope.launch {
             isLoadingMore = true

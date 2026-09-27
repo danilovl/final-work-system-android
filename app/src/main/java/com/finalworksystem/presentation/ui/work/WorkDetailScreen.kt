@@ -80,6 +80,9 @@ fun WorkDetailScreen(
 
     LaunchedEffect(workDetailState) {
         when (workDetailState) {
+            is WorkDetailViewModel.WorkDetailState.NotFound -> {
+                onNavigateBack()
+            }
             is WorkDetailViewModel.WorkDetailState.Error -> {
                 showError = true
                 errorMessage = (workDetailState as WorkDetailViewModel.WorkDetailState.Error).message

@@ -7,6 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.finalworksystem.domain.user.model.UserRole
 import com.finalworksystem.infrastructure.network.NetworkConnectivityService
 import com.finalworksystem.infrastructure.popup.PopupMessageService
 import com.finalworksystem.infrastructure.user.UserService
@@ -22,6 +23,7 @@ import com.finalworksystem.presentation.ui.task.TaskListOwnerScreen
 import com.finalworksystem.presentation.ui.task.TaskListSolverScreen
 import com.finalworksystem.presentation.ui.user.UserDetailScreen
 import com.finalworksystem.presentation.ui.user.UserListScreen
+import com.finalworksystem.presentation.ui.work.WorkCreateScreen
 import com.finalworksystem.presentation.ui.work.WorkDetailScreen
 import com.finalworksystem.presentation.ui.work.WorkListScreen
 import com.finalworksystem.presentation.view_model.auth.AuthViewModel
@@ -31,6 +33,7 @@ import com.finalworksystem.presentation.view_model.system_event.SystemEventViewM
 import com.finalworksystem.presentation.view_model.task.TaskDetailViewModel
 import com.finalworksystem.presentation.view_model.task.TaskListViewModel
 import com.finalworksystem.presentation.view_model.user.UserViewModel
+import com.finalworksystem.presentation.view_model.work.WorkCreateViewModel
 import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
 import com.finalworksystem.presentation.view_model.work.WorkListViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -43,6 +46,7 @@ object AppRoutes {
     const val USER_LIST = "user_list/{type}"
     const val WORK_LIST = "work_list/{type}"
     const val WORK_DETAIL = "work_detail/{workId}"
+    const val WORK_CREATE = "work_create"
     const val TASK_LIST_OWNER = "task_list_owner"
     const val TASK_LIST_SOLVER = "task_list_solver"
     const val TASK_DETAIL = "task_detail/{workId}/{taskId}"
@@ -113,11 +117,26 @@ fun AppNavigation(
 
         composable(AppRoutes.WORK_LIST) { backStackEntry ->
             val workListType = backStackEntry.arguments?.getString("type") ?: "author"
+            val userService = koinInject<UserService>()
+            val currentUser = userService.getUserFlowSafe().collectAsState(initial = null).value
+            val isSupervisor = currentUser?.roles?.contains(UserRole.SUPERVISOR.value) == true
             WorkListScreen(
                 workListType = workListType,
                 workListViewModel = workListViewModel,
                 onNavigateBack = actions.navigateBack,
-                onNavigateToWorkDetail = actions.navigateToWorkDetail
+                onNavigateToWorkDetail = actions.navigateToWorkDetail,
+                onNavigateToWorkCreate = if (isSupervisor) actions.navigateToWorkCreate else null
+            )
+        }
+
+        composable(AppRoutes.WORK_CREATE) {
+            val workCreateViewModel: WorkCreateViewModel = koinViewModel()
+            WorkCreateScreen(
+                viewModel = workCreateViewModel,
+                onNavigateBack = actions.navigateBack,
+                onWorkCreated = { workId ->
+                    actions.navigateToWorkDetail(workId)
+                }
             )
         }
 
@@ -280,6 +299,10 @@ class AppActions(
 
     val navigateToWorkDetail: (Int) -> Unit = { workId ->
         connectivityAwareNavController.navigate(AppRoutes.workDetailRoute(workId))
+    }
+
+    val navigateToWorkCreate: () -> Unit = {
+        connectivityAwareNavController.navigate(AppRoutes.WORK_CREATE)
     }
 
     val navigateToTaskDetail: (Int, Int) -> Unit = { workId, taskId ->

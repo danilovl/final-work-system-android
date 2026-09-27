@@ -70,6 +70,13 @@ fun ConversationDetailScreen(
         viewModel.loadMessages(conversationId)
     }
 
+    LaunchedEffect(conversationDetailState) {
+        if (conversationDetailState is ConversationDetailState.NotFound) {
+            viewModel.updateMessageSearchQuery("")
+            onNavigateBack()
+        }
+    }
+
     when (val detailState = conversationDetailState) {
         is ConversationDetailState.Loading -> {
             Box(
@@ -189,32 +196,32 @@ fun ConversationDetailScreen(
                 }
             }
         }
-                is ConversationDetailState.Error -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = stringResource(R.string.error_prefix, detailState.message),
-                                color = MaterialTheme.colorScheme.error
-                            )
-                            IconButton(onClick = {
-                                viewModel.loadConversationDetail(conversationId)
-                                viewModel.loadMessages(conversationId)
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.KeyboardArrowUp,
-                                    contentDescription = stringResource(R.string.retry),
-                                    modifier = Modifier.size(40.dp)
-                                )
-                            }
-                        }
+        is ConversationDetailState.Error -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.error_prefix, detailState.message),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    IconButton(onClick = {
+                        viewModel.loadConversationDetail(conversationId)
+                        viewModel.loadMessages(conversationId)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowUp,
+                            contentDescription = stringResource(R.string.retry),
+                            modifier = Modifier.size(40.dp)
+                        )
                     }
                 }
+            }
+        }
         is ConversationDetailState.Idle -> {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -222,6 +229,9 @@ fun ConversationDetailScreen(
             ) {
                 CircularProgressIndicator()
             }
+        }
+        is ConversationDetailState.NotFound -> {
+            // Handled by LaunchedEffect
         }
     }
 

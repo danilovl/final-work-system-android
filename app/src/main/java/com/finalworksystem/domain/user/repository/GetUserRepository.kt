@@ -8,6 +8,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface GetUserRepository {
     fun getUserDetail(): Flow<Result<User>>
-    fun getUserList(type: UserType, page: Int = 1, pageSize: Int = 20): Flow<Result<UserListResult>>
+    fun getUserList(type: UserType, page: Int = 1, pageSize: Int = 20, search: String? = null): Flow<Result<UserListResult>>
     fun getUserProfileImage(userId: Int): Flow<Result<UserProfileImage>>
 }

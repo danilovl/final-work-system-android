@@ -43,12 +43,17 @@ object ApiConstant {
 
     const val API_KEY_USER_DETAIL = ApiEndpoint.User.GET_DETAIL
     const val API_KEY_USER_LIST = ApiEndpoint.User.GET_LIST
+    const val API_KEY_USER_SEARCH = ApiEndpoint.User.GET_SEARCH
     const val API_KEY_USER_PROFILE_IMAGE = ApiEndpoint.User.GET_PROFILE_IMAGE
 
     const val API_KEY_VERSION_WORK_LIST = ApiEndpoint.Version.Work.GET_LIST
 
     const val API_KEY_WORK_DETAIL = ApiEndpoint.Work.GET_DETAIL
     const val API_KEY_WORK_LIST = ApiEndpoint.Work.GET_LIST
+    const val API_KEY_WORK_CREATE = ApiEndpoint.Work.POST_CREATE
+    const val API_KEY_WORK_TYPES = ApiEndpoint.Work.GET_TYPES
+    const val API_KEY_WORK_STATUSES = ApiEndpoint.Work.GET_STATUSES
+    const val API_KEY_WORK_CATEGORIES = ApiEndpoint.Work.GET_CATEGORIES
 
     object SystemEventType {
         const val READ = "read"

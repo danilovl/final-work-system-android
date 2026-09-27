@@ -7,4 +7,5 @@ sealed class ConversationDetailState {
     data object Loading : ConversationDetailState()
     data class Success(val conversation: Conversation) : ConversationDetailState()
     data class Error(val message: String) : ConversationDetailState()
+    data object NotFound : ConversationDetailState()
 }

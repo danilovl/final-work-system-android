@@ -14,6 +14,7 @@ import com.finalworksystem.data.task.repository.GetTaskRepositoryImpl
 import com.finalworksystem.data.task.repository.PutTaskRepositoryImpl
 import com.finalworksystem.data.version.repository.GetVersionRepositoryImpl
 import com.finalworksystem.data.work.repository.GetWorkRepositoryImpl
+import com.finalworksystem.data.work.repository.PostWorkRepositoryImpl
 import com.finalworksystem.domain.auth.repository.AuthRepository
 import com.finalworksystem.domain.conversation.repository.GetConversationRepository
 import com.finalworksystem.domain.conversation.repository.PostConversationRepository
@@ -31,6 +32,7 @@ import com.finalworksystem.domain.user.repository.GetUserRepository
 import com.finalworksystem.domain.user.repository.SessionUserRepository
 import com.finalworksystem.domain.version.repository.GetVersionRepository
 import com.finalworksystem.domain.work.repository.GetWorkRepository
+import com.finalworksystem.domain.work.repository.PostWorkRepository
 import com.finalworksystem.infrastructure.api.ApiClient
 import com.finalworksystem.infrastructure.network.NetworkConnectivityService
 import com.finalworksystem.infrastructure.popup.PopupMessageService
@@ -85,6 +87,10 @@ val dataModule = module {
 
     single<GetWorkRepository> {
         GetWorkRepositoryImpl(get())
+    }
+
+    single<PostWorkRepository> {
+        PostWorkRepositoryImpl(get())
     }
 
     single<GetTaskRepository> {

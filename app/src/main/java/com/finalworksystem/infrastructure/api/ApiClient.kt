@@ -2,8 +2,19 @@ package com.finalworksystem.infrastructure.api
 
 import android.content.Context
 import com.finalworksystem.BuildConfig
+import com.finalworksystem.data.conversation.model.response.ConversationWorkResponseDto
+import com.finalworksystem.data.conversation.model.response.ConversationWorkResponseDtoAdapter
+import com.finalworksystem.data.user.model.response.UserWithWorksResponse
+import com.finalworksystem.data.user.model.response.UserWithWorksResponseAdapter
+import com.finalworksystem.data.work.model.response.WorkResponse
+import com.finalworksystem.data.work.model.response.WorkResponseAdapter
+import com.finalworksystem.infrastructure.api.util.SafeDoubleAdapter
+import com.finalworksystem.infrastructure.api.util.SafeIntAdapter
+import com.finalworksystem.infrastructure.api.util.SafeLongAdapter
 import com.finalworksystem.infrastructure.cache.GlobalCacheManager
 import com.finalworksystem.infrastructure.user.UserService
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import okhttp3.Cache
 import okhttp3.CacheControl
 import okhttp3.Interceptor
@@ -58,11 +69,25 @@ class ApiClient(
         }
     }
 
+    private val gson: Gson by lazy {
+        GsonBuilder()
+            .registerTypeAdapter(Int::class.java, SafeIntAdapter())
+            .registerTypeAdapter(Integer::class.java, SafeIntAdapter())
+            .registerTypeAdapter(Long::class.java, SafeLongAdapter())
+            .registerTypeAdapter(java.lang.Long::class.java, SafeLongAdapter())
+            .registerTypeAdapter(Double::class.java, SafeDoubleAdapter())
+            .registerTypeAdapter(java.lang.Double::class.java, SafeDoubleAdapter())
+            .registerTypeAdapter(UserWithWorksResponse::class.java, UserWithWorksResponseAdapter())
+            .registerTypeAdapter(WorkResponse::class.java, WorkResponseAdapter())
+            .registerTypeAdapter(ConversationWorkResponseDto::class.java, ConversationWorkResponseDtoAdapter())
+            .create()
+    }
+
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(ApiConstant.BASE_URL)
             .client(createOkHttpClient())
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }
 

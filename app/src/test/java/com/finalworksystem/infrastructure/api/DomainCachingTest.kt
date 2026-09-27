@@ -7,9 +7,9 @@ import kotlinx.coroutines.test.runTest
 import okhttp3.Interceptor
 import okhttp3.Protocol
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever

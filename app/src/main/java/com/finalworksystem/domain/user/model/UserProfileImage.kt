@@ -7,15 +7,27 @@ data class UserProfileImage(
     val imageData: ByteArray
 ) {
     override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (this === other) {
+            return true
+        }
+        if (javaClass != other?.javaClass) {
+            return false
+        }
 
         other as UserProfileImage
 
-        if (fileName != other.fileName) return false
-        if (contentType != other.contentType) return false
-        if (contentLength != other.contentLength) return false
-        if (!imageData.contentEquals(other.imageData)) return false
+        if (fileName != other.fileName) {
+            return false
+        }
+        if (contentType != other.contentType) {
+            return false
+        }
+        if (contentLength != other.contentLength) {
+            return false
+        }
+        if (!imageData.contentEquals(other.imageData)) {
+            return false
+        }
 
         return true
     }

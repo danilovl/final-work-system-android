@@ -54,10 +54,14 @@ class UserViewModel(
         val currentPageNum = currentPage[type] ?: 1
         val isCurrentlyLoadingMore = isLoadingMore[type] ?: false
 
-        if (isCurrentlyLoadingMore) return
+        if (isCurrentlyLoadingMore) {
+            return
+        }
 
         val hasMoreData = currentResult.currentItemCount < currentResult.totalCount
-        if (!hasMoreData) return
+        if (!hasMoreData) {
+            return
+        }
 
         isLoadingMore = isLoadingMore + (type to true)
         val nextPage = currentPageNum + 1

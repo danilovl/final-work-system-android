@@ -4,8 +4,10 @@ import com.finalworksystem.data.conversation.model.ConversationDto
 import com.finalworksystem.data.conversation.model.ConversationParticipantDto
 import com.finalworksystem.data.conversation.model.ConversationUserDto
 import com.finalworksystem.data.conversation.model.toEntity
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.junit.Assert.*
 
 class ConversationDtoParticipantsTest {
 

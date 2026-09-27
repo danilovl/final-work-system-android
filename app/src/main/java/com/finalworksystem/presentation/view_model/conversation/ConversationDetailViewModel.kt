@@ -7,6 +7,7 @@ import com.finalworksystem.application.use_case.conversation.CreateMessageUseCas
 import com.finalworksystem.application.use_case.conversation.GetConversationDetailUseCase
 import com.finalworksystem.application.use_case.conversation.GetConversationMessagesUseCase
 import com.finalworksystem.application.use_case.conversation.MarkMessageAsReadUseCase
+import com.finalworksystem.data.util.isNotFound
 import com.finalworksystem.infrastructure.popup.PopupMessageService
 import com.finalworksystem.presentation.view_model.conversation.state.ConversationDetailState
 import com.finalworksystem.presentation.view_model.conversation.state.MessagesState
@@ -52,9 +53,17 @@ class ConversationDetailViewModel(
                         _conversationDetailState.value = ConversationDetailState.Success(conversation)
                     },
                     onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        _conversationDetailState.value = ConversationDetailState.Error(errorMessage)
-                        popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        if (error.isNotFound()) {
+                            _conversationDetailState.value = ConversationDetailState.NotFound
+                            popupMessageService.showMessageResource(
+                                com.finalworksystem.R.string.object_not_found,
+                                PopupMessageService.MessageLevel.ERROR
+                            )
+                        } else {
+                            val errorMessage = error.message ?: "Unknown error"
+                            _conversationDetailState.value = ConversationDetailState.Error(errorMessage)
+                            popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        }
                     }
                 )
             }
@@ -76,7 +85,9 @@ class ConversationDetailViewModel(
                     onFailure = { error ->
                         val errorMessage = error.message ?: "Unknown error"
                         _messagesState.value = MessagesState.Error(errorMessage)
-                        popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        if (!error.isNotFound()) {
+                            popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        }
                     }
                 )
             }

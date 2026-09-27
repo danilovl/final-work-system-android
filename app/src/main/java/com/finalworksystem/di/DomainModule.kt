@@ -35,9 +35,13 @@ import com.finalworksystem.application.use_case.user.GetUserProfileImageUseCase
 import com.finalworksystem.application.use_case.user.RefreshUserDataOnStartupUseCase
 import com.finalworksystem.application.use_case.version.GetVersionsForWorkUseCase
 import com.finalworksystem.application.use_case.version.GetVersionsForWorkWithPaginationUseCase
+import com.finalworksystem.application.use_case.work.GetWorkCategoriesUseCase
 import com.finalworksystem.application.use_case.work.GetWorkDetailUseCase
 import com.finalworksystem.application.use_case.work.GetWorkListUseCase
 import com.finalworksystem.application.use_case.work.GetWorkListWithPaginationUseCase
+import com.finalworksystem.application.use_case.work.GetWorkStatusesUseCase
+import com.finalworksystem.application.use_case.work.GetWorkTypesUseCase
+import com.finalworksystem.application.use_case.work.PostWorkCreateUseCase
 import com.finalworksystem.infrastructure.cache.ProfileImageCacheManager
 import org.koin.dsl.module
 
@@ -81,4 +85,8 @@ val domainModule = module {
     single { GetWorkListUseCase(get()) }
     single { GetWorkListWithPaginationUseCase(get()) }
     single { GetWorkDetailUseCase(get()) }
+    single { GetWorkTypesUseCase(get()) }
+    single { GetWorkStatusesUseCase(get()) }
+    single { GetWorkCategoriesUseCase(get()) }
+    single { PostWorkCreateUseCase(get()) }
 }

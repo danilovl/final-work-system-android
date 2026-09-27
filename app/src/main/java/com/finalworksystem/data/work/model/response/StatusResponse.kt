@@ -11,13 +11,17 @@ data class StatusResponse(
     val name: String,
 
     @SerializedName("description")
-    val description: String?
+    val description: String?,
+
+    @SerializedName("color")
+    val color: String? = null
 )
 
 fun StatusResponse.toDataModel(): DomainWorkStatus {
     return DomainWorkStatus(
         id = id,
         name = name,
-        description = description
+        description = description,
+        color = color
     )
 }

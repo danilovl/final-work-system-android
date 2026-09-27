@@ -56,9 +56,14 @@ class GetUserRepository(
     override fun getUserList(
         type: UserType,
         page: Int,
-        pageSize: Int
+        pageSize: Int,
+        search: String?
     ): Flow<Result<UserListResult>> = safeFlowResult {
-        val response = apiUserService.getUserList(type.value, page, pageSize)
+        val response = if (!search.isNullOrBlank()) {
+            apiUserService.searchUsers(type.value, page, pageSize, search)
+        } else {
+            apiUserService.getUserList(type.value, page, pageSize, search)
+        }
 
         val result = response.handleResponse { userListResponse ->
             userListResponse.toDomainModel()

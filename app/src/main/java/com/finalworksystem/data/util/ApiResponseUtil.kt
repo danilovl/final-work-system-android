@@ -4,6 +4,21 @@ import retrofit2.Response
 
 class UnauthorizedException(message: String) : Exception(message)
 
+class NotFoundException(message: String = "Resource not found") : Exception(message)
+
+fun Throwable?.isNotFound(): Boolean {
+    if (this == null) {
+        return false
+    }
+
+    if (this is NotFoundException) {
+        return true
+    }
+
+    val msg = message?.lowercase() ?: ""
+    return msg.contains("404") || msg.contains("not found")
+}
+
 object ApiResponseUtil {
     fun <T, R> handleApiResponse(
         response: Response<T>,
@@ -23,7 +38,7 @@ object ApiResponseUtil {
             }
             204 -> Result.failure(Exception("Unexpected content for no-content response"))
             401 -> Result.failure(UnauthorizedException("Invalid credentials"))
-            404 -> Result.failure(Exception(notFoundMessage))
+            404 -> Result.failure(NotFoundException(notFoundMessage))
             403 -> Result.failure(Exception(accessDeniedMessage))
             else -> {
                 if (response.isSuccessful) {
@@ -49,7 +64,7 @@ object ApiResponseUtil {
         return when (response.code()) {
             200, 204 -> Result.success(Unit)
             401 -> Result.failure(UnauthorizedException("Invalid credentials"))
-            404 -> Result.failure(Exception(notFoundMessage))
+            404 -> Result.failure(NotFoundException(notFoundMessage))
             403 -> Result.failure(Exception(accessDeniedMessage))
             else -> {
                 if (response.isSuccessful) {

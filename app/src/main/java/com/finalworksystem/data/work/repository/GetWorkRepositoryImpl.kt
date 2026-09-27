@@ -2,11 +2,15 @@ package com.finalworksystem.data.work.repository
 
 import com.finalworksystem.data.util.handleResponse
 import com.finalworksystem.data.work.model.response.toDataModel
+import com.finalworksystem.data.work.model.response.toDomainModel
 import com.finalworksystem.data.work.model.toDomainModel
 import com.finalworksystem.domain.common.util.safeFlowResult
 import com.finalworksystem.domain.work.model.PaginatedWorks
 import com.finalworksystem.domain.work.model.Work
+import com.finalworksystem.domain.work.model.WorkCategory
 import com.finalworksystem.domain.work.model.WorkListType
+import com.finalworksystem.domain.work.model.WorkStatus
+import com.finalworksystem.domain.work.model.WorkType
 import com.finalworksystem.domain.work.repository.GetWorkRepository
 import com.finalworksystem.infrastructure.api.ApiWorkService
 import kotlinx.coroutines.flow.Flow
@@ -48,6 +52,30 @@ class GetWorkRepositoryImpl(private val apiWorkService: ApiWorkService) : GetWor
         response.handleResponse { workResponse ->
             val dataWork = workResponse.toDataModel()
             dataWork.toDomainModel()
+        }
+    }
+
+    override fun getWorkTypes(): Flow<Result<List<WorkType>>> = safeFlowResult {
+        val response = apiWorkService.getWorkTypes()
+
+        response.handleResponse { types ->
+            types.map { it.toDataModel() }
+        }
+    }
+
+    override fun getWorkStatuses(): Flow<Result<List<WorkStatus>>> = safeFlowResult {
+        val response = apiWorkService.getWorkStatuses()
+
+        response.handleResponse { statuses ->
+            statuses.map { it.toDataModel() }
+        }
+    }
+
+    override fun getWorkCategories(): Flow<Result<List<WorkCategory>>> = safeFlowResult {
+        val response = apiWorkService.getWorkCategories()
+
+        response.handleResponse { categories ->
+            categories.map { it.toDomainModel() }
         }
     }
 }

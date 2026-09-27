@@ -1,9 +1,15 @@
 package com.finalworksystem.presentation.ui.work
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,20 +25,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.finalworksystem.R
+import com.finalworksystem.domain.user.model.UserRole
 import com.finalworksystem.domain.work.model.WorkListType
+import com.finalworksystem.infrastructure.user.UserService
 import com.finalworksystem.presentation.ui.component.BaseTopAppBar
 import com.finalworksystem.presentation.ui.component.SearchModal
 import com.finalworksystem.presentation.ui.component.SearchResetFloatingActionButton
 import com.finalworksystem.presentation.ui.work.component.WorksList
 import com.finalworksystem.presentation.view_model.work.WorkListViewModel
+import org.koin.compose.koinInject
 
 @Composable
 fun WorkListScreen(
     workListType: String = "author",
     workListViewModel: WorkListViewModel,
     onNavigateBack: () -> Unit,
-    onNavigateToWorkDetail: (Int) -> Unit
+    onNavigateToWorkDetail: (Int) -> Unit,
+    onNavigateToWorkCreate: (() -> Unit)? = null
 ) {
+    val userService: UserService = koinInject()
+    val currentUser by userService.getUserFlowSafe().collectAsState(initial = null)
+    val isSupervisor = currentUser?.roles?.contains(UserRole.SUPERVISOR.value) == true
+
     val worksState by workListViewModel.worksState.collectAsState()
     val searchQuery by workListViewModel.searchQuery.collectAsState()
     val workListTypeEnum = WorkListType.fromString(workListType)
@@ -69,11 +83,24 @@ fun WorkListScreen(
             )
         },
         floatingActionButton = {
-            SearchResetFloatingActionButton(
-                searchQuery = searchQuery,
-                onSearchClick = { isSearchModalVisible = true },
-                onResetClick = { workListViewModel.clearSearch() }
-            )
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (onNavigateToWorkCreate != null && isSupervisor) {
+                    FloatingActionButton(onClick = onNavigateToWorkCreate) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = stringResource(R.string.create_work)
+                        )
+                    }
+                }
+                SearchResetFloatingActionButton(
+                    searchQuery = searchQuery,
+                    onSearchClick = { isSearchModalVisible = true },
+                    onResetClick = { workListViewModel.clearSearch() }
+                )
+            }
         }
     ) { paddingValues ->
         Box(

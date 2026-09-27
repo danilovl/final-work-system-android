@@ -1,11 +1,7 @@
 package com.finalworksystem.infrastructure.utils
 
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import com.finalworksystem.domain.common.util.HtmlUtils
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 

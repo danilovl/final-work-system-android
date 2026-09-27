@@ -4,12 +4,17 @@ object ApiEndpoint {
     object User {
         const val GET_DETAIL = "/api/key/users/detail"
         const val GET_LIST = "/api/key/users/{type}"
+        const val GET_SEARCH = "/api/key/users/search/{type}"
         const val GET_PROFILE_IMAGE = "/api/key/users/{id}/profile/image"
     }
 
     object Work {
         const val GET_LIST = "/api/key/works/{type}"
         const val GET_DETAIL = "/api/key/works/{id}/detail"
+        const val POST_CREATE = "/api/key/works/create"
+        const val GET_TYPES = "/api/key/work-types"
+        const val GET_STATUSES = "/api/key/work-statuses"
+        const val GET_CATEGORIES = "/api/key/work-categories"
     }
 
     object Event {

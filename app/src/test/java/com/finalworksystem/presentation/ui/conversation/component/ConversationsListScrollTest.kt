@@ -1,7 +1,8 @@
 package com.finalworksystem.presentation.ui.conversation.component
 
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.junit.Assert.*
 
 class ConversationsListScrollTest {
 

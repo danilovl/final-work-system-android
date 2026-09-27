@@ -9,6 +9,7 @@ import com.finalworksystem.application.use_case.event.GetEventsForWorkUseCase
 import com.finalworksystem.application.use_case.task.GetTasksForWorkUseCase
 import com.finalworksystem.application.use_case.version.GetVersionsForWorkWithPaginationUseCase
 import com.finalworksystem.application.use_case.work.GetWorkDetailUseCase
+import com.finalworksystem.data.util.isNotFound
 import com.finalworksystem.domain.conversation.model.ConversationMessage
 import com.finalworksystem.domain.conversation.model.response.ConversationWorkResponse
 import com.finalworksystem.domain.event.model.Event
@@ -43,6 +44,7 @@ class WorkDetailViewModel(
         object Loading : WorkDetailState()
         data class Success(val work: Work) : WorkDetailState()
         data class Error(val message: String) : WorkDetailState()
+        data object NotFound : WorkDetailState()
     }
 
     sealed class TasksState {
@@ -170,9 +172,17 @@ class WorkDetailViewModel(
                         _workDetailState.value = WorkDetailState.Success(work)
                     },
                     onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        _workDetailState.value = WorkDetailState.Error(errorMessage)
-                        popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        if (error.isNotFound()) {
+                            _workDetailState.value = WorkDetailState.NotFound
+                            popupMessageService.showMessageResource(
+                                com.finalworksystem.R.string.object_not_found,
+                                PopupMessageService.MessageLevel.ERROR
+                            )
+                        } else {
+                            val errorMessage = error.message ?: "Unknown error"
+                            _workDetailState.value = WorkDetailState.Error(errorMessage)
+                            popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        }
                     }
                 )
             }
@@ -213,7 +223,9 @@ class WorkDetailViewModel(
                     onFailure = { error ->
                         val errorMessage = error.message ?: "Unknown error"
                         _tasksState.value = TasksState.Error(errorMessage)
-                        popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        if (!error.isNotFound()) {
+                            popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        }
                     }
                 )
             }
@@ -280,7 +292,9 @@ class WorkDetailViewModel(
                     onFailure = { error ->
                         val errorMessage = error.message ?: "Unknown error"
                         _eventsState.value = EventsState.Error(errorMessage)
-                        popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        if (!error.isNotFound()) {
+                            popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        }
                     }
                 )
             }
@@ -321,7 +335,9 @@ class WorkDetailViewModel(
                     onFailure = { error ->
                         val errorMessage = error.message ?: "Unknown error"
                         _versionsState.value = VersionsState.Error(errorMessage)
-                        popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        if (!error.isNotFound()) {
+                            popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        }
                     }
                 )
             }
@@ -401,7 +417,9 @@ class WorkDetailViewModel(
                     onFailure = { error ->
                         val errorMessage = error.message ?: "Unknown error"
                         _workMessagesState.value = WorkMessagesState.Error(errorMessage)
-                        popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        if (!error.isNotFound()) {
+                            popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
+                        }
                     }
                 )
             }

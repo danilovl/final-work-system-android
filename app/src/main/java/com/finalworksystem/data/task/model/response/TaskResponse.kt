@@ -59,12 +59,16 @@ fun TaskResponse.toDataModel(): Task {
     )
 }
 
-fun WorkResponse.toDataModel(): WorkInfo {
+fun WorkResponse?.toDataModel(): WorkInfo? {
+    if (this == null) {
+        return null
+    }
+
     return WorkInfo(
-        id = id,
-        title = title,
-        shortcut = null,
-        deadline = deadline,
+        id = id ?: 0,
+        title = title ?: "",
+        shortcut = shortcut,
+        deadline = deadline ?: "",
         deadlineProgram = deadlineProgram
     )
 }
@@ -75,6 +79,7 @@ fun TaskListResponse.toDataModel(): List<Task> {
 
 fun TaskListResponse.toPaginatedDomainModel(): com.finalworksystem.domain.task.model.PaginatedTasks {
     val tasks = result.map { it.toDataModel().toDomainModel() }
+
     return com.finalworksystem.domain.task.model.PaginatedTasks(
         tasks = tasks,
         totalCount = totalCount,

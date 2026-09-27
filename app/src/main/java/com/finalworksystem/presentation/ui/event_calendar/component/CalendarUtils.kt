@@ -10,7 +10,9 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
 fun parseColor(colorString: String?): Color {
-    if (colorString.isNullOrBlank()) return Blue40
+    if (colorString.isNullOrBlank()) {
+        return Blue40
+    }
 
     val cleanColor = colorString.trim()
 

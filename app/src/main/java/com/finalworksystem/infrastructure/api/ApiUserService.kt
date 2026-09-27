@@ -19,7 +19,17 @@ interface ApiUserService {
     suspend fun getUserList(
         @Path("type") type: String,
         @Query("page") page: Int = 1,
-        @Query("pageSize") pageSize: Int = 20
+        @Query("pageSize") pageSize: Int = 20,
+        @Query("search") search: String? = null
+    ): Response<UserListResponse>
+
+    @GET(ApiConstant.API_KEY_USER_SEARCH)
+    @Headers("X-Api-Service: ApiUserService")
+    suspend fun searchUsers(
+        @Path("type") type: String,
+        @Query("page") page: Int = 1,
+        @Query("pageSize") pageSize: Int = 20,
+        @Query("search") search: String? = null
     ): Response<UserListResponse>
 
     @GET(ApiConstant.API_KEY_USER_PROFILE_IMAGE)

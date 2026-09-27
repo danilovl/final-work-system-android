@@ -167,4 +167,17 @@
     <string name="tap_to_expand">Нажмите, чтобы развернуть</string>
     <string name="no_events_for_date">Нет событий на эту дату</string>
     <string name="id_prefix">ID: %1$s</string>
+    <string name="create_work">Создать работу</string>
+    <string name="category">Категория</string>
+    <string name="categories">Категории</string>
+    <string name="select_author">Выберите автора</string>
+    <string name="select_supervisor">Выберите руководителя</string>
+    <string name="select_opponent">Выберите оппонента</string>
+    <string name="select_consultant">Выберите консультанта</string>
+    <string name="create">Создать</string>
+    <string name="select_type">Выберите тип</string>
+    <string name="select_status">Выберите статус</string>
+    <string name="select_category">Выберите категорию</string>
+    <string name="access_denied_supervisor">Создание работы доступно только руководителям</string>
+    <string name="object_not_found">Объект больше не существует</string>
 </resources>
