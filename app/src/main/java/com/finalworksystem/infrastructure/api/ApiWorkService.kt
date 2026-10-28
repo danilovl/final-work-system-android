@@ -23,7 +23,13 @@ interface ApiWorkService {
         @Path("type") type: WorkListType,
         @Query("page") page: Int? = null,
         @Query("limit") limit: Int? = null,
-        @Query("search") search: String? = null
+        @Query("title") title: String? = null,
+        @Query("shortcut") shortcut: String? = null,
+        @Query("status[]") statusIds: List<Int>? = null,
+        @Query("type") workTypeId: Int? = null,
+        @Query("author") authorId: Int? = null,
+        @Query("opponent") opponentId: Int? = null,
+        @Query("deadline") deadline: String? = null
     ): Response<WorkListResponse>
 
     @GET(ApiConstant.API_KEY_WORK_DETAIL)

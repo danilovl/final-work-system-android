@@ -23,7 +23,7 @@ val presentationModule = module {
     viewModel { ConversationDetailViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { EventDetailViewModel(get(), get()) }
     viewModel { SystemEventViewModel(get(), get(), get(), get(), get()) }
-    viewModel { WorkListViewModel(get(), get(), get(), get(), get()) }
+    viewModel { WorkListViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { WorkDetailViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { WorkCreateViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { TaskListViewModel(get(), get(), get(), get(), get()) }

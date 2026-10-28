@@ -183,4 +183,9 @@
     <string name="select_category">Select Category</string>
     <string name="access_denied_supervisor">Work creation is available only to supervisors</string>
     <string name="object_not_found">The object no longer exists</string>
+    <string name="filter_works">Filter Works</string>
+    <string name="apply_filter">Apply Filter</string>
+    <string name="clear_filter">Clear Filter</string>
+    <string name="all_statuses">All Statuses</string>
+    <string name="all_types">All Types</string>
 </resources>

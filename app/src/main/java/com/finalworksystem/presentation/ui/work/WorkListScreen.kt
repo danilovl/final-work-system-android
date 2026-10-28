@@ -29,8 +29,8 @@ import com.finalworksystem.domain.user.model.UserRole
 import com.finalworksystem.domain.work.model.WorkListType
 import com.finalworksystem.infrastructure.user.UserService
 import com.finalworksystem.presentation.ui.component.BaseTopAppBar
-import com.finalworksystem.presentation.ui.component.SearchModal
 import com.finalworksystem.presentation.ui.component.SearchResetFloatingActionButton
+import com.finalworksystem.presentation.ui.work.component.WorkFilterDialog
 import com.finalworksystem.presentation.ui.work.component.WorksList
 import com.finalworksystem.presentation.view_model.work.WorkListViewModel
 import org.koin.compose.koinInject
@@ -49,6 +49,12 @@ fun WorkListScreen(
 
     val worksState by workListViewModel.worksState.collectAsState()
     val searchQuery by workListViewModel.searchQuery.collectAsState()
+    val filter by workListViewModel.filter.collectAsState()
+    val workTypes by workListViewModel.workTypes.collectAsState()
+    val workStatuses by workListViewModel.workStatuses.collectAsState()
+    val userPickersState by workListViewModel.userPickersState.collectAsState()
+    val selectedAuthor by workListViewModel.selectedAuthor.collectAsState()
+    val selectedOpponent by workListViewModel.selectedOpponent.collectAsState()
     val workListTypeEnum = WorkListType.fromString(workListType)
 
     var isSearchModalVisible by remember { mutableStateOf(false) }
@@ -96,9 +102,9 @@ fun WorkListScreen(
                     }
                 }
                 SearchResetFloatingActionButton(
-                    searchQuery = searchQuery,
+                    searchQuery = if (filter.isEmpty()) "" else "filtered",
                     onSearchClick = { isSearchModalVisible = true },
-                    onResetClick = { workListViewModel.clearSearch() }
+                    onResetClick = { workListViewModel.clearFilter() }
                 )
             }
         }
@@ -151,13 +157,20 @@ fun WorkListScreen(
         }
     }
 
-    SearchModal(
+    WorkFilterDialog(
         isVisible = isSearchModalVisible,
-        searchQuery = searchQuery,
-        onSearchQueryChange = { workListViewModel.updateSearchQuery(it) },
-        onSearch = { query ->
-            workListViewModel.performSearch(query)
-        },
+        initialFilter = filter,
+        workTypes = workTypes,
+        workStatuses = workStatuses,
+        userPickersState = userPickersState,
+        selectedAuthor = selectedAuthor,
+        selectedOpponent = selectedOpponent,
+        onLoadUsers = { type, query -> workListViewModel.loadUsers(type, query) },
+        onLoadMoreUsers = { type -> workListViewModel.loadMoreUsers(type) },
+        onAuthorSelected = { workListViewModel.selectedAuthor.value = it },
+        onOpponentSelected = { workListViewModel.selectedOpponent.value = it },
+        onApplyFilter = { workListViewModel.updateFilter(it) },
+        onResetFilter = { workListViewModel.clearFilter() },
         onDismiss = { isSearchModalVisible = false }
     )
 }

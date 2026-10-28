@@ -63,6 +63,7 @@ import com.finalworksystem.domain.user.model.UserType
 import com.finalworksystem.domain.work.model.WorkCategory
 import com.finalworksystem.infrastructure.user.UserService
 import com.finalworksystem.presentation.ui.component.BaseTopAppBar
+import com.finalworksystem.presentation.ui.work.component.UserPickerState
 import com.finalworksystem.presentation.ui.work.component.UserSelectionDialog
 import com.finalworksystem.presentation.view_model.work.WorkCreateViewModel
 import org.koin.compose.koinInject
@@ -202,20 +203,29 @@ fun WorkCreateScreen(
                         )
 
                         // Type Dropdown
-                        Box(modifier = Modifier.fillMaxWidth()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { isTypeMenuExpanded = true }
+                        ) {
                             OutlinedTextField(
                                 value = selectedType?.name ?: "",
                                 onValueChange = {},
                                 readOnly = true,
+                                enabled = false,
                                 label = { Text("${stringResource(R.string.type)} *") },
                                 trailingIcon = {
                                     IconButton(onClick = { isTypeMenuExpanded = true }) {
                                         Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                                     }
                                 },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { isTypeMenuExpanded = true }
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                                    disabledBorderColor = MaterialTheme.colorScheme.outline,
+                                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             )
                             DropdownMenu(
                                 expanded = isTypeMenuExpanded,
@@ -235,20 +245,29 @@ fun WorkCreateScreen(
                         }
 
                         // Status Dropdown
-                        Box(modifier = Modifier.fillMaxWidth()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { isStatusMenuExpanded = true }
+                        ) {
                             OutlinedTextField(
                                 value = selectedStatus?.name ?: "",
                                 onValueChange = {},
                                 readOnly = true,
+                                enabled = false,
                                 label = { Text("${stringResource(R.string.status)} *") },
                                 trailingIcon = {
                                     IconButton(onClick = { isStatusMenuExpanded = true }) {
                                         Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                                     }
                                 },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { isStatusMenuExpanded = true }
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                                    disabledBorderColor = MaterialTheme.colorScheme.outline,
+                                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             )
                             DropdownMenu(
                                 expanded = isStatusMenuExpanded,
@@ -492,7 +511,7 @@ fun WorkCreateScreen(
 
     // User Picker Dialog
     activeUserTypeDialog?.let { userType ->
-        val pickerState = userPickersState[userType] ?: WorkCreateViewModel.UserPickerState()
+        val pickerState = userPickersState[userType] ?: UserPickerState()
         val title = when (userType) {
             UserType.AUTHOR -> stringResource(R.string.select_author)
             UserType.OPPONENT -> stringResource(R.string.select_opponent)

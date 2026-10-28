@@ -183,4 +183,9 @@
     <string name="select_category">Выберите категорию</string>
     <string name="access_denied_supervisor">Создание работы доступно только руководителям</string>
     <string name="object_not_found">Объект больше не существует</string>
+    <string name="filter_works">Фильтр работ</string>
+    <string name="apply_filter">Применить фильтр</string>
+    <string name="clear_filter">Очистить фильтр</string>
+    <string name="all_statuses">Все статусы</string>
+    <string name="all_types">Все типы</string>
 </resources>

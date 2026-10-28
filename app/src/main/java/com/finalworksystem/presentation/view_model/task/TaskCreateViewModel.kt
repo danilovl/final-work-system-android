@@ -9,6 +9,7 @@ import com.finalworksystem.application.use_case.work.GetWorkListWithPaginationUs
 import com.finalworksystem.data.task.model.request.TaskCreateRequest
 import com.finalworksystem.domain.task.model.Task
 import com.finalworksystem.domain.work.model.Work
+import com.finalworksystem.domain.work.model.WorkFilter
 import com.finalworksystem.domain.work.model.WorkListType
 import com.finalworksystem.infrastructure.cache.CacheCleanupReason
 import com.finalworksystem.infrastructure.cache.GlobalCacheManager
@@ -92,7 +93,7 @@ class TaskCreateViewModel(
                 type = WorkListType.SUPERVISOR,
                 page = 1,
                 limit = pageSize,
-                search = query.ifBlank { null }
+                filter = WorkFilter(title = query.ifBlank { null })
             ).collect { result ->
                 result.fold(
                     onSuccess = { paginatedWorks ->
@@ -125,7 +126,7 @@ class TaskCreateViewModel(
                 type = WorkListType.SUPERVISOR,
                 page = nextPage,
                 limit = pageSize,
-                search = currentState.searchQuery.ifBlank { null }
+                filter = WorkFilter(title = currentState.searchQuery.ifBlank { null })
             ).collect { result ->
                 result.fold(
                     onSuccess = { paginatedWorks ->

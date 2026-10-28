@@ -18,6 +18,7 @@ import com.finalworksystem.domain.work.model.WorkManageCreateData
 import com.finalworksystem.domain.work.model.WorkStatus
 import com.finalworksystem.domain.work.model.WorkType
 import com.finalworksystem.infrastructure.popup.PopupMessageService
+import com.finalworksystem.presentation.ui.work.component.UserPickerState
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -48,16 +49,6 @@ class WorkCreateViewModel(
         data class Success(val work: Work) : SubmissionState()
         data class Error(val message: String) : SubmissionState()
     }
-
-    data class UserPickerState(
-        val users: List<UserWithWorks> = emptyList(),
-        val isLoading: Boolean = false,
-        val isLoadingMore: Boolean = false,
-        val hasMore: Boolean = false,
-        val searchQuery: String = "",
-        val currentPage: Int = 1,
-        val totalCount: Int = 0
-    )
 
     private val _createDataState = MutableStateFlow<CreateDataState>(CreateDataState.Idle)
     val createDataState: StateFlow<CreateDataState> = _createDataState.asStateFlow()

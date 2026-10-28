@@ -44,14 +44,13 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.finalworksystem.R
 import com.finalworksystem.domain.user.model.User
-import com.finalworksystem.presentation.view_model.work.WorkCreateViewModel
 
 @Composable
 fun UserSelectionDialog(
     title: String,
     isVisible: Boolean,
     selectedUser: User?,
-    pickerState: WorkCreateViewModel.UserPickerState,
+    pickerState: UserPickerState,
     onSearch: (String) -> Unit,
     onLoadMore: () -> Unit,
     onUserSelected: (User?) -> Unit,
@@ -62,6 +61,12 @@ fun UserSelectionDialog(
     }
 
     var query by remember { mutableStateOf(pickerState.searchQuery) }
+
+    LaunchedEffect(isVisible) {
+        if (isVisible && pickerState.users.isEmpty() && !pickerState.isLoading) {
+            onSearch(query)
+        }
+    }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -194,9 +199,9 @@ fun UserSelectionDialog(
                             val fullName = user.fullName
                             val namePart = if (!fullName.isNullOrBlank()) fullName else "${user.firstname} ${user.lastname}".trim()
                             val displayName = buildString {
-                                if (!user.degreeBefore.isNull_or_empty()) append("${user.degreeBefore} ")
+                                if (!user.degreeBefore.isNullOrBlank()) append("${user.degreeBefore} ")
                                 append(if (namePart.isNotEmpty()) namePart else user.username)
-                                if (!user.degreeAfter.isNull_or_empty()) append(" ${user.degreeAfter}")
+                                if (!user.degreeAfter.isNullOrBlank()) append(" ${user.degreeAfter}")
                             }
 
                             Row(
@@ -264,5 +269,3 @@ fun UserSelectionDialog(
         }
     }
 }
-
-private fun String?.isNull_or_empty(): Boolean = this == null || this.trim().isEmpty()

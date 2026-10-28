@@ -8,6 +8,7 @@ import com.finalworksystem.domain.common.util.safeFlowResult
 import com.finalworksystem.domain.work.model.PaginatedWorks
 import com.finalworksystem.domain.work.model.Work
 import com.finalworksystem.domain.work.model.WorkCategory
+import com.finalworksystem.domain.work.model.WorkFilter
 import com.finalworksystem.domain.work.model.WorkListType
 import com.finalworksystem.domain.work.model.WorkStatus
 import com.finalworksystem.domain.work.model.WorkType
@@ -26,8 +27,19 @@ class GetWorkRepositoryImpl(private val apiWorkService: ApiWorkService) : GetWor
         }
     }
 
-    override fun getWorksWithPagination(type: WorkListType, page: Int, limit: Int, search: String?): Flow<Result<PaginatedWorks>> = safeFlowResult {
-        val response = apiWorkService.getWorks(type, page, limit, search)
+    override fun getWorksWithPagination(type: WorkListType, page: Int, limit: Int, filter: WorkFilter?): Flow<Result<PaginatedWorks>> = safeFlowResult {
+        val response = apiWorkService.getWorks(
+            type = type,
+            page = page,
+            limit = limit,
+            title = filter?.title,
+            shortcut = filter?.shortcut,
+            statusIds = filter?.statusIds,
+            workTypeId = filter?.typeId,
+            authorId = filter?.authorId,
+            opponentId = filter?.opponentId,
+            deadline = filter?.deadline
+        )
 
         response.handleResponse { workListResponse ->
             if (workListResponse.success) {
