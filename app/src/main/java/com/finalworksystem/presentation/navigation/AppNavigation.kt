@@ -18,6 +18,7 @@ import com.finalworksystem.presentation.ui.event.EventDetailScreen
 import com.finalworksystem.presentation.ui.event_calendar.CalendarScreen
 import com.finalworksystem.presentation.ui.home.HomeScreen
 import com.finalworksystem.presentation.ui.network.NoConnectionScreen
+import com.finalworksystem.presentation.ui.task.TaskCreateScreen
 import com.finalworksystem.presentation.ui.task.TaskDetailScreen
 import com.finalworksystem.presentation.ui.task.TaskListOwnerScreen
 import com.finalworksystem.presentation.ui.task.TaskListSolverScreen
@@ -30,6 +31,7 @@ import com.finalworksystem.presentation.view_model.auth.AuthViewModel
 import com.finalworksystem.presentation.view_model.conversation.ConversationDetailViewModel
 import com.finalworksystem.presentation.view_model.conversation.ConversationListViewModel
 import com.finalworksystem.presentation.view_model.system_event.SystemEventViewModel
+import com.finalworksystem.presentation.view_model.task.TaskCreateViewModel
 import com.finalworksystem.presentation.view_model.task.TaskDetailViewModel
 import com.finalworksystem.presentation.view_model.task.TaskListViewModel
 import com.finalworksystem.presentation.view_model.user.UserViewModel
@@ -50,6 +52,7 @@ object AppRoutes {
     const val TASK_LIST_OWNER = "task_list_owner"
     const val TASK_LIST_SOLVER = "task_list_solver"
     const val TASK_DETAIL = "task_detail/{workId}/{taskId}"
+    const val TASK_CREATE = "task_create/{workId}"
     const val CONVERSATION_LIST = "conversation_list"
     const val CONVERSATION_DETAIL = "conversation_detail/{conversationId}"
     const val CALENDAR_RESERVATION = "calendar_reservation"
@@ -61,6 +64,7 @@ object AppRoutes {
     fun eventDetailRoute(eventId: Int) = "event_detail/$eventId"
     fun workListRoute(type: String) = "work_list/$type"
     fun taskDetailRoute(workId: Int, taskId: Int) = "task_detail/$workId/$taskId"
+    fun taskCreateRoute(workId: Int = -1) = "task_create/$workId"
     fun conversationDetailRoute(conversationId: Int) = "conversation_detail/$conversationId"
     fun userListRoute(type: String) = "user_list/$type"
 }
@@ -150,6 +154,7 @@ fun AppNavigation(
                 workDetailViewModel = workDetailViewModel,
                 onNavigateBack = actions.navigateBack,
                 onNavigateToTaskDetail = actions.navigateToTaskDetail,
+                onNavigateToTaskCreate = actions.navigateToTaskCreate,
                 onNavigateToConversationDetail = actions.navigateToConversationDetail,
                 onNavigateToEventDetail = actions.navigateToEventDetail
             )
@@ -159,7 +164,8 @@ fun AppNavigation(
             TaskListOwnerScreen(
                 taskListViewModel = taskListViewModel,
                 onNavigateBack = actions.navigateBack,
-                onTaskClick = actions.navigateToTaskDetail
+                onTaskClick = actions.navigateToTaskDetail,
+                onNavigateToTaskCreate = actions.navigateToTaskCreate
             )
         }
 
@@ -167,7 +173,8 @@ fun AppNavigation(
             TaskListSolverScreen(
                 taskListViewModel = taskListViewModel,
                 onNavigateBack = actions.navigateBack,
-                onTaskClick = actions.navigateToTaskDetail
+                onTaskClick = actions.navigateToTaskDetail,
+                onNavigateToTaskCreate = actions.navigateToTaskCreate
             )
         }
 
@@ -186,6 +193,19 @@ fun AppNavigation(
                 isOwner = isOwner,
                 onNavigateBack = actions.navigateBack,
                 onNavigateToWorkDetail = actions.navigateToWorkDetail
+            )
+        }
+
+        composable(AppRoutes.TASK_CREATE) { backStackEntry ->
+            val workId = backStackEntry.arguments?.getString("workId")?.toIntOrNull() ?: -1
+            val taskCreateViewModel: TaskCreateViewModel = koinViewModel()
+            TaskCreateScreen(
+                viewModel = taskCreateViewModel,
+                workId = workId,
+                onNavigateBack = actions.navigateBack,
+                onTaskCreated = {
+                    actions.navigateBack()
+                }
             )
         }
 
@@ -307,6 +327,10 @@ class AppActions(
 
     val navigateToTaskDetail: (Int, Int) -> Unit = { workId, taskId ->
         connectivityAwareNavController.navigate(AppRoutes.taskDetailRoute(workId, taskId))
+    }
+
+    val navigateToTaskCreate: (Int) -> Unit = { workId ->
+        connectivityAwareNavController.navigate(AppRoutes.taskCreateRoute(workId))
     }
 
     val navigateToConversationDetail: (Int) -> Unit = { conversationId ->

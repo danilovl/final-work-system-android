@@ -6,6 +6,7 @@ import com.finalworksystem.presentation.view_model.conversation.ConversationDeta
 import com.finalworksystem.presentation.view_model.conversation.ConversationListViewModel
 import com.finalworksystem.presentation.view_model.event.EventDetailViewModel
 import com.finalworksystem.presentation.view_model.system_event.SystemEventViewModel
+import com.finalworksystem.presentation.view_model.task.TaskCreateViewModel
 import com.finalworksystem.presentation.view_model.task.TaskDetailViewModel
 import com.finalworksystem.presentation.view_model.task.TaskListViewModel
 import com.finalworksystem.presentation.view_model.user.UserViewModel
@@ -25,7 +26,8 @@ val presentationModule = module {
     viewModel { WorkListViewModel(get(), get(), get(), get(), get()) }
     viewModel { WorkDetailViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { WorkCreateViewModel(get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { TaskListViewModel(get(), get(), get(), get()) }
+    viewModel { TaskListViewModel(get(), get(), get(), get(), get()) }
+    viewModel { TaskCreateViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { TaskDetailViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { UserViewModel(get(), get(), get()) }
 }

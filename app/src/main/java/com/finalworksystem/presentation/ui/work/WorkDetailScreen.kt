@@ -63,6 +63,7 @@ fun WorkDetailScreen(
     workDetailViewModel: WorkDetailViewModel,
     onNavigateBack: () -> Unit,
     onNavigateToTaskDetail: ((Int, Int) -> Unit)? = null,
+    onNavigateToTaskCreate: ((Int) -> Unit)? = null,
     onNavigateToConversationDetail: ((Int) -> Unit)? = null,
     onNavigateToEventDetail: ((Int) -> Unit)? = null
 ) {
@@ -153,7 +154,15 @@ fun WorkDetailScreen(
                 }
                 is WorkDetailViewModel.WorkDetailState.Success -> {
                     val work = (workDetailState as WorkDetailViewModel.WorkDetailState.Success).work
-                    WorkDetailContent(work = work, workDetailViewModel = workDetailViewModel, currentUserId = currentUserId, onNavigateToTaskDetail = onNavigateToTaskDetail, onNavigateToConversationDetail = onNavigateToConversationDetail, onNavigateToEventDetail = onNavigateToEventDetail)
+                    WorkDetailContent(
+                        work = work,
+                        workDetailViewModel = workDetailViewModel,
+                        currentUserId = currentUserId,
+                        onNavigateToTaskDetail = onNavigateToTaskDetail,
+                        onNavigateToTaskCreate = onNavigateToTaskCreate,
+                        onNavigateToConversationDetail = onNavigateToConversationDetail,
+                        onNavigateToEventDetail = onNavigateToEventDetail
+                    )
                 }
                 else -> {
                     // nothing
@@ -183,7 +192,15 @@ fun WorkDetailScreen(
 }
 
 @Composable
-fun WorkDetailContent(work: Work, workDetailViewModel: WorkDetailViewModel, currentUserId: Int, onNavigateToTaskDetail: ((Int, Int) -> Unit)? = null, onNavigateToConversationDetail: ((Int) -> Unit)? = null, onNavigateToEventDetail: ((Int) -> Unit)? = null) {
+fun WorkDetailContent(
+    work: Work,
+    workDetailViewModel: WorkDetailViewModel,
+    currentUserId: Int,
+    onNavigateToTaskDetail: ((Int, Int) -> Unit)? = null,
+    onNavigateToTaskCreate: ((Int) -> Unit)? = null,
+    onNavigateToConversationDetail: ((Int) -> Unit)? = null,
+    onNavigateToEventDetail: ((Int) -> Unit)? = null
+) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabs = listOf(
         stringResource(R.string.task_tab),
@@ -374,7 +391,12 @@ fun WorkDetailContent(work: Work, workDetailViewModel: WorkDetailViewModel, curr
                 .padding(16.dp)
         ) {
             when (selectedTabIndex) {
-                0 -> TaskTabContent(workDetailViewModel = workDetailViewModel, workId = work.id, onNavigateToTaskDetail = onNavigateToTaskDetail)
+                0 -> TaskTabContent(
+                    workDetailViewModel = workDetailViewModel,
+                    workId = work.id,
+                    onNavigateToTaskDetail = onNavigateToTaskDetail,
+                    onNavigateToTaskCreate = onNavigateToTaskCreate
+                )
                 1 -> VersionTabContent(workDetailViewModel = workDetailViewModel, workId = work.id)
                 2 -> WorkDetailConversationMessages(
                     workId = work.id,

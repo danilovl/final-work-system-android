@@ -1,11 +1,14 @@
 package com.finalworksystem.infrastructure.api
 
+import com.finalworksystem.data.task.model.request.TaskCreateRequest
 import com.finalworksystem.data.task.model.response.TaskListResponse
 import com.finalworksystem.data.task.model.response.TaskResponse
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Headers
+import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -18,6 +21,12 @@ interface ApiTaskService {
         @Query("page") page: Int? = null,
         @Query("limit") limit: Int? = null
     ): Response<TaskListResponse>
+
+    @POST(ApiConstant.API_KEY_TASK_CREATE)
+    @Headers("X-Api-Service: ApiTaskService")
+    suspend fun postTaskCreate(
+        @Body request: TaskCreateRequest
+    ): Response<TaskResponse>
 
     @GET(ApiConstant.API_KEY_TASK_LIST_OWNER)
     @Headers("X-Api-Service: ApiTaskService")

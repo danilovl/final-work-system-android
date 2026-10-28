@@ -8,7 +8,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,7 +34,8 @@ import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
 fun TaskTabContent(
     workDetailViewModel: WorkDetailViewModel,
     workId: Int,
-    onNavigateToTaskDetail: ((Int, Int) -> Unit)? = null
+    onNavigateToTaskDetail: ((Int, Int) -> Unit)? = null,
+    onNavigateToTaskCreate: ((Int) -> Unit)? = null
 ) {
     val tasksState by workDetailViewModel.tasksState.collectAsState()
     val listState = rememberLazyListState()
@@ -58,73 +63,88 @@ fun TaskTabContent(
         }
     }
 
-    when (tasksState) {
-        is WorkDetailViewModel.TasksState.Loading -> {
-            BaseCard(modifier = Modifier.fillMaxWidth()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(40.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+    Box(modifier = Modifier.fillMaxWidth()) {
+        when (tasksState) {
+            is WorkDetailViewModel.TasksState.Loading -> {
+                BaseCard(modifier = Modifier.fillMaxWidth()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
             }
-        }
-        is WorkDetailViewModel.TasksState.Success -> {
-            val successState = tasksState as WorkDetailViewModel.TasksState.Success
-            val tasks = successState.tasks
-            if (tasks.isEmpty()) {
+            is WorkDetailViewModel.TasksState.Success -> {
+                val successState = tasksState as WorkDetailViewModel.TasksState.Success
+                val tasks = successState.tasks
+                if (tasks.isEmpty()) {
+                    BaseCard(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = stringResource(R.string.no_tasks_available),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(20.dp)
+                        )
+                    }
+                } else {
+                    LazyColumn(state = listState) {
+                        items(tasks) { task ->
+                            TaskCard(
+                                task = task,
+                                onClick = if (onNavigateToTaskDetail != null) { { onNavigateToTaskDetail(workId, task.id) } } else null
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+
+                        if (successState.isLoadingMore) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
+                }
+            }
+            is WorkDetailViewModel.TasksState.Error -> {
+                val errorState = tasksState as WorkDetailViewModel.TasksState.Error
+                val errorMessage = errorState.message
                 BaseCard(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = stringResource(R.string.no_tasks_available),
+                        text = stringResource(R.string.error_loading_tasks, errorMessage),
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(20.dp)
                     )
                 }
-            } else {
-                LazyColumn(state = listState) {
-                    items(tasks) { task ->
-                        TaskCard(
-                            task = task,
-                            onClick = if (onNavigateToTaskDetail != null) { { onNavigateToTaskDetail(workId, task.id) } } else null
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                    
-                    if (successState.isLoadingMore) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        }
-                    }
-                    
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-                }
+            }
+            else -> {
             }
         }
-        is WorkDetailViewModel.TasksState.Error -> {
-            val errorState = tasksState as WorkDetailViewModel.TasksState.Error
-            val errorMessage = errorState.message
-            BaseCard(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = stringResource(R.string.error_loading_tasks, errorMessage),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(20.dp)
-                )
+
+        if (onNavigateToTaskCreate != null) {
+            FloatingActionButton(
+                onClick = { onNavigateToTaskCreate(workId) },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            ) {
+                Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(R.string.create_task))
             }
-        }
-        else -> {
         }
     }
 }

@@ -16,6 +16,7 @@ import com.finalworksystem.domain.event.model.Event
 import com.finalworksystem.domain.task.model.Task
 import com.finalworksystem.domain.version.model.Version
 import com.finalworksystem.domain.work.model.Work
+import com.finalworksystem.infrastructure.cache.CacheCleanupReason
 import com.finalworksystem.infrastructure.cache.GlobalCacheManager
 import com.finalworksystem.infrastructure.popup.PopupMessageService
 import com.finalworksystem.infrastructure.user.UserService
@@ -143,11 +144,24 @@ class WorkDetailViewModel(
 
         viewModelScope.launch {
             globalCacheManager.cacheCleanupEvents.collect { cacheCleanupEvent ->
+                val reason = cacheCleanupEvent.reason
                 clearWorkCache()
-                popupMessageService.showMessage(
-                    "Cache cleared due to ${cacheCleanupEvent.reason.name.lowercase()}", 
-                    PopupMessageService.MessageLevel.INFO
-                )
+                
+                if (reason != CacheCleanupReason.DATA_UPDATED) {
+                    popupMessageService.showMessage(
+                        "Cache cleared due to ${reason.name.lowercase()}", 
+                        PopupMessageService.MessageLevel.INFO
+                    )
+                } else {
+                    val currentState = _workDetailState.value
+                    if (currentState is WorkDetailState.Success) {
+                        val workId = currentState.work.id
+                        loadTasksForWork(workId, forceRefresh = true)
+                        loadVersionsForWork(workId, forceRefresh = true)
+                        loadEventsForWork(workId, forceRefresh = true)
+                        loadWorkMessages(workId, forceRefresh = true)
+                    }
+                }
             }
         }
     }

@@ -168,6 +168,9 @@
     <string name="no_events_for_date">Нет событий на эту дату</string>
     <string name="id_prefix">ID: %1$s</string>
     <string name="create_work">Создать работу</string>
+    <string name="create_task">Создать задачу</string>
+    <string name="task_name">Название задачи</string>
+    <string name="task_created_success">Задача успешно создана</string>
     <string name="category">Категория</string>
     <string name="categories">Категории</string>
     <string name="select_author">Выберите автора</string>

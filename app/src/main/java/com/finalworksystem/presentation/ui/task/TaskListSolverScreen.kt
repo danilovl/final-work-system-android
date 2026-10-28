@@ -1,6 +1,10 @@
 package com.finalworksystem.presentation.ui.task
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,7 +20,8 @@ import com.finalworksystem.presentation.view_model.task.TaskListViewModel
 fun TaskListSolverScreen(
     taskListViewModel: TaskListViewModel,
     onNavigateBack: () -> Unit,
-    onTaskClick: ((Int, Int) -> Unit)? = null
+    onTaskClick: ((Int, Int) -> Unit)? = null,
+    onNavigateToTaskCreate: ((Int) -> Unit)? = null
 ) {
     val tasksState by taskListViewModel.tasksState.collectAsState()
 
@@ -34,6 +39,16 @@ fun TaskListSolverScreen(
                 totalCount = (tasksState as? TaskListViewModel.TasksState.Success)?.totalCount?.let { if (it > 0) it else -1 } ?: -1,
                 isLoading = tasksState is TaskListViewModel.TasksState.Loading
             )
+        },
+        floatingActionButton = {
+            if (onNavigateToTaskCreate != null) {
+                FloatingActionButton(onClick = { onNavigateToTaskCreate(-1) }) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(R.string.create_task)
+                    )
+                }
+            }
         }
     ) { paddingValues ->
         when (tasksState) {

@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.finalworksystem.application.use_case.task.GetTasksForOwnerUseCase
 import com.finalworksystem.application.use_case.task.GetTasksForSolverUseCase
 import com.finalworksystem.domain.task.model.Task
+import com.finalworksystem.infrastructure.cache.CacheCleanupReason
+import com.finalworksystem.infrastructure.cache.GlobalCacheManager
 import com.finalworksystem.infrastructure.popup.PopupMessageService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +18,8 @@ class TaskListViewModel(
     application: Application,
     private val getTasksForOwnerUseCase: GetTasksForOwnerUseCase,
     private val getTasksForSolverUseCase: GetTasksForSolverUseCase,
-    private val popupMessageService: PopupMessageService
+    private val popupMessageService: PopupMessageService,
+    private val globalCacheManager: GlobalCacheManager
 ) : AndroidViewModel(application) {
 
     private val _tasksState = MutableStateFlow<TasksState>(TasksState.Idle)
@@ -33,6 +36,21 @@ class TaskListViewModel(
 
     private enum class TaskType { OWNER, SOLVER }
     private var currentTaskType: TaskType? = null
+
+    init {
+        viewModelScope.launch {
+            globalCacheManager.cacheCleanupEvents.collect { cacheCleanupEvent ->
+                clearCache()
+                if (cacheCleanupEvent.reason == CacheCleanupReason.DATA_UPDATED) {
+                    when (currentTaskType) {
+                        TaskType.OWNER -> loadTasksForOwner(forceRefresh = true)
+                        TaskType.SOLVER -> loadTasksForSolver(forceRefresh = true)
+                        null -> {}
+                    }
+                }
+            }
+        }
+    }
 
     fun loadTasksForOwner(forceRefresh: Boolean = false) {
         viewModelScope.launch {
@@ -171,6 +189,14 @@ class TaskListViewModel(
 
     fun resetTasksState() {
         _tasksState.value = TasksState.Idle
+    }
+
+    private fun clearCache() {
+        cachedOwnerTasks = null
+        cachedSolverTasks = null
+        hasMoreOwnerTasks = false
+        hasMoreSolverTasks = false
+        currentPage = 1
     }
 
     sealed class TasksState {

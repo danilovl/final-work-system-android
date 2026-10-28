@@ -29,6 +29,7 @@ import com.finalworksystem.application.use_case.task.GetTasksForOwnerUseCase
 import com.finalworksystem.application.use_case.task.GetTasksForSolverUseCase
 import com.finalworksystem.application.use_case.task.GetTasksForWorkUseCase
 import com.finalworksystem.application.use_case.task.NotifyTaskCompleteUseCase
+import com.finalworksystem.application.use_case.task.PostTaskCreateUseCase
 import com.finalworksystem.application.use_case.user.GetCachedProfileImageUseCase
 import com.finalworksystem.application.use_case.user.GetUserListUseCase
 import com.finalworksystem.application.use_case.user.GetUserProfileImageUseCase
@@ -67,6 +68,7 @@ val domainModule = module {
     single { ChangeTaskStatusUseCase(get()) }
     single { DeleteTaskUseCase(get()) }
     single { NotifyTaskCompleteUseCase(get()) }
+    single { PostTaskCreateUseCase(get()) }
     single { GetEventsForWorkUseCase(get()) }
     single { GetEventByIdUseCase(get()) }
     single { GetEventCalendarUseCase(get()) }

@@ -73,6 +73,7 @@ object ApiEndpoint {
 
         const val GET_LIST_OWNER = "/api-platform/task/list-owner"
         const val GET_LIST_SOLVER = "/api-platform/task/list-solver"
+        const val POST_CREATE = "/api/key/tasks/create"
     }
 
     object Security {

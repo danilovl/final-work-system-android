@@ -35,6 +35,7 @@ object ApiConstant {
 
     const val API_KEY_TASK_LIST_OWNER = ApiEndpoint.Task.GET_LIST_OWNER
     const val API_KEY_TASK_LIST_SOLVER = ApiEndpoint.Task.GET_LIST_SOLVER
+    const val API_KEY_TASK_CREATE = ApiEndpoint.Task.POST_CREATE
     const val API_KEY_TASK_WORK_DETAIL = ApiEndpoint.Task.Work.GET_DETAIL
     const val API_KEY_TASK_WORK_LIST = ApiEndpoint.Task.Work.GET_LIST
     const val API_KEY_TASK_WORK_CHANGE_STATUS = ApiEndpoint.Task.Work.CHANGE_STATUS

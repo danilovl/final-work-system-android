@@ -50,5 +50,6 @@ enum class CacheCleanupReason {
     LOGOUT,
     USER_SWITCH,
     MANUAL,
-    TOKEN_EXPIRED
+    TOKEN_EXPIRED,
+    DATA_UPDATED
 }

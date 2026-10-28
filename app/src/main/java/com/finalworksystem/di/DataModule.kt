@@ -11,6 +11,7 @@ import com.finalworksystem.data.system_event.repository.GetSystemEventRepository
 import com.finalworksystem.data.system_event.repository.PutSystemEventRepositoryImpl
 import com.finalworksystem.data.task.repository.DeleteTaskRepositoryImpl
 import com.finalworksystem.data.task.repository.GetTaskRepositoryImpl
+import com.finalworksystem.data.task.repository.PostTaskRepositoryImpl
 import com.finalworksystem.data.task.repository.PutTaskRepositoryImpl
 import com.finalworksystem.data.version.repository.GetVersionRepositoryImpl
 import com.finalworksystem.data.work.repository.GetWorkRepositoryImpl
@@ -27,6 +28,7 @@ import com.finalworksystem.domain.system_event.repository.GetSystemEventReposito
 import com.finalworksystem.domain.system_event.repository.PutSystemEventRepository
 import com.finalworksystem.domain.task.repository.DeleteTaskRepository
 import com.finalworksystem.domain.task.repository.GetTaskRepository
+import com.finalworksystem.domain.task.repository.PostTaskRepository
 import com.finalworksystem.domain.task.repository.PutTaskRepository
 import com.finalworksystem.domain.user.repository.GetUserRepository
 import com.finalworksystem.domain.user.repository.SessionUserRepository
@@ -91,6 +93,10 @@ val dataModule = module {
 
     single<PostWorkRepository> {
         PostWorkRepositoryImpl(get())
+    }
+
+    single<PostTaskRepository> {
+        PostTaskRepositoryImpl(get())
     }
 
     single<GetTaskRepository> {

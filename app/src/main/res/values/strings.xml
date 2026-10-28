@@ -168,6 +168,9 @@
     <string name="no_events_for_date">No events for this date</string>
     <string name="id_prefix">ID: %1$s</string>
     <string name="create_work">Create Work</string>
+    <string name="create_task">Create Task</string>
+    <string name="task_name">Task Name</string>
+    <string name="task_created_success">Task created successfully</string>
     <string name="category">Category</string>
     <string name="categories">Categories</string>
     <string name="select_author">Select Author</string>
