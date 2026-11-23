@@ -2,6 +2,7 @@ package com.finalworksystem.presentation.ui.event_calendar
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,18 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Today
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -50,6 +41,19 @@ import com.finalworksystem.presentation.ui.event_calendar.component.CalendarHead
 import com.finalworksystem.presentation.ui.event_calendar.component.CreateEventModal
 import com.finalworksystem.presentation.ui.event_calendar.component.EventRegistrationModal
 import com.finalworksystem.presentation.ui.event_calendar.component.EventsSection
+import com.finalworksystem.ui.designsystem.AppAlertDialog
+import com.finalworksystem.ui.designsystem.AppButton
+import com.finalworksystem.ui.designsystem.AppButtonVariant
+import com.finalworksystem.ui.designsystem.AppCard
+import com.finalworksystem.ui.designsystem.AppFab
+import com.finalworksystem.ui.designsystem.AppIcon
+import com.finalworksystem.ui.designsystem.AppIconButton
+import com.finalworksystem.ui.designsystem.AppScaffold
+import com.finalworksystem.ui.designsystem.AppSpinner
+import com.finalworksystem.ui.designsystem.AppSurface
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
@@ -273,50 +277,41 @@ fun CalendarScreen(
         }
     }
 
-    Scaffold(
+    AppScaffold(
         topBar = {
             BaseTopAppBar(
                 title = stringResource(R.string.calendar),
                 onNavigateBack = onNavigateBack,
-                onReload = { 
+                onReload = {
                     loadCalendarEvents()
                 },
                 loadedCount = calendarEvents.size,
                 totalCount = calendarEvents.size,
                 isLoading = isLoadingEvents,
                 additionalActions = {
-                    IconButton(
+                    AppIconButton(
+                        icon = AppIcons.Today,
+                        contentDescription = stringResource(R.string.go_to_today),
                         onClick = {
                             coroutineScope.launch {
                                 pagerState.animateScrollToPage(initialPage)
                             }
                         }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Today,
-                            contentDescription = stringResource(R.string.go_to_today)
-                        )
-                    }
+                    )
                 }
             )
         },
         floatingActionButton = {
             if (calendarType == "manage") {
-                FloatingActionButton(
-                    onClick = { loadCreateData() },
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    if (isLoadingCreateData) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = stringResource(R.string.create_event)
-                        )
-                    }
+                if (isLoadingCreateData) {
+                    LoadingFab(modifier = Modifier.padding(16.dp))
+                } else {
+                    AppFab(
+                        onClick = { loadCreateData() },
+                        icon = AppIcons.Add,
+                        contentDescription = stringResource(R.string.create_event),
+                        modifier = Modifier.padding(16.dp)
+                    )
                 }
             }
         },
@@ -326,24 +321,8 @@ fun CalendarScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            CalendarHeader(
-                currentMonth = currentMonth,
-                onPreviousMonth = { 
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                    }
-                },
-                onNextMonth = { 
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                    }
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier
@@ -355,14 +334,35 @@ fun CalendarScreen(
                 Column(
                     modifier = Modifier.fillMaxHeight()
                 ) {
-                    CalendarGrid(
-                        currentMonth = pageMonth,
-                        selectedDate = selectedDate,
-                        onDateSelected = { date ->
-                            selectedDate = date
-                        },
-                        eventsForMonth = if (pageMonth == currentMonth) calendarEvents else emptyList()
-                    )
+                    AppCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp)
+                    ) {
+                        CalendarHeader(
+                            currentMonth = pageMonth,
+                            onPreviousMonth = {
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                                }
+                            },
+                            onNextMonth = {
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                                }
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        CalendarGrid(
+                            currentMonth = pageMonth,
+                            selectedDate = selectedDate,
+                            onDateSelected = { date ->
+                                selectedDate = date
+                            },
+                            eventsForMonth = if (pageMonth == currentMonth) calendarEvents else emptyList()
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -459,39 +459,59 @@ fun CalendarScreen(
         }
 
         if (showDeleteConfirmDialog && eventToDelete != null) {
-            AlertDialog(
-                onDismissRequest = { 
+            AppAlertDialog(
+                onDismissRequest = {
                     showDeleteConfirmDialog = false
                     eventToDelete = null
                 },
-                title = { Text(stringResource(R.string.delete_event)) },
-                text = { Text(stringResource(R.string.delete_event_confirm_named, eventToDelete!!.title)) },
+                icon = {
+                    AppIcon(
+                        imageVector = AppIcons.Delete,
+                        contentDescription = null,
+                        tint = AppTheme.colors.error
+                    )
+                },
+                title = { AppText(stringResource(R.string.delete_event)) },
+                text = { AppText(stringResource(R.string.delete_event_confirm_named, eventToDelete!!.title)) },
                 confirmButton = {
-                    TextButton(
+                    AppButton(
+                        text = stringResource(R.string.delete),
                         onClick = { confirmDeleteEvent() },
-                        enabled = !isDeletingEvent
-                    ) {
-                        if (isDeletingEvent) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text(stringResource(R.string.delete))
-                        }
-                    }
+                        enabled = !isDeletingEvent,
+                        loading = isDeletingEvent,
+                        variant = AppButtonVariant.Danger
+                    )
                 },
                 dismissButton = {
-                    TextButton(
-                        onClick = { 
+                    AppButton(
+                        text = stringResource(R.string.cancel),
+                        onClick = {
                             showDeleteConfirmDialog = false
                             eventToDelete = null
                         },
-                        enabled = !isDeletingEvent
-                    ) {
-                        Text(stringResource(R.string.cancel))
-                    }
+                        enabled = !isDeletingEvent,
+                        variant = AppButtonVariant.Ghost
+                    )
                 }
+            )
+        }
+    }
+}
+
+/** FAB placeholder shown while the create-event data is loading. */
+@Composable
+private fun LoadingFab(modifier: Modifier = Modifier) {
+    AppSurface(
+        modifier = modifier.size(58.dp),
+        shape = RoundedCornerShape(18.dp),
+        color = AppTheme.colors.primary,
+        shadowElevation = 12.dp
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            AppSpinner(
+                modifier = Modifier.size(24.dp),
+                color = AppTheme.colors.onPrimary,
+                strokeWidth = 2.5.dp
             )
         }
     }

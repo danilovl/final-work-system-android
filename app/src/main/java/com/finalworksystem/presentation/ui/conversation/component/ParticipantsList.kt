@@ -11,19 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,39 +20,45 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.finalworksystem.R
 import com.finalworksystem.domain.conversation.model.ConversationParticipant
 import com.finalworksystem.presentation.ui.user.component.UserAvatar
+import com.finalworksystem.ui.designsystem.AppBottomSheet
+import com.finalworksystem.ui.designsystem.AppButton
+import com.finalworksystem.ui.designsystem.AppButtonVariant
+import com.finalworksystem.ui.designsystem.AppCard
+import com.finalworksystem.ui.designsystem.AppCardStyle
+import com.finalworksystem.ui.designsystem.AppIconBadge
+import com.finalworksystem.ui.designsystem.AppIconButton
+import com.finalworksystem.ui.designsystem.AppIconButtonVariant
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ParticipantsList(participants: List<ConversationParticipant>) {
     var showParticipantsSheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
 
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
-        Button(
+        AppButton(
+            text = stringResource(R.string.participants_count, participants.size),
             onClick = { showParticipantsSheet = true },
+            variant = AppButtonVariant.Secondary,
+            leadingIcon = AppIcons.Person,
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = stringResource(R.string.participants_count, participants.size),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            Text(stringResource(R.string.participants_count, participants.size))
-        }
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
     }
 
     if (showParticipantsSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showParticipantsSheet = false },
-            sheetState = sheetState
+        AppBottomSheet(
+            onDismissRequest = { showParticipantsSheet = false }
         ) {
             ParticipantsFullList(
                 participants = participants,
@@ -83,25 +76,29 @@ fun ParticipantsFullList(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
+            AppIconBadge(icon = AppIcons.Groups, size = 40)
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            AppText(
                 text = stringResource(R.string.participants_count, participants.size),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                style = AppTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f)
             )
 
-            IconButton(onClick = onDismiss) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(R.string.close)
-                )
-            }
+            AppIconButton(
+                icon = AppIcons.Close,
+                contentDescription = stringResource(R.string.close),
+                onClick = onDismiss,
+                variant = AppIconButtonVariant.Tonal
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -121,41 +118,42 @@ fun ParticipantsFullList(
 
 @Composable
 fun ParticipantFullWidthItem(participant: ConversationParticipant) {
-    Card(
+    AppCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        style = AppCardStyle.Tonal,
+        shape = AppTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             UserAvatar(
                 firstname = participant.user.firstname,
                 lastname = participant.user.lastname,
                 userId = participant.user.id,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(44.dp)
             )
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(14.dp))
 
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Text(
+                AppText(
                     text = participant.user.fullName ?: "${participant.user.firstname} ${participant.user.lastname}",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
+                    style = AppTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 participant.user.degreeBefore?.let { degree ->
-                    Text(
+                    AppText(
                         text = degree,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = AppTheme.typography.bodySmall,
+                        color = AppTheme.colors.onSurfaceVariant
                     )
                 }
             }
@@ -165,14 +163,15 @@ fun ParticipantFullWidthItem(participant: ConversationParticipant) {
 
 @Composable
 fun ParticipantItem(participant: ConversationParticipant) {
-    Card(
+    AppCard(
         modifier = Modifier.width(120.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        style = AppCardStyle.Tonal,
+        shape = AppTheme.shapes.medium
     ) {
         Column(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             UserAvatar(
@@ -182,20 +181,22 @@ fun ParticipantItem(participant: ConversationParticipant) {
                 modifier = Modifier.size(40.dp)
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
-            Text(
+            AppText(
                 text = "${participant.user.firstname} ${participant.user.lastname}",
-                style = MaterialTheme.typography.bodySmall,
+                style = AppTheme.typography.labelMedium,
                 fontWeight = FontWeight.Medium,
-                maxLines = 2
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
 
             participant.user.degreeBefore?.let { degree ->
-                Text(
+                AppText(
                     text = degree,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = AppTheme.typography.labelSmall,
+                    color = AppTheme.colors.onSurfaceVariant
                 )
             }
         }

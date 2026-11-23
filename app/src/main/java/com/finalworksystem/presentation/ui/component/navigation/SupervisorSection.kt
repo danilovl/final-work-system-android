@@ -1,33 +1,39 @@
 package com.finalworksystem.presentation.ui.component.navigation
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Article
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Task
-import androidx.compose.material3.DrawerState
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.Text
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.finalworksystem.R
 import com.finalworksystem.domain.user.model.User
 import com.finalworksystem.domain.user.model.UserRole
+import com.finalworksystem.ui.designsystem.AppDrawerItem
+import com.finalworksystem.ui.designsystem.AppDrawerSectionTitle
+import com.finalworksystem.ui.designsystem.AppDrawerState
+import com.finalworksystem.ui.designsystem.AppIcon
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
 import kotlinx.coroutines.launch
 
 @Composable
 fun SupervisorSection(
     user: User,
-    drawerState: DrawerState,
+    drawerState: AppDrawerState,
     onNavigateToWorkList: (String) -> Unit,
     onNavigateToCalendarManage: () -> Unit,
     onNavigateToTaskListOwner: () -> Unit,
@@ -35,164 +41,79 @@ fun SupervisorSection(
 ) {
     val scope = rememberCoroutineScope()
     var isUsersMenuExpanded by remember { mutableStateOf(false) }
+    val arrowRotation by animateFloatAsState(if (isUsersMenuExpanded) 180f else 0f, label = "usersArrow")
+
+    fun navigate(action: () -> Unit) {
+        scope.launch {
+            drawerState.close()
+            action()
+        }
+    }
 
     if (user.roles.contains(UserRole.SUPERVISOR.value)) {
-        NavigationDrawerItem(
-            label = { Text(stringResource(R.string.consultant_work)) },
-            icon = { 
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.Article,
-                    contentDescription = stringResource(R.string.consultant_work)
-                )
-            },
-            selected = false,
-            onClick = {
-                scope.launch {
-                    drawerState.close()
-                    onNavigateToWorkList("consultant")
-                }
-            }
+        AppDrawerSectionTitle(stringResource(R.string.supervisor))
+
+        AppDrawerItem(
+            label = stringResource(R.string.consultant_work),
+            icon = AppIcons.Article,
+            onClick = { navigate { onNavigateToWorkList("consultant") } }
         )
 
-        NavigationDrawerItem(
-            label = { Text(stringResource(R.string.supervisor_works)) },
-            icon = { 
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.Article,
-                    contentDescription = stringResource(R.string.supervisor_works)
-                )
-            },
-            selected = false,
-            onClick = {
-                scope.launch {
-                    drawerState.close()
-                    onNavigateToWorkList("supervisor")
-                }
-            }
+        AppDrawerItem(
+            label = stringResource(R.string.supervisor_works),
+            icon = AppIcons.Work,
+            onClick = { navigate { onNavigateToWorkList("supervisor") } }
         )
 
-        NavigationDrawerItem(
-            label = { Text(stringResource(R.string.calendar_manage)) },
-            icon = { 
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = stringResource(R.string.calendar_manage)
-                )
-            },
-            selected = false,
-            onClick = {
-                scope.launch {
-                    drawerState.close()
-                    onNavigateToCalendarManage()
-                }
-            }
+        AppDrawerItem(
+            label = stringResource(R.string.calendar_manage),
+            icon = AppIcons.DateRange,
+            onClick = { navigate(onNavigateToCalendarManage) }
         )
 
-        NavigationDrawerItem(
-            label = { Text(stringResource(R.string.task)) },
-            icon = { 
-                Icon(
-                    imageVector = Icons.Default.Task,
-                    contentDescription = stringResource(R.string.task)
-                )
-            },
-            selected = false,
-            onClick = {
-                scope.launch {
-                    drawerState.close()
-                    onNavigateToTaskListOwner()
-                }
-            }
+        AppDrawerItem(
+            label = stringResource(R.string.task),
+            icon = AppIcons.Task,
+            onClick = { navigate(onNavigateToTaskListOwner) }
         )
 
-        NavigationDrawerItem(
-            label = { Text(stringResource(R.string.users)) },
-            icon = { 
-                Icon(
-                    imageVector = Icons.Default.Groups,
-                    contentDescription = stringResource(R.string.users)
-                )
-            },
-            selected = false,
-            onClick = {
-                isUsersMenuExpanded = !isUsersMenuExpanded
-            },
-            badge = {
-                Icon(
-                    imageVector = if (isUsersMenuExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (isUsersMenuExpanded) "Collapse" else "Expand"
-                )
-            }
-        )
-
-        if (isUsersMenuExpanded) {
-            NavigationDrawerItem(
-                label = { Text("  " + stringResource(R.string.author)) },
-                icon = { 
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = stringResource(R.string.author)
-                    )
-                },
-                selected = false,
-                onClick = {
-                    scope.launch {
-                        drawerState.close()
-                        onNavigateToUserList("author")
-                    }
-                }
+        Box {
+            AppDrawerItem(
+                label = stringResource(R.string.users),
+                icon = AppIcons.Groups,
+                selected = isUsersMenuExpanded,
+                onClick = { isUsersMenuExpanded = !isUsersMenuExpanded }
             )
-
-            NavigationDrawerItem(
-                label = { Text("  " + stringResource(R.string.opponent)) },
-                icon = { 
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = stringResource(R.string.opponent)
-                    )
-                },
-                selected = false,
-                onClick = {
-                    scope.launch {
-                        drawerState.close()
-                        onNavigateToUserList("opponent")
-                    }
-                }
+            AppIcon(
+                imageVector = AppIcons.KeyboardArrowDown,
+                contentDescription = stringResource(if (isUsersMenuExpanded) R.string.collapse else R.string.expand),
+                tint = AppTheme.colors.onSurfaceVariant,
+                modifier = Modifier
+                    .align(androidx.compose.ui.Alignment.CenterEnd)
+                    .padding(end = 24.dp)
+                    .rotate(arrowRotation)
             )
+        }
 
-            NavigationDrawerItem(
-                label = { Text("  " + stringResource(R.string.consultant)) },
-                icon = { 
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = stringResource(R.string.consultant)
+        AnimatedVisibility(
+            visible = isUsersMenuExpanded,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            Column(Modifier.padding(start = 16.dp)) {
+                listOf(
+                    "author" to R.string.author,
+                    "opponent" to R.string.opponent,
+                    "consultant" to R.string.consultant,
+                    "supervisor" to R.string.supervisor
+                ).forEach { (type, labelRes) ->
+                    AppDrawerItem(
+                        label = stringResource(labelRes),
+                        icon = AppIcons.Person,
+                        onClick = { navigate { onNavigateToUserList(type) } }
                     )
-                },
-                selected = false,
-                onClick = {
-                    scope.launch {
-                        drawerState.close()
-                        onNavigateToUserList("consultant")
-                    }
                 }
-            )
-
-            NavigationDrawerItem(
-                label = { Text("  " + stringResource(R.string.supervisor)) },
-                icon = { 
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = stringResource(R.string.supervisor)
-                    )
-                },
-                selected = false,
-                onClick = {
-                    scope.launch {
-                        drawerState.close()
-                        onNavigateToUserList("supervisor")
-                    }
-                }
-            )
+            }
         }
     }
 }

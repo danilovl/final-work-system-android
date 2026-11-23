@@ -1,21 +1,26 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# ---------------------------------------------------------------------------
+# kotlinx.serialization
+# ---------------------------------------------------------------------------
+# Serializers are generated at compile time, so field renaming by R8 is safe.
+# The library ships its own consumer rules; the rules below additionally keep
+# the generated serializers that Retrofit looks up at runtime by type.
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+-keepattributes RuntimeVisibleAnnotations,AnnotationDefault,InnerClasses
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+-keepclassmembers @kotlinx.serialization.Serializable class com.finalworksystem.** {
+    *** Companion;
+    *** INSTANCE;
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class com.finalworksystem.**$$serializer { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# ---------------------------------------------------------------------------
+# Retrofit service interfaces (suspend functions need generic signatures)
+# ---------------------------------------------------------------------------
+-keepattributes Signature
+-keep,allowobfuscation interface com.finalworksystem.infrastructure.api.Api*Service
+-keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation
+
+# Keep line numbers for readable crash reports.
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile

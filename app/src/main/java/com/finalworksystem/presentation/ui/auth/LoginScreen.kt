@@ -1,28 +1,29 @@
 package com.finalworksystem.presentation.ui.auth
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,34 +31,51 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.finalworksystem.R
+import com.finalworksystem.infrastructure.locale.AppLanguage
 import com.finalworksystem.infrastructure.popup.PopupMessageService
-import com.finalworksystem.infrastructure.session.SessionManager
 import com.finalworksystem.presentation.view_model.auth.AuthViewModel
+import com.finalworksystem.ui.designsystem.AppButton
+import com.finalworksystem.ui.designsystem.AppButtonSize
+import com.finalworksystem.ui.designsystem.AppButtonVariant
+import com.finalworksystem.ui.designsystem.AppCard
+import com.finalworksystem.ui.designsystem.AppDropdownMenu
+import com.finalworksystem.ui.designsystem.AppDropdownMenuItem
+import com.finalworksystem.ui.designsystem.AppIcon
+import com.finalworksystem.ui.designsystem.AppIconButton
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.designsystem.AppTextField
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
 import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
 
 @Composable
 fun LoginScreen(
     authViewModel: AuthViewModel,
     onLoginSuccess: () -> Unit,
-    popupMessageService: PopupMessageService,
-    sessionManager: SessionManager = koinInject()
+    popupMessageService: PopupMessageService
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
 
-    val loginState by authViewModel.loginState.collectAsState()
-    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+    val loginState by authViewModel.loginState.collectAsStateWithLifecycle()
+    val isLoggedIn by authViewModel.isLoggedIn.collectAsStateWithLifecycle()
 
     var showLanguageMenu by remember { mutableStateOf(false) }
-    val context = LocalContext.current
+    val resources = LocalResources.current
+    val isLoading = loginState is AuthViewModel.LoginState.Loading
 
     LaunchedEffect(isLoggedIn) {
         if (isLoggedIn) {
@@ -79,112 +97,160 @@ fun LoginScreen(
         }
     }
 
-    Column(
+    val submit: () -> Unit = {
+        if (username.isNotBlank() && password.isNotBlank()) {
+            authViewModel.login(username, password)
+        } else {
+            popupMessageService.showMessage(
+                resources.getString(R.string.login_error_empty),
+                PopupMessageService.MessageLevel.ERROR
+            )
+        }
+    }
+
+    val selectLanguage: (String) -> Unit = { code ->
+        scope.launch {
+            AppLanguage.set(code)
+            showLanguageMenu = false
+
+            popupMessageService.showMessage(
+                resources.getString(R.string.language_changed),
+                PopupMessageService.MessageLevel.SUCCESS
+            )
+        }
+    }
+
+    val colors = AppTheme.colors
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .background(colors.background)
     ) {
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 32.dp),
-            contentAlignment = Alignment.TopEnd
+                .fillMaxSize()
+                .imePadding()
+                .verticalScroll(rememberScrollState())
         ) {
-            Box {
-                IconButton(onClick = { showLanguageMenu = true }) {
-                    Icon(
-                        imageVector = Icons.Default.Language,
-                        contentDescription = stringResource(R.string.select_language)
+            // Gradient hero
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.linearGradient(listOf(colors.primary, colors.primaryGradientEnd)),
+                        shape = RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp)
                     )
+                    .statusBarsPadding()
+                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 72.dp)
+            ) {
+                Box(modifier = Modifier.align(Alignment.TopEnd)) {
+                    AppIconButton(
+                        icon = AppIcons.Language,
+                        contentDescription = stringResource(R.string.select_language),
+                        onClick = { showLanguageMenu = true },
+                        tint = colors.onPrimary,
+                        containerColor = colors.onPrimary.copy(alpha = 0.16f)
+                    )
+                    AppDropdownMenu(
+                        expanded = showLanguageMenu,
+                        onDismissRequest = { showLanguageMenu = false }
+                    ) {
+                        AppDropdownMenuItem(
+                            text = stringResource(R.string.language_en),
+                            onClick = { selectLanguage("en") }
+                        )
+                        AppDropdownMenuItem(
+                            text = stringResource(R.string.language_ru),
+                            onClick = { selectLanguage("ru") }
+                        )
+                    }
                 }
-                DropdownMenu(
-                    expanded = showLanguageMenu,
-                    onDismissRequest = { showLanguageMenu = false }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 48.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.language_en)) },
-                        onClick = {
-                            scope.launch {
-                                sessionManager.saveLanguage("en")
-                                showLanguageMenu = false
-
-                                popupMessageService.showMessage(
-                                    context.getString(R.string.language_changed),
-                                    PopupMessageService.MessageLevel.SUCCESS
-                                )
-                            }
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.language_ru)) },
-                        onClick = {
-                            scope.launch {
-                                sessionManager.saveLanguage("ru")
-                                showLanguageMenu = false
-
-                                popupMessageService.showMessage(
-                                    context.getString(R.string.language_changed),
-                                    PopupMessageService.MessageLevel.SUCCESS
-                                )
-                            }
-                        }
+                    Box(
+                        modifier = Modifier
+                            .size(104.dp)
+                            .background(colors.onPrimary.copy(alpha = 0.16f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.ic_launcher_foreground),
+                            contentDescription = null,
+                            modifier = Modifier.size(104.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+                    AppText(
+                        text = stringResource(R.string.app_name),
+                        style = AppTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.onPrimary,
+                        textAlign = TextAlign.Center
                     )
                 }
             }
-        }
 
-        Text(
-            text = stringResource(R.string.login),
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+            // Form card overlapping the hero
+            AppCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .offset(y = (-44).dp),
+                shape = AppTheme.shapes.extraLarge,
+                contentPadding = PaddingValues(24.dp)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    AppText(
+                        text = stringResource(R.string.login),
+                        style = AppTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
 
-        OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
-            label = { Text(stringResource(R.string.username)) },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
+                    AppTextField(
+                        value = username,
+                        onValueChange = { username = it },
+                        label = { AppText(stringResource(R.string.username)) },
+                        leadingIcon = { AppIcon(AppIcons.Person, contentDescription = null) },
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
 
-        Spacer(modifier = Modifier.height(8.dp))
+                    AppTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { AppText(stringResource(R.string.password)) },
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(onDone = { if (!isLoading) submit() }),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
 
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text(stringResource(R.string.password)) },
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
+                    Spacer(modifier = Modifier.height(4.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                if (username.isNotBlank() && password.isNotBlank()) {
-                    authViewModel.login(username, password)
-                } else {
-                    popupMessageService.showMessage(
-                        context.getString(R.string.login_error_empty), 
-                        PopupMessageService.MessageLevel.ERROR
+                    AppButton(
+                        text = stringResource(R.string.login),
+                        onClick = submit,
+                        enabled = !isLoading,
+                        loading = isLoading,
+                        variant = AppButtonVariant.Primary,
+                        size = AppButtonSize.Large,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
-            },
-            enabled = loginState !is AuthViewModel.LoginState.Loading,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            if (loginState is AuthViewModel.LoginState.Loading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.padding(end = 8.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    strokeWidth = 2.dp
-                )
             }
-            Text(stringResource(R.string.login))
+
+            Spacer(modifier = Modifier.navigationBarsPadding())
         }
     }
 }

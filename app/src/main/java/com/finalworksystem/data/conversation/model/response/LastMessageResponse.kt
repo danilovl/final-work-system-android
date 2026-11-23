@@ -1,16 +1,23 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.conversation.model.response
 
-import com.google.gson.annotations.SerializedName
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class LastMessageResponse(
-    @SerializedName("id")
-    val id: Int,
+    @SerialName("id")
+    val id: Int = 0,
 
-    @SerializedName("owner")
-    val owner: ConversationUserResponse,
-
-    @SerializedName("createdAt")
-    val createdAt: String
+    @SerialName("owner")
+    val owner: ConversationUserResponse = ConversationUserResponse(),
+    @SerialName("createdAt")
+    val createdAt: String = ""
 )
 
 fun LastMessageResponse.toDomain(): com.finalworksystem.domain.conversation.model.LastMessage {

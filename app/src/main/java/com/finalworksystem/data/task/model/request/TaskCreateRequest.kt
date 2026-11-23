@@ -1,17 +1,25 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.task.model.request
 
-import com.google.gson.annotations.SerializedName
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class TaskCreateRequest(
-    @SerializedName("name")
+    @SerialName("name")
     val name: String,
 
-    @SerializedName("description")
+    @SerialName("description")
     val description: String? = null,
 
-    @SerializedName("deadline")
+    @SerialName("deadline")
     val deadline: String? = null,
 
-    @SerializedName("workId")
+    @SerialName("workId")
     val workId: Int
 )

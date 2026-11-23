@@ -1,21 +1,29 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.event.model
 
 import com.finalworksystem.data.event.model.response.WorkResponse
 import com.finalworksystem.data.event.model.response.toDataModel
 import com.finalworksystem.domain.work.model.Work as DomainWork
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class Work(
-    val id: Int,
-    val title: String,
-    val shortcut: String?,
+    val id: Int = 0,
+    val title: String = "",
+    val shortcut: String? = null,
     val type: WorkType,
     val status: WorkStatus,
-    val deadline: String,
-    val deadlineProgram: String?,
-    val author: User?,
-    val supervisor: User?,
-    val opponent: User?,
-    val consultant: User?
+    val deadline: String = "",
+    val deadlineProgram: String? = null,
+    val author: User? = null,
+    val supervisor: User? = null,
+    val opponent: User? = null,
+    val consultant: User? = null
 )
 
 fun WorkResponse.toDataModel(): Work {

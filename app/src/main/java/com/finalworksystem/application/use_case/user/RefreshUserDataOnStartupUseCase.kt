@@ -2,7 +2,7 @@ package com.finalworksystem.application.use_case.user
 
 import com.finalworksystem.domain.common.util.safeFlowResult
 import com.finalworksystem.domain.user.repository.GetUserRepository
-import com.finalworksystem.infrastructure.cache.ProfileImageCacheManager
+import com.finalworksystem.infrastructure.image.ProfileImageCache
 import com.finalworksystem.infrastructure.user.UserService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.first
 class RefreshUserDataOnStartupUseCase(
     private val userRepository: GetUserRepository,
     private val userService: UserService,
-    private val profileImageCacheManager: ProfileImageCacheManager
+    private val profileImageCache: ProfileImageCache
 ) {
     operator fun invoke(): Flow<Result<Boolean>> = safeFlowResult {
         val hasUser = userService.isLoggedInFlow().first()
@@ -22,14 +22,8 @@ class RefreshUserDataOnStartupUseCase(
         val userDetailResult = userRepository.getUserDetail().first()
 
         if (userDetailResult.isSuccess) {
-            val user = userDetailResult.getOrThrow()
-
-            val profileImageResult = userRepository.getUserProfileImage(user.id).first()
-
-            if (profileImageResult.isSuccess) {
-                val profileImage = profileImageResult.getOrThrow()
-                profileImageCacheManager.saveProfileImage(user.id, profileImage)
-            }
+            // The own profile image may have been changed on the web; reload it once per start.
+            profileImageCache.invalidate(userDetailResult.getOrThrow().id)
 
             Result.success(true)
         } else {

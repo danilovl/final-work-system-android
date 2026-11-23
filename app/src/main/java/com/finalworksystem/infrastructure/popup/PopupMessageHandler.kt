@@ -1,22 +1,22 @@
 package com.finalworksystem.infrastructure.popup
 
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import com.finalworksystem.ui.designsystem.AppSnackbarDuration
+import com.finalworksystem.ui.designsystem.AppSnackbarHostState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
 fun PopupMessageHandler(
     popupMessageService: PopupMessageService,
-    snackbarHostState: SnackbarHostState,
+    snackbarHostState: AppSnackbarHostState,
     coroutineScope: CoroutineScope
 ) {
     val messageQueue = remember { popupMessageService.messageQueue }
     val isShowingMessage = remember { popupMessageService.isShowingMessage }
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val resources = androidx.compose.ui.platform.LocalResources.current
 
     LaunchedEffect(messageQueue.size, isShowingMessage.value) {
         if (isShowingMessage.value || messageQueue.isEmpty()) {
@@ -25,11 +25,11 @@ fun PopupMessageHandler(
 
         val nextMessage = popupMessageService.processNextMessage()
         nextMessage?.let { popupMessage ->
-            val messageText = popupMessage.message ?: popupMessage.resourceId?.let { context.getString(it) } ?: ""
+            val messageText = popupMessage.message ?: popupMessage.resourceId?.let { resources.getString(it) } ?: ""
             coroutineScope.launch {
                 snackbarHostState.showSnackbar(
                     message = messageText,
-                    duration = SnackbarDuration.Short,
+                    duration = AppSnackbarDuration.Short,
                     actionLabel = null,
                     withDismissAction = true
                 )

@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">Final work system</string>
+    <string name="student">Student</string>
+    <string name="open_menu">Open menu</string>
+    <string name="drawer_section_general">General</string>
     <string name="login">Login</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
@@ -65,6 +68,7 @@
     <string name="no_works_found">No works found</string>
     <string name="reset_search">Reset search</string>
     <string name="no_users_found">No users found</string>
+    <string name="no_conversations_found">No conversations found</string>
     <string name="error_loading_users">Error loading users</string>
     <string name="error_loading_messages">Error loading messages: %1$s</string>
     <string name="error_prefix">Error: %1$s</string>
@@ -142,7 +146,6 @@
     <string name="participants_count">Participants (%1$d)</string>
     <string name="send_message">Send Message</string>
     <string name="type_message_placeholder">Type your message...</string>
-    <string name="sending">Sending...</string>
     <string name="expand_to_fullscreen">Expand to fullscreen</string>
     <string name="previous_month">Previous Month</string>
     <string name="next_month">Next Month</string>
@@ -188,4 +191,31 @@
     <string name="clear_filter">Clear Filter</string>
     <string name="all_statuses">All Statuses</string>
     <string name="all_types">All Types</string>
+    <string name="register">Register</string>
+    <string name="select_work_placeholder">Select a work</string>
+    <string name="event_location">Event location</string>
+    <string name="collapse">Collapse</string>
+    <string name="expand">Expand</string>
+    <string name="search_users_placeholder">Search by name…</string>
+    <string name="security">Security</string>
+    <string name="change_password">Change password</string>
+    <string name="change_password_description">Update the password you use to sign in</string>
+    <string name="current_password">Current password</string>
+    <string name="new_password">New password</string>
+    <string name="confirm_new_password">Repeat new password</string>
+    <string name="save">Save</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="password_changed">Password changed</string>
+    <string name="password_error_empty">Fill in all password fields</string>
+    <string name="password_error_mismatch">The new passwords do not match</string>
+    <string name="password_error_same">The new password must differ from the current one</string>
+    <string name="password_error_current">The current password is incorrect</string>
+    <string name="password_error_new">The new password does not meet the requirements</string>
+    <string name="password_error_not_supported">Changing the password is not available on the server yet</string>
+    <string name="password_error_generic">Failed to change the password. Try again later</string>
+    <plurals name="comments_count">
+        <item quantity="one">%d comment</item>
+        <item quantity="other">%d comments</item>
+    </plurals>
 </resources>

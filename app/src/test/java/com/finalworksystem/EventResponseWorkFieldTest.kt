@@ -2,8 +2,8 @@ package com.finalworksystem
 
 import com.finalworksystem.data.event.model.response.EventResponse
 import com.finalworksystem.data.event.model.response.toDataModel
-import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
+import com.finalworksystem.infrastructure.api.serialization.ApiJson
+import kotlinx.serialization.SerializationException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -17,14 +17,13 @@ class EventResponseWorkFieldTest {
     fun testEventParsingWithWorkField() {
         println("[DEBUG_LOG] Testing event parsing with work field in participant")
 
-        val gson = Gson()
 
         val issueJson = """{"id":96,"name":null,"start":"2017-08-30T09:00:00+02:00","end":"2017-08-30T10:00:00+02:00","type":{"id":1,"name":"Konzultace","description":null,"color":"#3b91ad","registrable":true},"owner":{"id":36,"username":"pecinovr","firstname":"Rudolf","lastname":"Pecinovský","fullName":"Pecinovský Rudolf","email":"rudolf@pecinovsky.cz","degreeBefore":"Ing., CSc.","degreeAfter":null,"roles":["ROLE_SUPERVISOR","ROLE_USER"]},"address":{"id":1,"name":"JM 371","description":null,"street":"Chemická 951, 148 00 Praha-Kunratice, Česko","skype":false,"latitude":50.0205889,"longitude":14.4936111,"owner":{"id":36,"username":"pecinovr","firstname":"Rudolf","lastname":"Pecinovský","fullName":"Pecinovský Rudolf","email":"rudolf@pecinovsky.cz","degreeBefore":"Ing., CSc.","degreeAfter":null,"roles":["ROLE_SUPERVISOR","ROLE_USER"]}},"participant":{"id":194,"firstName":null,"secondName":null,"email":null,"user":{"id":155,"username":"xdanv09","firstname":"Vladimir","lastname":"Danilov","fullName":"Danilov Vladimir","email":"xdanv09@vse.cz","degreeBefore":"Bc.","degreeAfter":null,"roles":["ROLE_STUDENT","ROLE_ADMIN","ROLE_USER"]},"work":{"id":109,"title":"Systém pro vedení bakalářských a diplomových prací","shortcut":null,"deadline":"2018-04-25T00:00:00+02:00","deadlineProgram":null,"status":{"id":1,"name":"Aktivní","description":null,"color":"#42f442"},"type":{"id":1,"name":"Diplomová práce","description":null,"shortcut":"DP"},"author":null,"supervisor":null,"opponent":null,"consultant":null}},"comment":[{"id":4,"content":"<ul>\n<li>U termínů odevzdání nahradit zopakovaný tex textem <strong>Zbývá:</strong> <br />&nbsp;</li>\n<li>Umožnit studentům přepnout u objednávané místnosti přednastavenou na skype.<br />&nbsp","owner":{"id":36,"username":"pecinovr","firstname":"Rudolf","lastname":"Pecinovský","fullName":"Pecinovský Rudolf","email":"rudolf@pecinovsky.cz","degreeBefore":"Ing., CSc.","degreeAfter":null,"roles":["ROLE_SUPERVISOR","ROLE_USER"]},"createdAt":"2017-08-30T11:00:54+02:00","updatedAt":null}]}"""
 
         println("[DEBUG_LOG] JSON length: ${issueJson.length}")
 
         try {
-            val eventDto = gson.fromJson(issueJson, EventResponse::class.java)
+            val eventDto = ApiJson.decodeFromString<EventResponse>(issueJson)
 
             assertNotNull(eventDto)
             assertEquals(96, eventDto.id)
@@ -64,8 +63,8 @@ class EventResponseWorkFieldTest {
 
             println("[DEBUG_LOG] Event parsing successful with work field properly handled!")
 
-        } catch (e: JsonSyntaxException) {
-            println("[DEBUG_LOG] JsonSyntaxException occurred: ${e.message}")
+        } catch (e: SerializationException) {
+            println("[DEBUG_LOG] SerializationException occurred: ${e.message}")
             e.printStackTrace()
             fail("JSON parsing should not fail: ${e.message}")
         } catch (e: Exception) {
@@ -79,12 +78,11 @@ class EventResponseWorkFieldTest {
     fun testEventDataModelConversion() {
         println("[DEBUG_LOG] Testing event data model conversion with work field")
 
-        val gson = Gson()
 
         val issueJson = """{"id":96,"name":null,"start":"2017-08-30T09:00:00+02:00","end":"2017-08-30T10:00:00+02:00","type":{"id":1,"name":"Konzultace","description":null,"color":"#3b91ad","registrable":true},"owner":{"id":36,"username":"pecinovr","firstname":"Rudolf","lastname":"Pecinovský","fullName":"Pecinovský Rudolf","email":"rudolf@pecinovsky.cz","degreeBefore":"Ing., CSc.","degreeAfter":null,"roles":["ROLE_SUPERVISOR","ROLE_USER"]},"address":{"id":1,"name":"JM 371","description":null,"street":"Chemická 951, 148 00 Praha-Kunratice, Česko","skype":false,"latitude":50.0205889,"longitude":14.4936111,"owner":{"id":36,"username":"pecinovr","firstname":"Rudolf","lastname":"Pecinovský","fullName":"Pecinovský Rudolf","email":"rudolf@pecinovsky.cz","degreeBefore":"Ing., CSc.","degreeAfter":null,"roles":["ROLE_SUPERVISOR","ROLE_USER"]}},"participant":{"id":194,"firstName":null,"secondName":null,"email":null,"user":{"id":155,"username":"xdanv09","firstname":"Vladimir","lastname":"Danilov","fullName":"Danilov Vladimir","email":"xdanv09@vse.cz","degreeBefore":"Bc.","degreeAfter":null,"roles":["ROLE_STUDENT","ROLE_ADMIN","ROLE_USER"]},"work":{"id":109,"title":"Systém pro vedení bakalářských a diplomových prací","shortcut":null,"deadline":"2018-04-25T00:00:00+02:00","deadlineProgram":null,"status":{"id":1,"name":"Aktivní","description":null,"color":"#42f442"},"type":{"id":1,"name":"Diplomová práce","description":null,"shortcut":"DP"},"author":null,"supervisor":null,"opponent":null,"consultant":null}},"comment":[{"id":4,"content":"<ul>\n<li>U termínů odevzdání nahradit zopakovaný tex textem <strong>Zbývá:</strong> <br />&nbsp;</li>\n<li>Umožnit studentům přepnout u objednávané místnosti přednastavenou na skype.<br />&nbsp","owner":{"id":36,"username":"pecinovr","firstname":"Rudolf","lastname":"Pecinovský","fullName":"Pecinovský Rudolf","email":"rudolf@pecinovsky.cz","degreeBefore":"Ing., CSc.","degreeAfter":null,"roles":["ROLE_SUPERVISOR","ROLE_USER"]},"createdAt":"2017-08-30T11:00:54+02:00","updatedAt":null}]}"""
 
         try {
-            val eventDto = gson.fromJson(issueJson, EventResponse::class.java)
+            val eventDto = ApiJson.decodeFromString<EventResponse>(issueJson)
 
             val eventDataModel = eventDto.toDataModel()
 

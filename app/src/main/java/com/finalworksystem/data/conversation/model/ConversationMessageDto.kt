@@ -1,11 +1,20 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.conversation.model
 
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
+
+@Serializable
 data class ConversationMessageDto(
-    val id: Int,
-    val owner: ConversationUserDto,
-    val content: String,
-    val isRead: Boolean,
-    val createdAt: String
+    val id: Int = 0,
+    val owner: ConversationUserDto = ConversationUserDto(),
+    val content: String = "",
+    val isRead: Boolean = false,
+    val createdAt: String = ""
 )
 
 fun ConversationMessageDto.toEntity(): com.finalworksystem.domain.conversation.model.ConversationMessage {

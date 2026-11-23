@@ -9,25 +9,28 @@ import com.finalworksystem.presentation.view_model.system_event.SystemEventViewM
 import com.finalworksystem.presentation.view_model.task.TaskCreateViewModel
 import com.finalworksystem.presentation.view_model.task.TaskDetailViewModel
 import com.finalworksystem.presentation.view_model.task.TaskListViewModel
+import com.finalworksystem.presentation.view_model.user.ChangePasswordViewModel
 import com.finalworksystem.presentation.view_model.user.UserViewModel
 import com.finalworksystem.presentation.view_model.work.WorkCreateViewModel
 import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
 import com.finalworksystem.presentation.view_model.work.WorkListViewModel
-import org.koin.core.module.dsl.viewModel
+import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val presentationModule = module {
-    single { GlobalCacheManager(get()) }
-    viewModel { AuthViewModel(get(), get(), get(), get(), get(), get()) }
-    viewModel { ConversationListViewModel(get(), get(), get(), get()) }
-    viewModel { ConversationDetailViewModel(get(), get(), get(), get(), get(), get()) }
-    viewModel { EventDetailViewModel(get(), get()) }
-    viewModel { SystemEventViewModel(get(), get(), get(), get(), get()) }
-    viewModel { WorkListViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { WorkDetailViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { WorkCreateViewModel(get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { TaskListViewModel(get(), get(), get(), get(), get()) }
-    viewModel { TaskCreateViewModel(get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { TaskDetailViewModel(get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { UserViewModel(get(), get(), get()) }
+    singleOf(::GlobalCacheManager)
+    viewModelOf(::AuthViewModel)
+    viewModelOf(::ConversationListViewModel)
+    viewModelOf(::ConversationDetailViewModel)
+    viewModelOf(::EventDetailViewModel)
+    viewModelOf(::SystemEventViewModel)
+    viewModelOf(::WorkListViewModel)
+    viewModelOf(::WorkDetailViewModel)
+    viewModelOf(::WorkCreateViewModel)
+    viewModelOf(::TaskListViewModel)
+    viewModelOf(::TaskCreateViewModel)
+    viewModelOf(::TaskDetailViewModel)
+    viewModelOf(::UserViewModel)
+    viewModelOf(::ChangePasswordViewModel)
 }

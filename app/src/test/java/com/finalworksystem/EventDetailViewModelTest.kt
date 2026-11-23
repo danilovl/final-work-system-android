@@ -19,8 +19,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
+import io.mockk.every
+import io.mockk.mockk
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class EventDetailViewModelTest {
@@ -39,10 +39,9 @@ class EventDetailViewModelTest {
 
     @Test
     fun `loadEvent should emit success state when use case returns success`() = runTest(testDispatcher) {
-        println("[DEBUG_LOG] Testing EventDetailViewModel loadEvent functionality")
 
-        val mockUseCase = mock<GetEventByIdUseCase>()
-        val mockDeleteUseCase = mock<DeleteEventUseCase>()
+        val mockUseCase = mockk<GetEventByIdUseCase>()
+        val mockDeleteUseCase = mockk<DeleteEventUseCase>(relaxed = true)
 
         val mockEventType = EventType(
             id = 1,
@@ -77,9 +76,7 @@ class EventDetailViewModelTest {
             comment = null
         )
 
-        whenever(mockUseCase.invoke(123)).thenReturn(
-            flowOf(Result.success(mockEvent))
-        )
+        every { mockUseCase.invoke(123) } returns flowOf(Result.success(mockEvent))
 
         val viewModel = EventDetailViewModel(mockUseCase, mockDeleteUseCase)
 
@@ -91,7 +88,6 @@ class EventDetailViewModelTest {
         advanceUntilIdle()
 
         val finalState = viewModel.eventState.value
-        println("[DEBUG_LOG] Final state: $finalState")
 
         assertTrue("Final state should be Success", 
             finalState is EventDetailViewModel.EventState.Success)
@@ -99,22 +95,18 @@ class EventDetailViewModelTest {
         if (finalState is EventDetailViewModel.EventState.Success) {
             assertEquals("Event ID should match", 123, finalState.event.id)
             assertEquals("Event name should match", "Test Event", finalState.event.name)
-            println("[DEBUG_LOG] Event loaded successfully: ${finalState.event}")
         }
     }
 
     @Test
     fun `loadEvent should emit error state when use case returns failure`() = runTest(testDispatcher) {
-        println("[DEBUG_LOG] Testing EventDetailViewModel error handling")
 
-        val mockUseCase = mock<GetEventByIdUseCase>()
-        val mockDeleteUseCase = mock<DeleteEventUseCase>()
+        val mockUseCase = mockk<GetEventByIdUseCase>()
+        val mockDeleteUseCase = mockk<DeleteEventUseCase>(relaxed = true)
 
         val errorMessage = "Network error"
 
-        whenever(mockUseCase.invoke(123)).thenReturn(
-            flowOf(Result.failure(Exception(errorMessage)))
-        )
+        every { mockUseCase.invoke(123) } returns flowOf(Result.failure(Exception(errorMessage)))
 
         val viewModel = EventDetailViewModel(mockUseCase, mockDeleteUseCase)
 
@@ -123,14 +115,12 @@ class EventDetailViewModelTest {
         advanceUntilIdle()
 
         val finalState = viewModel.eventState.value
-        println("[DEBUG_LOG] Final state: $finalState")
 
         assertTrue("Final state should be Error", 
             finalState is EventDetailViewModel.EventState.Error)
 
         if (finalState is EventDetailViewModel.EventState.Error) {
             assertEquals("Error message should match", errorMessage, finalState.message)
-            println("[DEBUG_LOG] Error handled correctly: ${finalState.message}")
         }
     }
 }

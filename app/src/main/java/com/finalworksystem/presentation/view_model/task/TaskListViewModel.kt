@@ -1,213 +1,143 @@
 package com.finalworksystem.presentation.view_model.task
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
 import com.finalworksystem.application.use_case.task.GetTasksForOwnerUseCase
 import com.finalworksystem.application.use_case.task.GetTasksForSolverUseCase
+import com.finalworksystem.domain.task.model.PaginatedTasks
 import com.finalworksystem.domain.task.model.Task
 import com.finalworksystem.infrastructure.cache.CacheCleanupReason
 import com.finalworksystem.infrastructure.cache.GlobalCacheManager
-import com.finalworksystem.infrastructure.popup.PopupMessageService
+import com.finalworksystem.presentation.paging.Page
+import com.finalworksystem.presentation.paging.PagedList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class TaskListViewModel(
-    application: Application,
     private val getTasksForOwnerUseCase: GetTasksForOwnerUseCase,
     private val getTasksForSolverUseCase: GetTasksForSolverUseCase,
-    private val popupMessageService: PopupMessageService,
     private val globalCacheManager: GlobalCacheManager
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
-    private val _tasksState = MutableStateFlow<TasksState>(TasksState.Idle)
-    val tasksState: StateFlow<TasksState> = _tasksState.asStateFlow()
+    enum class TaskListType { OWNER, SOLVER }
 
-    private var currentPage = 1
-    private val pageSize = 10
-    private var isLoadingMore = false
+    private data class Query(val search: String? = null)
 
-    private var cachedOwnerTasks: List<Task>? = null
-    private var cachedSolverTasks: List<Task>? = null
-    private var hasMoreOwnerTasks = false
-    private var hasMoreSolverTasks = false
+    private val ownerTasks = PagedList<Query, Task>(viewModelScope, PAGE_SIZE) { query, page, pageSize ->
+        loadPage(query, page, pageSize) { p, limit -> getTasksForOwnerUseCase(page = p, limit = limit).first() }
+    }
 
-    private enum class TaskType { OWNER, SOLVER }
-    private var currentTaskType: TaskType? = null
+    private val solverTasks = PagedList<Query, Task>(viewModelScope, PAGE_SIZE) { query, page, pageSize ->
+        loadPage(query, page, pageSize) { p, limit -> getTasksForSolverUseCase(page = p, limit = limit).first() }
+    }
+
+    /**
+     * Without a search the API pages are shown as they are. The task list API does not support
+     * searching, so with a search all tasks are fetched and filtered here, returned as one page.
+     */
+    private suspend fun loadPage(
+        query: Query,
+        page: Int,
+        pageSize: Int,
+        fetch: suspend (page: Int, limit: Int) -> Result<PaginatedTasks>
+    ): Result<Page<Task>> {
+        val search = query.search
+            ?: return fetch(page, pageSize).map { Page(it.tasks, it.totalCount) }
+
+        // Everything is returned with the first page, so there is nothing after it.
+        if (page > 1) return Result.success(Page(emptyList(), 0))
+
+        val all = LinkedHashMap<Int, Task>()
+        for (apiPage in 1..SEARCH_MAX_PAGES) {
+            val result = fetch(apiPage, SEARCH_PAGE_SIZE).getOrElse { return Result.failure(it) }
+            val sizeBefore = all.size
+            result.tasks.forEach { all.putIfAbsent(it.id, it) }
+            if (all.size == sizeBefore) break
+            val reachedTotal = result.totalCount > 0 && all.size >= result.totalCount
+            // The server may cap the page size, so only an empty page (or the total) ends the list.
+            if (result.tasks.isEmpty() || reachedTotal) break
+        }
+
+        val matches = all.values.filter { it.matches(search) }
+        return Result.success(Page(matches, matches.size))
+    }
+
+    private fun Task.matches(search: String): Boolean {
+        val words = search.lowercase().split(' ').filter { it.isNotBlank() }
+        val haystack = listOfNotNull(name, description, work?.title, work?.shortcut)
+            .joinToString(" ")
+            .lowercase()
+        return words.all { it in haystack }
+    }
+
+    private val searchQueries = mapOf(
+        TaskListType.OWNER to MutableStateFlow(""),
+        TaskListType.SOLVER to MutableStateFlow("")
+    )
 
     init {
         viewModelScope.launch {
-            globalCacheManager.cacheCleanupEvents.collect { cacheCleanupEvent ->
-                clearCache()
-                if (cacheCleanupEvent.reason == CacheCleanupReason.DATA_UPDATED) {
-                    when (currentTaskType) {
-                        TaskType.OWNER -> loadTasksForOwner(forceRefresh = true)
-                        TaskType.SOLVER -> loadTasksForSolver(forceRefresh = true)
-                        null -> {}
-                    }
+            globalCacheManager.cacheCleanupEvents.collect { event ->
+                if (event.reason == CacheCleanupReason.DATA_UPDATED) {
+                    // A task was created or changed: reload the lists that are shown.
+                    ownerTasks.refresh()
+                    solverTasks.refresh()
+                } else {
+                    ownerTasks.reset()
+                    solverTasks.reset()
                 }
             }
         }
     }
 
-    fun loadTasksForOwner(forceRefresh: Boolean = false) {
-        viewModelScope.launch {
-            _tasksState.value = TasksState.Loading
-            currentPage = 1
-            currentTaskType = TaskType.OWNER
+    fun tasks(type: TaskListType): Flow<PagingData<Task>> = list(type).items
 
-            getTasksForOwnerUseCase(page = currentPage, limit = pageSize).collect { result ->
-                result.fold(
-                    onSuccess = { paginatedTasks ->
-                        cachedOwnerTasks = paginatedTasks.tasks
-                        hasMoreOwnerTasks = paginatedTasks.tasks.size >= pageSize
-                        _tasksState.value = TasksState.Success(paginatedTasks.tasks, hasMoreOwnerTasks, false, paginatedTasks.totalCount)
-                    },
-                    onFailure = { error ->
-                        val errorMessage = error.message
-                        if (errorMessage != null) {
-                            _tasksState.value = TasksState.Error(errorMessage)
-                            popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
-                        } else {
-                            val fallbackMessage = getApplication<Application>().getString(com.finalworksystem.R.string.unknown_error)
-                            _tasksState.value = TasksState.Error(fallbackMessage)
-                            popupMessageService.showMessageResource(com.finalworksystem.R.string.unknown_error, PopupMessageService.MessageLevel.ERROR)
-                        }
-                    }
-                )
-            }
-        }
+    fun totalCount(type: TaskListType): StateFlow<Int> = list(type).totalCount
+
+    private val searchQueryStates: Map<TaskListType, StateFlow<String>> =
+        searchQueries.mapValues { it.value.asStateFlow() }
+
+    fun searchQuery(type: TaskListType): StateFlow<String> = searchQueryStates.getValue(type)
+
+    /** Shows the tasks; they change often, so an already shown list is fetched again. */
+    fun loadTasks(type: TaskListType) {
+        list(type).reload(currentQuery(type))
     }
 
-    fun loadTasksForSolver(forceRefresh: Boolean = false) {
-        viewModelScope.launch {
-            _tasksState.value = TasksState.Loading
-            currentPage = 1
-            currentTaskType = TaskType.SOLVER
-
-            getTasksForSolverUseCase(page = currentPage, limit = pageSize).collect { result ->
-                result.fold(
-                    onSuccess = { paginatedTasks ->
-                        cachedSolverTasks = paginatedTasks.tasks
-                        hasMoreSolverTasks = paginatedTasks.tasks.size >= pageSize
-                        _tasksState.value = TasksState.Success(paginatedTasks.tasks, hasMoreSolverTasks, false, paginatedTasks.totalCount)
-                    },
-                    onFailure = { error ->
-                        val errorMessage = error.message
-                        if (errorMessage != null) {
-                            _tasksState.value = TasksState.Error(errorMessage)
-                            popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
-                        } else {
-                            val fallbackMessage = getApplication<Application>().getString(com.finalworksystem.R.string.unknown_error)
-                            _tasksState.value = TasksState.Error(fallbackMessage)
-                            popupMessageService.showMessageResource(com.finalworksystem.R.string.unknown_error, PopupMessageService.MessageLevel.ERROR)
-                        }
-                    }
-                )
-            }
-        }
+    fun refresh(type: TaskListType) {
+        list(type).refresh()
     }
 
-    fun loadMoreTasks() {
-        if (isLoadingMore) {
-            return
-        }
-
-        val currentState = _tasksState.value
-        if (currentState !is TasksState.Success) {
-            return
-        }
-
-        val hasMore = when (currentTaskType) {
-            TaskType.OWNER -> hasMoreOwnerTasks
-            TaskType.SOLVER -> hasMoreSolverTasks
-            null -> false
-        }
-
-        if (!hasMore) {
-            return
-        }
-
-        viewModelScope.launch {
-            isLoadingMore = true
-            currentPage++
-            _tasksState.value = currentState.copy(isLoadingMore = true)
-
-            when (currentTaskType) {
-                TaskType.OWNER -> {
-                    getTasksForOwnerUseCase(page = currentPage, limit = pageSize).collect { result ->
-                        result.fold(
-                            onSuccess = { paginatedTasks ->
-                                val updatedTasks = (cachedOwnerTasks.orEmpty() + paginatedTasks.tasks).distinct()
-                                cachedOwnerTasks = updatedTasks
-                                hasMoreOwnerTasks = paginatedTasks.tasks.size >= pageSize
-                                _tasksState.value = TasksState.Success(updatedTasks, hasMoreOwnerTasks, false, paginatedTasks.totalCount)
-                            },
-                            onFailure = { error ->
-                                val errorMessage = error.message
-                                _tasksState.value = currentState.copy(isLoadingMore = false)
-                                if (errorMessage != null) {
-                                    popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
-                                } else {
-                                    popupMessageService.showMessageResource(com.finalworksystem.R.string.unknown_error, PopupMessageService.MessageLevel.ERROR)
-                                }
-                            }
-                        )
-                        isLoadingMore = false
-                    }
-                }
-                TaskType.SOLVER -> {
-                    getTasksForSolverUseCase(page = currentPage, limit = pageSize).collect { result ->
-                        result.fold(
-                            onSuccess = { paginatedTasks ->
-                                val updatedTasks = (cachedSolverTasks.orEmpty() + paginatedTasks.tasks).distinct()
-                                cachedSolverTasks = updatedTasks
-                                hasMoreSolverTasks = paginatedTasks.tasks.size >= pageSize
-                                _tasksState.value = TasksState.Success(updatedTasks, hasMoreSolverTasks, false, paginatedTasks.totalCount)
-                            },
-                            onFailure = { error ->
-                                val errorMessage = error.message
-                                _tasksState.value = currentState.copy(isLoadingMore = false)
-                                if (errorMessage != null) {
-                                    popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
-                                } else {
-                                    popupMessageService.showMessageResource(com.finalworksystem.R.string.unknown_error, PopupMessageService.MessageLevel.ERROR)
-                                }
-                            }
-                        )
-                        isLoadingMore = false
-                    }
-                }
-                null -> {
-                    isLoadingMore = false
-                }
-            }
-        }
+    fun updateSearchQuery(type: TaskListType, query: String) {
+        searchFlow(type).value = query
     }
 
-    fun resetTasksState() {
-        _tasksState.value = TasksState.Idle
+    fun performSearch(type: TaskListType, query: String) {
+        searchFlow(type).value = query
+        list(type).load(currentQuery(type))
     }
 
-    private fun clearCache() {
-        cachedOwnerTasks = null
-        cachedSolverTasks = null
-        hasMoreOwnerTasks = false
-        hasMoreSolverTasks = false
-        currentPage = 1
+    fun clearSearch(type: TaskListType) {
+        performSearch(type, "")
     }
 
-    sealed class TasksState {
-        data object Idle : TasksState()
-        data object Loading : TasksState()
-        data class Success(
-            val tasks: List<Task>,
-            val hasMoreTasks: Boolean = false,
-            val isLoadingMore: Boolean = false,
-            val totalCount: Int = 0
-        ) : TasksState()
-        data class Error(val message: String) : TasksState()
+    private fun currentQuery(type: TaskListType) = Query(searchFlow(type).value.trim().ifBlank { null })
+
+    private fun searchFlow(type: TaskListType) = searchQueries.getValue(type)
+
+    private fun list(type: TaskListType) = when (type) {
+        TaskListType.OWNER -> ownerTasks
+        TaskListType.SOLVER -> solverTasks
+    }
+
+    private companion object {
+        const val PAGE_SIZE = 10
+        const val SEARCH_PAGE_SIZE = 50
+        const val SEARCH_MAX_PAGES = 40
     }
 }

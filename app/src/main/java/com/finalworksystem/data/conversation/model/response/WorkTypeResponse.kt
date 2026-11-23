@@ -1,19 +1,27 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.conversation.model.response
 
-import com.google.gson.annotations.SerializedName
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class WorkTypeDto(
-    @SerializedName("id")
-    val id: Int,
+    @SerialName("id")
+    val id: Int = 0,
     
-    @SerializedName("name")
-    val name: String,
+    @SerialName("name")
+    val name: String = "",
     
-    @SerializedName("description")
-    val description: String?,
+    @SerialName("description")
+    val description: String? = null,
     
-    @SerializedName("shortcut")
-    val shortcut: String
+    @SerialName("shortcut")
+    val shortcut: String = ""
 )
 
 fun WorkTypeDto.toDomain(): com.finalworksystem.domain.conversation.model.WorkType {

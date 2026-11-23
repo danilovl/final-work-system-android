@@ -1,25 +1,21 @@
 package com.finalworksystem.presentation.ui.component.navigation
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Article
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Task
-import androidx.compose.material3.DrawerState
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.res.stringResource
 import com.finalworksystem.R
 import com.finalworksystem.domain.user.model.User
 import com.finalworksystem.domain.user.model.UserRole
+import com.finalworksystem.ui.designsystem.AppDrawerItem
+import com.finalworksystem.ui.designsystem.AppDrawerSectionTitle
+import com.finalworksystem.ui.designsystem.AppDrawerState
+import com.finalworksystem.ui.theme.AppIcons
 import kotlinx.coroutines.launch
 
 @Composable
 fun StudentSection(
     user: User,
-    drawerState: DrawerState,
+    drawerState: AppDrawerState,
     onNavigateToWorkList: (String) -> Unit,
     onNavigateToCalendarReservation: () -> Unit,
     onNavigateToTaskListSolver: () -> Unit
@@ -27,15 +23,11 @@ fun StudentSection(
     val scope = rememberCoroutineScope()
 
     if (user.roles.contains(UserRole.STUDENT.value)) {
-        NavigationDrawerItem(
-            label = { Text(stringResource(R.string.author_work)) },
-            icon = { 
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.Article,
-                    contentDescription = stringResource(R.string.author_work)
-                )
-            },
-            selected = false,
+        AppDrawerSectionTitle(stringResource(R.string.student))
+
+        AppDrawerItem(
+            label = stringResource(R.string.author_work),
+            icon = AppIcons.Article,
             onClick = {
                 scope.launch {
                     drawerState.close()
@@ -44,15 +36,9 @@ fun StudentSection(
             }
         )
 
-        NavigationDrawerItem(
-            label = { Text(stringResource(R.string.calendar_reservation)) },
-            icon = { 
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = stringResource(R.string.calendar_reservation)
-                )
-            },
-            selected = false,
+        AppDrawerItem(
+            label = stringResource(R.string.calendar_reservation),
+            icon = AppIcons.DateRange,
             onClick = {
                 scope.launch {
                     drawerState.close()
@@ -61,15 +47,9 @@ fun StudentSection(
             }
         )
 
-        NavigationDrawerItem(
-            label = { Text(stringResource(R.string.assigned_task)) },
-            icon = { 
-                Icon(
-                    imageVector = Icons.Default.Task,
-                    contentDescription = stringResource(R.string.assigned_task)
-                )
-            },
-            selected = false,
+        AppDrawerItem(
+            label = stringResource(R.string.assigned_task),
+            icon = AppIcons.Task,
             onClick = {
                 scope.launch {
                     drawerState.close()

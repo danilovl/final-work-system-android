@@ -1,20 +1,28 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.work.model.response
 
 import com.finalworksystem.domain.work.model.WorkCategory
-import com.google.gson.annotations.SerializedName
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class WorkCategoryDto(
-    @SerializedName("id")
-    val id: Int,
+    @SerialName("id")
+    val id: Int = 0,
 
-    @SerializedName("name")
-    val name: String,
+    @SerialName("name")
+    val name: String = "",
 
-    @SerializedName("description")
-    val description: String?,
+    @SerialName("description")
+    val description: String? = null,
 
-    @SerializedName("sorting")
-    val sorting: Int
+    @SerialName("sorting")
+    val sorting: Int = 0
 )
 
 fun WorkCategoryDto.toDomainModel(): WorkCategory {

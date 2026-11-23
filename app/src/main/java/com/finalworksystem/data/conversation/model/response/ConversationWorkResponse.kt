@@ -1,3 +1,5 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.conversation.model.response
 
 import com.finalworksystem.data.conversation.model.ConversationParticipantDto
@@ -8,67 +10,33 @@ import com.finalworksystem.data.conversation.model.LastMessageDto
 import com.finalworksystem.data.conversation.model.toEntity
 import com.finalworksystem.data.conversation.model.toEntityList
 import com.finalworksystem.domain.conversation.model.response.ConversationWorkResponse
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.annotations.JsonAdapter
-import java.lang.reflect.Type
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import com.finalworksystem.infrastructure.api.serialization.UnwrappingSerializer
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KeepGeneratedSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
-private data class ConversationWorkResponseDelegateDto(
-    val id: Int,
-    val name: String?,
-    val isRead: Boolean,
-    val recipient: ConversationUserDto?,
-    val work: ConversationWorkDetailDto?,
-    val participants: List<ConversationParticipantDto>?,
-    val lastMessage: LastMessageDto?,
-    val type: ConversationTypeDto?
+@OptIn(ExperimentalSerializationApi::class)
+@KeepGeneratedSerializer
+@Serializable(with = ConversationWorkResponseDtoSerializer::class)
+data class ConversationWorkResponseDto(
+    val id: Int = 0,
+    val name: String? = null,
+    val isRead: Boolean = false,
+    val recipient: ConversationUserDto? = null,
+    val work: ConversationWorkDetailDto? = null,
+    val participants: List<ConversationParticipantDto> = emptyList(),
+    val lastMessage: LastMessageDto? = null,
+    val type: ConversationTypeDto = ConversationTypeDto(0, "", "")
 )
 
-class ConversationWorkResponseDtoAdapter : JsonDeserializer<ConversationWorkResponseDto> {
-    override fun deserialize(
-        json: JsonElement?,
-        typeOfT: Type?,
-        context: JsonDeserializationContext?
-    ): ConversationWorkResponseDto? {
-        if (json == null || !json.isJsonObject) {
-            return null
-        }
-        val jsonObject = json.asJsonObject
-        val targetObject = when {
-            jsonObject.has("result") && jsonObject.get("result").isJsonObject -> jsonObject.getAsJsonObject("result")
-            jsonObject.has("work") && jsonObject.get("work").isJsonObject -> jsonObject.getAsJsonObject("work")
-            jsonObject.has("data") && jsonObject.get("data").isJsonObject -> jsonObject.getAsJsonObject("data")
-            else -> jsonObject
-        }
-        val dto = context?.deserialize<ConversationWorkResponseDelegateDto>(
-            targetObject,
-            ConversationWorkResponseDelegateDto::class.java
-        ) ?: return null
-
-        return ConversationWorkResponseDto(
-            id = dto.id,
-            name = dto.name,
-            isRead = dto.isRead,
-            recipient = dto.recipient,
-            work = dto.work,
-            participants = dto.participants ?: emptyList(),
-            lastMessage = dto.lastMessage,
-            type = dto.type ?: ConversationTypeDto(0, "", "")
-        )
-    }
-}
-
-@JsonAdapter(ConversationWorkResponseDtoAdapter::class)
-data class ConversationWorkResponseDto(
-    val id: Int,
-    val name: String?,
-    val isRead: Boolean,
-    val recipient: ConversationUserDto?,
-    val work: ConversationWorkDetailDto?,
-    val participants: List<ConversationParticipantDto>,
-    val lastMessage: LastMessageDto?,
-    val type: ConversationTypeDto
+/** Accepts the object either directly or wrapped in one of listOf("result", "work", "data"). */
+object ConversationWorkResponseDtoSerializer : UnwrappingSerializer<ConversationWorkResponseDto>(
+    ConversationWorkResponseDto.generatedSerializer(),
+    listOf("result", "work", "data")
 )
 
 fun ConversationWorkResponseDto.toEntity(): ConversationWorkResponse {

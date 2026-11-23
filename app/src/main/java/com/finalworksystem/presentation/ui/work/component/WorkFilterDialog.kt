@@ -1,45 +1,63 @@
 package com.finalworksystem.presentation.ui.work.component
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.finalworksystem.R
 import com.finalworksystem.domain.user.model.User
 import com.finalworksystem.domain.user.model.UserType
 import com.finalworksystem.domain.work.model.WorkFilter
 import com.finalworksystem.domain.work.model.WorkStatus
 import com.finalworksystem.domain.work.model.WorkType
-import java.text.SimpleDateFormat
-import java.util.*
+import com.finalworksystem.presentation.paging.UserPicker
+import com.finalworksystem.ui.designsystem.AppButton
+import com.finalworksystem.ui.designsystem.AppButtonVariant
+import com.finalworksystem.ui.designsystem.AppCheckbox
+import com.finalworksystem.ui.designsystem.AppDatePickerDialog
+import com.finalworksystem.ui.designsystem.AppDialog
+import com.finalworksystem.ui.designsystem.AppDivider
+import com.finalworksystem.ui.designsystem.AppDropdownField
+import com.finalworksystem.ui.designsystem.AppDropdownMenuItem
+import com.finalworksystem.ui.designsystem.AppIcon
+import com.finalworksystem.ui.designsystem.AppIconBadge
+import com.finalworksystem.ui.designsystem.AppIconButton
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.designsystem.AppTextField
+import com.finalworksystem.ui.designsystem.toUtcMillis
+import com.finalworksystem.ui.designsystem.utcMillisToLocalDate
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkFilterDialog(
     isVisible: Boolean,
     initialFilter: WorkFilter,
     workTypes: List<WorkType>,
     workStatuses: List<WorkStatus>,
-    userPickersState: Map<UserType, UserPickerState>,
+    userPicker: UserPicker,
     selectedAuthor: User?,
     selectedOpponent: User?,
-    onLoadUsers: (UserType, String) -> Unit,
-    onLoadMoreUsers: (UserType) -> Unit,
     onAuthorSelected: (User?) -> Unit,
     onOpponentSelected: (User?) -> Unit,
     onApplyFilter: (WorkFilter) -> Unit,
@@ -52,208 +70,163 @@ fun WorkFilterDialog(
         var showAuthorPicker by remember { mutableStateOf(false) }
         var showOpponentPicker by remember { mutableStateOf(false) }
 
-        Dialog(
+        AppDialog(
             onDismissRequest = onDismiss,
-            properties = DialogProperties(
-                dismissOnBackPress = true,
-                dismissOnClickOutside = true,
-                usePlatformDefaultWidth = false
-            )
+            modifier = Modifier.fillMaxHeight(0.85f)
         ) {
-            Card(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .fillMaxHeight(0.85f),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                    .fillMaxSize()
+                    .padding(20.dp)
             ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AppIconBadge(icon = AppIcons.Search, size = 36)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    AppText(
+                        text = stringResource(R.string.filter_works),
+                        style = AppTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    AppIconButton(
+                        icon = AppIcons.Close,
+                        contentDescription = stringResource(R.string.close),
+                        onClick = onDismiss
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Column(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp)
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.filter_works),
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        IconButton(onClick = onDismiss) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = stringResource(R.string.close)
-                            )
-                        }
-                    }
+                    // Title
+                    AppTextField(
+                        value = currentFilter.title ?: "",
+                        onValueChange = { currentFilter = currentFilter.copy(title = it.takeIf { it.isNotBlank() }) },
+                        label = { AppText(stringResource(R.string.title)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    // Shortcut
+                    AppTextField(
+                        value = currentFilter.shortcut ?: "",
+                        onValueChange = { currentFilter = currentFilter.copy(shortcut = it.takeIf { it.isNotBlank() }) },
+                        label = { AppText(stringResource(R.string.shortcut)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .verticalScroll(rememberScrollState()),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        // Title
-                        OutlinedTextField(
-                            value = currentFilter.title ?: "",
-                            onValueChange = { currentFilter = currentFilter.copy(title = it.takeIf { it.isNotBlank() }) },
-                            label = { Text(stringResource(R.string.title)) },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                    // Work Type
+                    TypeDropdown(
+                        selectedTypeId = currentFilter.typeId,
+                        types = workTypes,
+                        onTypeSelected = { currentFilter = currentFilter.copy(typeId = it) }
+                    )
 
-                        // Shortcut
-                        OutlinedTextField(
-                            value = currentFilter.shortcut ?: "",
-                            onValueChange = { currentFilter = currentFilter.copy(shortcut = it.takeIf { it.isNotBlank() }) },
-                            label = { Text(stringResource(R.string.shortcut)) },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                    // Work Status
+                    StatusMultiSelect(
+                        selectedStatusIds = currentFilter.statusIds ?: emptyList(),
+                        statuses = workStatuses,
+                        onStatusesChanged = { currentFilter = currentFilter.copy(statusIds = it.takeIf { it.isNotEmpty() }) }
+                    )
 
-                        // Work Type
-                        TypeDropdown(
-                            selectedTypeId = currentFilter.typeId,
-                            types = workTypes,
-                            onTypeSelected = { currentFilter = currentFilter.copy(typeId = it) }
-                        )
+                    // Author
+                    val authorName = selectedAuthor?.let { "${it.firstname} ${it.lastname}" } ?: stringResource(R.string.none)
+                    AppTextField(
+                        value = authorName,
+                        onValueChange = { },
+                        label = { AppText(stringResource(R.string.author)) },
+                        readOnly = true,
+                        singleLine = true,
+                        leadingIcon = { AppIcon(AppIcons.Person, null) },
+                        trailingIcon = { AppIcon(AppIcons.KeyboardArrowDown, null) },
+                        onClick = { showAuthorPicker = true },
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-                        // Work Status
-                        StatusMultiSelect(
-                            selectedStatusIds = currentFilter.statusIds ?: emptyList(),
-                            statuses = workStatuses,
-                            onStatusesChanged = { currentFilter = currentFilter.copy(statusIds = it.takeIf { it.isNotEmpty() }) }
-                        )
+                    // Opponent
+                    val opponentName = selectedOpponent?.let { "${it.firstname} ${it.lastname}" } ?: stringResource(R.string.none)
+                    AppTextField(
+                        value = opponentName,
+                        onValueChange = { },
+                        label = { AppText(stringResource(R.string.opponent)) },
+                        readOnly = true,
+                        singleLine = true,
+                        leadingIcon = { AppIcon(AppIcons.Person, null) },
+                        trailingIcon = { AppIcon(AppIcons.KeyboardArrowDown, null) },
+                        onClick = { showOpponentPicker = true },
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-                        // Author
-                        val authorName = selectedAuthor?.let { "${it.firstname} ${it.lastname}" } ?: stringResource(R.string.none)
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { showAuthorPicker = true }
-                        ) {
-                            OutlinedTextField(
-                                value = authorName,
-                                onValueChange = { },
-                                label = { Text(stringResource(R.string.author)) },
-                                readOnly = true,
-                                enabled = false,
-                                leadingIcon = { Icon(Icons.Default.Person, null) },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                                    disabledBorderColor = MaterialTheme.colorScheme.outline,
-                                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            )
-                        }
+                    // Deadline
+                    AppTextField(
+                        value = currentFilter.deadline ?: "",
+                        onValueChange = { },
+                        label = { AppText(stringResource(R.string.deadline)) },
+                        readOnly = true,
+                        singleLine = true,
+                        trailingIcon = { AppIcon(AppIcons.CalendarToday, null) },
+                        onClick = { showDatePicker = true },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
-                        // Opponent
-                        val opponentName = selectedOpponent?.let { "${it.firstname} ${it.lastname}" } ?: stringResource(R.string.none)
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { showOpponentPicker = true }
-                        ) {
-                            OutlinedTextField(
-                                value = opponentName,
-                                onValueChange = { },
-                                label = { Text(stringResource(R.string.opponent)) },
-                                readOnly = true,
-                                enabled = false,
-                                leadingIcon = { Icon(Icons.Default.Person, null) },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                                    disabledBorderColor = MaterialTheme.colorScheme.outline,
-                                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            )
-                        }
+                Spacer(modifier = Modifier.height(20.dp))
 
-                        // Deadline
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { showDatePicker = true }
-                        ) {
-                            OutlinedTextField(
-                                value = currentFilter.deadline ?: "",
-                                onValueChange = { },
-                                label = { Text(stringResource(R.string.deadline)) },
-                                readOnly = true,
-                                enabled = false,
-                                trailingIcon = {
-                                    IconButton(onClick = { showDatePicker = true }) {
-                                        Icon(Icons.Default.CalendarToday, null)
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                                    disabledBorderColor = MaterialTheme.colorScheme.outline,
-                                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        TextButton(onClick = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    AppButton(
+                        text = stringResource(R.string.clear_filter),
+                        onClick = {
                             onResetFilter()
                             onDismiss()
-                        }) {
-                            Text(stringResource(R.string.clear_filter))
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Button(
-                            onClick = {
-                                onApplyFilter(currentFilter)
-                                onDismiss()
-                            }
-                        ) {
-                            Text(stringResource(R.string.apply_filter))
-                        }
-                    }
+                        },
+                        variant = AppButtonVariant.Outline,
+                        modifier = Modifier.weight(1f)
+                    )
+                    AppButton(
+                        text = stringResource(R.string.apply_filter),
+                        onClick = {
+                            onApplyFilter(currentFilter)
+                            onDismiss()
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         }
 
         if (showDatePicker) {
-            val datePickerState = rememberDatePickerState()
-            DatePickerDialog(
-                onDismissRequest = { showDatePicker = false },
-                confirmButton = {
-                    TextButton(onClick = {
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                            val dateString = sdf.format(Date(millis))
-                            currentFilter = currentFilter.copy(deadline = dateString)
-                        }
-                        showDatePicker = false
-                    }) {
-                        Text(stringResource(R.string.ok))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDatePicker = false }) {
-                        Text(stringResource(R.string.cancel))
-                    }
+            val initialMillis = remember(currentFilter.deadline) {
+                try {
+                    currentFilter.deadline?.takeIf { it.isNotBlank() }?.let { LocalDate.parse(it).toUtcMillis() }
+                } catch (_: Exception) {
+                    null
                 }
-            ) {
-                DatePicker(state = datePickerState)
             }
+            AppDatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                onDateSelected = { millis ->
+                    millis?.let {
+                        val dateString = utcMillisToLocalDate(it).format(DateTimeFormatter.ISO_LOCAL_DATE)
+                        currentFilter = currentFilter.copy(deadline = dateString)
+                    }
+                    showDatePicker = false
+                },
+                initialSelectedDateMillis = initialMillis,
+                title = stringResource(R.string.deadline)
+            )
         }
 
         if (showAuthorPicker) {
@@ -261,9 +234,9 @@ fun WorkFilterDialog(
                 title = stringResource(R.string.select_author),
                 isVisible = showAuthorPicker,
                 selectedUser = selectedAuthor,
-                pickerState = userPickersState[UserType.AUTHOR] ?: UserPickerState(),
-                onSearch = { onLoadUsers(UserType.AUTHOR, it) },
-                onLoadMore = { onLoadMoreUsers(UserType.AUTHOR) },
+                users = userPicker.users(UserType.AUTHOR),
+                initialQuery = userPicker.searchQuery(UserType.AUTHOR),
+                onSearch = { userPicker.search(UserType.AUTHOR, it) },
                 onUserSelected = {
                     onAuthorSelected(it)
                     currentFilter = currentFilter.copy(authorId = it?.id)
@@ -278,9 +251,9 @@ fun WorkFilterDialog(
                 title = stringResource(R.string.select_opponent),
                 isVisible = showOpponentPicker,
                 selectedUser = selectedOpponent,
-                pickerState = userPickersState[UserType.OPPONENT] ?: UserPickerState(),
-                onSearch = { onLoadUsers(UserType.OPPONENT, it) },
-                onLoadMore = { onLoadMoreUsers(UserType.OPPONENT) },
+                users = userPicker.users(UserType.OPPONENT),
+                initialQuery = userPicker.searchQuery(UserType.OPPONENT),
+                onSearch = { userPicker.search(UserType.OPPONENT, it) },
                 onUserSelected = {
                     onOpponentSelected(it)
                     currentFilter = currentFilter.copy(opponentId = it?.id)
@@ -292,7 +265,6 @@ fun WorkFilterDialog(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TypeDropdown(
     selectedTypeId: Int?,
@@ -302,45 +274,34 @@ fun TypeDropdown(
     var expanded by remember { mutableStateOf(false) }
     val selectedTypeName = types.find { it.id == selectedTypeId }?.name ?: stringResource(R.string.all_types)
 
-    ExposedDropdownMenuBox(
+    AppDropdownField(
+        value = selectedTypeName,
         expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
+        onExpandedChange = { expanded = it },
+        label = { AppText(stringResource(R.string.type)) },
+        modifier = Modifier.fillMaxWidth()
     ) {
-        OutlinedTextField(
-            value = selectedTypeName,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(stringResource(R.string.type)) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor()
+        AppDropdownMenuItem(
+            text = stringResource(R.string.all_types),
+            selected = selectedTypeId == null,
+            onClick = {
+                onTypeSelected(null)
+                expanded = false
+            }
         )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.all_types)) },
+        types.forEach { type ->
+            AppDropdownMenuItem(
+                text = type.name,
+                selected = type.id == selectedTypeId,
                 onClick = {
-                    onTypeSelected(null)
+                    onTypeSelected(type.id)
                     expanded = false
                 }
             )
-            types.forEach { type ->
-                DropdownMenuItem(
-                    text = { Text(type.name) },
-                    onClick = {
-                        onTypeSelected(type.id)
-                        expanded = false
-                    }
-                )
-            }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatusMultiSelect(
     selectedStatusIds: List<Int>,
@@ -354,58 +315,44 @@ fun StatusMultiSelect(
         statuses.filter { it.id in selectedStatusIds }.joinToString(", ") { it.name }
     }
 
-    ExposedDropdownMenuBox(
+    AppDropdownField(
+        value = selectedStatusesNames,
         expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
+        onExpandedChange = { expanded = it },
+        label = { AppText(stringResource(R.string.status)) },
+        modifier = Modifier.fillMaxWidth()
     ) {
-        OutlinedTextField(
-            value = selectedStatusesNames,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(stringResource(R.string.status)) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor()
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            statuses.forEach { status ->
-                val isSelected = status.id in selectedStatusIds
-                DropdownMenuItem(
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(
-                                checked = isSelected,
-                                onCheckedChange = null
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(status.name)
-                        }
-                    },
-                    onClick = {
-                        val newSelectedIds = if (isSelected) {
-                            selectedStatusIds - status.id
-                        } else {
-                            selectedStatusIds + status.id
-                        }
-                        onStatusesChanged(newSelectedIds)
+        statuses.forEach { status ->
+            val isSelected = status.id in selectedStatusIds
+            AppDropdownMenuItem(
+                text = status.name,
+                selected = isSelected,
+                leadingIcon = {
+                    AppCheckbox(
+                        checked = isSelected,
+                        onCheckedChange = null
+                    )
+                },
+                onClick = {
+                    val newSelectedIds = if (isSelected) {
+                        selectedStatusIds - status.id
+                    } else {
+                        selectedStatusIds + status.id
                     }
-                )
-            }
-            if (selectedStatusIds.isNotEmpty()) {
-                Divider()
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.clear_filter)) },
-                    onClick = {
-                        onStatusesChanged(emptyList())
-                        expanded = false
-                    }
-                )
-            }
+                    onStatusesChanged(newSelectedIds)
+                }
+            )
+        }
+        if (selectedStatusIds.isNotEmpty()) {
+            AppDivider(modifier = Modifier.padding(vertical = 4.dp))
+            AppDropdownMenuItem(
+                text = stringResource(R.string.clear_filter),
+                leadingIcon = { AppIcon(AppIcons.Clear, null) },
+                onClick = {
+                    onStatusesChanged(emptyList())
+                    expanded = false
+                }
+            )
         }
     }
 }

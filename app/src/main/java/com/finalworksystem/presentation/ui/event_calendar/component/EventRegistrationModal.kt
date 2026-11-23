@@ -3,27 +3,13 @@ package com.finalworksystem.presentation.ui.event_calendar.component
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,13 +17,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import com.finalworksystem.R
 import com.finalworksystem.domain.event_calendar.model.CalendarEvent
 import com.finalworksystem.domain.work.model.Work
+import com.finalworksystem.ui.designsystem.AppButton
+import com.finalworksystem.ui.designsystem.AppButtonVariant
+import com.finalworksystem.ui.designsystem.AppCard
+import com.finalworksystem.ui.designsystem.AppCardStyle
+import com.finalworksystem.ui.designsystem.AppDialog
+import com.finalworksystem.ui.designsystem.AppIconBadge
+import com.finalworksystem.ui.designsystem.AppSelectField
+import com.finalworksystem.ui.designsystem.AppSpinner
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventRegistrationModal(
     event: CalendarEvent,
@@ -48,157 +45,127 @@ fun EventRegistrationModal(
     onRegister: (workId: Int) -> Unit
 ) {
     var selectedWorkId by remember { mutableStateOf<Int?>(null) }
-    var expanded by remember { mutableStateOf(false) }
 
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
+    AppDialog(onDismissRequest = onDismiss) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                .padding(24.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AppIconBadge(icon = AppIcons.BookmarkAdd, size = 40)
+                Spacer(modifier = Modifier.width(12.dp))
+                AppText(
+                    text = stringResource(R.string.reservation),
+                    style = AppTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = AppTheme.colors.onSurface
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            AppCard(
+                style = AppCardStyle.Tonal,
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(14.dp)
             ) {
-                Text(
-                    text = "Reservation",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Event: ${event.title}",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
+                AppText(
+                    text = event.title,
+                    style = AppTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = AppTheme.colors.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                if (isSameDay(event.start, event.end)) {
-                    Text(
-                        text = "Date: ${formatDate(event.start)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = "Time: ${formatTime(event.start)} - ${formatTime(event.end)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                } else {
-                    Text(
-                        text = "Start: ${formatDateTime(event.start)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = "End: ${formatDateTime(event.end)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (isSameDay(event.start, event.end)) {
+                        AppText(
+                            text = stringResource(R.string.date_prefix, formatDate(event.start)),
+                            style = AppTheme.typography.bodyMedium,
+                            color = AppTheme.colors.onSurfaceVariant
+                        )
+                        AppText(
+                            text = stringResource(R.string.time_range, formatTime(event.start), formatTime(event.end)),
+                            style = AppTheme.typography.bodyMedium,
+                            color = AppTheme.colors.onSurfaceVariant
+                        )
+                    } else {
+                        AppText(
+                            text = stringResource(R.string.start_prefix, formatDateTime(event.start)),
+                            style = AppTheme.typography.bodyMedium,
+                            color = AppTheme.colors.onSurfaceVariant
+                        )
+                        AppText(
+                            text = stringResource(R.string.end_prefix, formatDateTime(event.end)),
+                            style = AppTheme.typography.bodyMedium,
+                            color = AppTheme.colors.onSurfaceVariant
+                        )
+                    }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-                Text(
-                    text = "Select Work:",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                if (isLoading) {
+            when {
+                isLoading -> {
                     Box(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator()
+                        AppSpinner()
                     }
-                } else if (userWorks.isEmpty()) {
-                    Text(
-                        text = "No works available for registration",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error
+                }
+
+                userWorks.isEmpty() -> {
+                    AppText(
+                        text = stringResource(R.string.no_works_available_registration),
+                        style = AppTheme.typography.bodyMedium,
+                        color = AppTheme.colors.error
                     )
-                } else {
-                    ExposedDropdownMenuBox(
-                        expanded = expanded,
-                        onExpandedChange = { expanded = !expanded }
-                    ) {
-                        OutlinedTextField(
-                            value = userWorks.find { it.id == selectedWorkId }?.title ?: "Select a work",
-                            onValueChange = { },
-                            readOnly = true,
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true)
-                        )
-
-                        ExposedDropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            userWorks.forEach { work ->
-                                DropdownMenuItem(
-                                    text = { Text(work.title) },
-                                    onClick = {
-                                        selectedWorkId = work.id
-                                        expanded = false
-                                    }
-                                )
-                            }
-                        }
-                    }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(
-                        onClick = onDismiss,
-                        enabled = !isRegistering
-                    ) {
-                        Text("Cancel")
-                    }
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Button(
-                        onClick = {
-                            selectedWorkId?.let { workId ->
-                                onRegister(workId)
-                            }
-                        },
-                        enabled = selectedWorkId != null && !isRegistering && !isLoading
-                    ) {
-                        if (isRegistering) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        } else {
-                            Text("Register")
-                        }
-                    }
+                else -> {
+                    AppSelectField(
+                        selected = userWorks.find { it.id == selectedWorkId },
+                        options = userWorks,
+                        optionLabel = { it.title },
+                        onSelect = { selectedWorkId = it.id },
+                        label = { AppText(stringResource(R.string.select_work)) },
+                        placeholder = { AppText(stringResource(R.string.select_work_placeholder)) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                AppButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = onDismiss,
+                    enabled = !isRegistering,
+                    variant = AppButtonVariant.Outline,
+                    modifier = Modifier.weight(1f)
+                )
+
+                AppButton(
+                    text = stringResource(R.string.register),
+                    onClick = {
+                        selectedWorkId?.let { workId ->
+                            onRegister(workId)
+                        }
+                    },
+                    enabled = selectedWorkId != null && !isRegistering && !isLoading,
+                    loading = isRegistering,
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
     }

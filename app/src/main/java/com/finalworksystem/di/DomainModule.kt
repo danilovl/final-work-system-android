@@ -30,9 +30,7 @@ import com.finalworksystem.application.use_case.task.GetTasksForSolverUseCase
 import com.finalworksystem.application.use_case.task.GetTasksForWorkUseCase
 import com.finalworksystem.application.use_case.task.NotifyTaskCompleteUseCase
 import com.finalworksystem.application.use_case.task.PostTaskCreateUseCase
-import com.finalworksystem.application.use_case.user.GetCachedProfileImageUseCase
 import com.finalworksystem.application.use_case.user.GetUserListUseCase
-import com.finalworksystem.application.use_case.user.GetUserProfileImageUseCase
 import com.finalworksystem.application.use_case.user.RefreshUserDataOnStartupUseCase
 import com.finalworksystem.application.use_case.version.GetVersionsForWorkUseCase
 import com.finalworksystem.application.use_case.version.GetVersionsForWorkWithPaginationUseCase
@@ -43,52 +41,51 @@ import com.finalworksystem.application.use_case.work.GetWorkListWithPaginationUs
 import com.finalworksystem.application.use_case.work.GetWorkStatusesUseCase
 import com.finalworksystem.application.use_case.work.GetWorkTypesUseCase
 import com.finalworksystem.application.use_case.work.PostWorkCreateUseCase
-import com.finalworksystem.infrastructure.cache.ProfileImageCacheManager
+import com.finalworksystem.application.use_case.user.ChangePasswordUseCase
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 val domainModule = module {
-    single { LoginUseCase(get()) }
-    single { LogoutUseCase(get()) }
-    single { GetConversationsWithPaginationUseCase(get()) }
-    single { GetConversationDetailUseCase(get()) }
-    single { GetConversationMessagesUseCase(get()) }
-    single { GetConversationWorkUseCase(get()) }
-    single { GetWorkConversationMessagesUseCase(get()) }
-    single { CreateMessageUseCase(get()) }
-    single { MarkMessageAsReadUseCase(get()) }
-    single { MarkAllMessagesAsReadUseCase(get()) }
-    single { GetSystemEventsUseCase(get()) }
-    single { GetSystemEventsWithPaginationUseCase(get()) }
-    single { MarkSystemEventAsViewedUseCase(get()) }
-    single { MarkAllSystemEventsAsViewedUseCase(get()) }
-    single { GetTasksForWorkUseCase(get()) }
-    single { GetTasksForOwnerUseCase(get()) }
-    single { GetTasksForSolverUseCase(get()) }
-    single { GetTaskDetailUseCase(get()) }
-    single { ChangeTaskStatusUseCase(get()) }
-    single { DeleteTaskUseCase(get()) }
-    single { NotifyTaskCompleteUseCase(get()) }
-    single { PostTaskCreateUseCase(get()) }
-    single { GetEventsForWorkUseCase(get()) }
-    single { GetEventByIdUseCase(get()) }
-    single { GetEventCalendarUseCase(get()) }
-    single { GetEventCalendarUserWorksUseCase(get()) }
-    single { PostEventCalendarReservationUseCase(get()) }
-    single { GetEventCalendarManageCreateDataUseCase(get()) }
-    single { PostEventCalendarCreateUseCase(get()) }
-    single { DeleteEventUseCase(get()) }
-    single { GetUserListUseCase(get()) }
-    single { GetUserProfileImageUseCase(get()) }
-    single { ProfileImageCacheManager(get()) }
-    single { GetCachedProfileImageUseCase(get(), get()) }
-    single { RefreshUserDataOnStartupUseCase(get(), get(), get()) }
-    single { GetVersionsForWorkUseCase(get()) }
-    single { GetVersionsForWorkWithPaginationUseCase(get()) }
-    single { GetWorkListUseCase(get()) }
-    single { GetWorkListWithPaginationUseCase(get()) }
-    single { GetWorkDetailUseCase(get()) }
-    single { GetWorkTypesUseCase(get()) }
-    single { GetWorkStatusesUseCase(get()) }
-    single { GetWorkCategoriesUseCase(get()) }
-    single { PostWorkCreateUseCase(get()) }
+    singleOf(::LoginUseCase)
+    singleOf(::LogoutUseCase)
+    singleOf(::GetConversationsWithPaginationUseCase)
+    singleOf(::GetConversationDetailUseCase)
+    singleOf(::GetConversationMessagesUseCase)
+    singleOf(::GetConversationWorkUseCase)
+    singleOf(::GetWorkConversationMessagesUseCase)
+    singleOf(::CreateMessageUseCase)
+    singleOf(::MarkMessageAsReadUseCase)
+    singleOf(::MarkAllMessagesAsReadUseCase)
+    singleOf(::GetSystemEventsUseCase)
+    singleOf(::GetSystemEventsWithPaginationUseCase)
+    singleOf(::MarkSystemEventAsViewedUseCase)
+    singleOf(::MarkAllSystemEventsAsViewedUseCase)
+    singleOf(::GetTasksForWorkUseCase)
+    singleOf(::GetTasksForOwnerUseCase)
+    singleOf(::GetTasksForSolverUseCase)
+    singleOf(::GetTaskDetailUseCase)
+    singleOf(::ChangeTaskStatusUseCase)
+    singleOf(::DeleteTaskUseCase)
+    singleOf(::NotifyTaskCompleteUseCase)
+    singleOf(::PostTaskCreateUseCase)
+    singleOf(::GetEventsForWorkUseCase)
+    singleOf(::GetEventByIdUseCase)
+    singleOf(::GetEventCalendarUseCase)
+    singleOf(::GetEventCalendarUserWorksUseCase)
+    singleOf(::PostEventCalendarReservationUseCase)
+    singleOf(::GetEventCalendarManageCreateDataUseCase)
+    singleOf(::PostEventCalendarCreateUseCase)
+    singleOf(::DeleteEventUseCase)
+    singleOf(::GetUserListUseCase)
+    singleOf(::ChangePasswordUseCase)
+    singleOf(::RefreshUserDataOnStartupUseCase)
+    singleOf(::GetVersionsForWorkUseCase)
+    singleOf(::GetVersionsForWorkWithPaginationUseCase)
+    singleOf(::GetWorkListUseCase)
+    singleOf(::GetWorkListWithPaginationUseCase)
+    singleOf(::GetWorkDetailUseCase)
+    singleOf(::GetWorkTypesUseCase)
+    singleOf(::GetWorkStatusesUseCase)
+    singleOf(::GetWorkCategoriesUseCase)
+    singleOf(::PostWorkCreateUseCase)
 }

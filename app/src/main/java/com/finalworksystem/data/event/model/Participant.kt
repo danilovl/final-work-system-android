@@ -1,14 +1,22 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.event.model
 
 import com.finalworksystem.domain.event.model.Participant as DomainParticipant
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class Participant(
-    val id: Int?,
-    val firstName: String?,
-    val secondName: String?,
-    val email: String?,
+    val id: Int? = null,
+    val firstName: String? = null,
+    val secondName: String? = null,
+    val email: String? = null,
     val user: User,
-    val work: Work?
+    val work: Work? = null
 )
 
 

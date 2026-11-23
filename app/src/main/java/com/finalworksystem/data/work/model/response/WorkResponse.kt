@@ -1,3 +1,5 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.work.model.response
 
 import com.finalworksystem.data.user.model.response.UserResponse
@@ -6,117 +8,59 @@ import com.finalworksystem.data.work.model.Work
 import com.finalworksystem.data.work.model.WorkStatus
 import com.finalworksystem.data.work.model.WorkType
 import com.finalworksystem.data.work.model.toDomainModel
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.annotations.JsonAdapter
-import com.google.gson.annotations.SerializedName
-import java.lang.reflect.Type
 import com.finalworksystem.domain.work.model.Work as DomainWork
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import com.finalworksystem.infrastructure.api.serialization.UnwrappingSerializer
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KeepGeneratedSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
-private data class WorkResponseDelegateDto(
-    @SerializedName("id")
-    val id: Int?,
+@OptIn(ExperimentalSerializationApi::class)
+@KeepGeneratedSerializer
+@Serializable(with = WorkResponseSerializer::class)
+data class WorkResponse(
+    @SerialName("id")
+    val id: Int? = null,
 
-    @SerializedName("title")
-    val title: String?,
+    @SerialName("title")
+    val title: String? = null,
 
-    @SerializedName("shortcut")
-    val shortcut: String?,
+    @SerialName("shortcut")
+    val shortcut: String? = null,
 
-    @SerializedName("type")
-    val type: TypeResponse?,
+    @SerialName("type")
+    val type: TypeResponse? = null,
 
-    @SerializedName("status")
-    val status: StatusResponse?,
+    @SerialName("status")
+    val status: StatusResponse? = null,
 
-    @SerializedName("deadline")
-    val deadline: String?,
+    @SerialName("deadline")
+    val deadline: String? = null,
 
-    @SerializedName("deadlineProgram")
-    val deadlineProgram: String?,
+    @SerialName("deadlineProgram")
+    val deadlineProgram: String? = null,
 
-    @SerializedName("author")
-    val author: UserResponse?,
+    @SerialName("author")
+    val author: UserResponse? = null,
 
-    @SerializedName("supervisor")
-    val supervisor: UserResponse?,
+    @SerialName("supervisor")
+    val supervisor: UserResponse? = null,
 
-    @SerializedName("opponent")
-    val opponent: UserResponse?,
+    @SerialName("opponent")
+    val opponent: UserResponse? = null,
 
-    @SerializedName("consultant")
-    val consultant: UserResponse?
+    @SerialName("consultant")
+    val consultant: UserResponse? = null
 )
 
-class WorkResponseAdapter : JsonDeserializer<WorkResponse> {
-    override fun deserialize(
-        json: JsonElement?,
-        typeOfT: Type?,
-        context: JsonDeserializationContext?
-    ): WorkResponse? {
-        if (json == null || !json.isJsonObject) {
-            return null
-        }
-        val jsonObject = json.asJsonObject
-        val targetObject = when {
-            jsonObject.has("result") && jsonObject.get("result").isJsonObject -> jsonObject.getAsJsonObject("result")
-            jsonObject.has("work") && jsonObject.get("work").isJsonObject -> jsonObject.getAsJsonObject("work")
-            jsonObject.has("data") && jsonObject.get("data").isJsonObject -> jsonObject.getAsJsonObject("data")
-            else -> jsonObject
-        }
-        val dto = context?.deserialize<WorkResponseDelegateDto>(targetObject, WorkResponseDelegateDto::class.java) ?: return null
-
-        return WorkResponse(
-            id = dto.id,
-            title = dto.title,
-            shortcut = dto.shortcut,
-            type = dto.type,
-            status = dto.status,
-            deadline = dto.deadline,
-            deadlineProgram = dto.deadlineProgram,
-            author = dto.author,
-            supervisor = dto.supervisor,
-            opponent = dto.opponent,
-            consultant = dto.consultant
-        )
-    }
-}
-
-@JsonAdapter(WorkResponseAdapter::class)
-data class WorkResponse(
-    @SerializedName("id")
-    val id: Int?,
-
-    @SerializedName("title")
-    val title: String?,
-
-    @SerializedName("shortcut")
-    val shortcut: String?,
-
-    @SerializedName("type")
-    val type: TypeResponse?,
-
-    @SerializedName("status")
-    val status: StatusResponse?,
-
-    @SerializedName("deadline")
-    val deadline: String?,
-
-    @SerializedName("deadlineProgram")
-    val deadlineProgram: String?,
-
-    @SerializedName("author")
-    val author: UserResponse?,
-
-    @SerializedName("supervisor")
-    val supervisor: UserResponse?,
-
-    @SerializedName("opponent")
-    val opponent: UserResponse?,
-
-    @SerializedName("consultant")
-    val consultant: UserResponse?
+/** Accepts the object either directly or wrapped in one of listOf("result", "work", "data"). */
+object WorkResponseSerializer : UnwrappingSerializer<WorkResponse>(
+    WorkResponse.generatedSerializer(),
+    listOf("result", "work", "data")
 )
 
 typealias WorkDetailResponse = WorkResponse

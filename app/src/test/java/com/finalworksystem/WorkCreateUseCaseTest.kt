@@ -13,27 +13,26 @@ import com.finalworksystem.domain.work.repository.GetWorkRepository
 import com.finalworksystem.domain.work.repository.PostWorkRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
+import io.mockk.every
+import io.mockk.mockk
 
 class WorkCreateUseCaseTest {
 
     @Test
-    fun testGetWorkTypesStatusesCategoriesUseCases() = runBlocking {
-        println("[DEBUG_LOG] Testing GetWorkTypesUseCase, GetWorkStatusesUseCase, GetWorkCategoriesUseCase")
+    fun testGetWorkTypesStatusesCategoriesUseCases() = runTest {
 
-        val repository = mock(GetWorkRepository::class.java)
+        val repository = mockk<GetWorkRepository>()
         val expectedTypes = listOf(WorkType(1, "Type 1", "Desc 1"))
         val expectedStatuses = listOf(WorkStatus(1, "Status 1", "Desc 1", "#FFFFFF"))
         val expectedCategories = listOf(WorkCategory(1, "Category 1", "Desc 1", 0))
 
-        `when`(repository.getWorkTypes()).thenReturn(flowOf(Result.success(expectedTypes)))
-        `when`(repository.getWorkStatuses()).thenReturn(flowOf(Result.success(expectedStatuses)))
-        `when`(repository.getWorkCategories()).thenReturn(flowOf(Result.success(expectedCategories)))
+        every { repository.getWorkTypes() } returns flowOf(Result.success(expectedTypes))
+        every { repository.getWorkStatuses() } returns flowOf(Result.success(expectedStatuses))
+        every { repository.getWorkCategories() } returns flowOf(Result.success(expectedCategories))
 
         val typesUseCase = GetWorkTypesUseCase(repository)
         val statusesUseCase = GetWorkStatusesUseCase(repository)
@@ -51,32 +50,26 @@ class WorkCreateUseCaseTest {
 
         assertTrue(categoriesResult.isSuccess)
         assertEquals(expectedCategories, categoriesResult.getOrNull())
-
-        println("[DEBUG_LOG] All 3 form options UseCases tests passed successfully")
     }
 
     @Test
-    fun testPostWorkCreateUseCase() = runBlocking {
-        println("[DEBUG_LOG] Testing PostWorkCreateUseCase")
+    fun testPostWorkCreateUseCase() = runTest {
 
-        val repository = mock(PostWorkRepository::class.java)
+        val repository = mockk<PostWorkRepository>()
         val request = WorkCreateRequest(
             title = "Test Work",
             typeId = 1,
             statusId = 1,
             deadline = "2026-10-10"
         )
-        val expectedWork = mock(Work::class.java)
-        `when`(expectedWork.id).thenReturn(100)
+        val expectedWork = mockk<Work> { every { id } returns 100 }
 
-        `when`(repository.postWorkCreate(request)).thenReturn(flowOf(Result.success(expectedWork)))
+        every { repository.postWorkCreate(request) } returns flowOf(Result.success(expectedWork))
 
         val useCase = PostWorkCreateUseCase(repository)
         val result = useCase(request).first()
 
         assertTrue(result.isSuccess)
         assertEquals(100, result.getOrNull()?.id)
-
-        println("[DEBUG_LOG] PostWorkCreateUseCase test passed successfully")
     }
 }

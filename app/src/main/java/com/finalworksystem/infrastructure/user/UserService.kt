@@ -2,9 +2,9 @@ package com.finalworksystem.infrastructure.user
 
 import com.finalworksystem.domain.user.model.User
 import com.finalworksystem.domain.user.model.UserRole
+import com.finalworksystem.infrastructure.session.AuthData
 import com.finalworksystem.infrastructure.session.LogoutReason
 import com.finalworksystem.infrastructure.session.SessionManager
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -14,38 +14,10 @@ class UserService(private val sessionManager: SessionManager) {
         return sessionManager.userFlow.firstOrNull() ?: throw IllegalStateException("User is null")
     }
 
-    suspend fun getTokenSafe(): String? {
-        repeat(3) { attempt ->
-            val token = sessionManager.authTokenFlow.firstOrNull()
-            if (token != null) {
-                return token
-            }
-
-            if (attempt < 2) {
-                delay(50)
-            }
-        }
-
-        return null
-    }
-
-    suspend fun getUserNameSafe(): String? {
-        repeat(3) { attempt ->
-            val username = sessionManager.authUsernameFlow.firstOrNull()
-            if (username != null) {
-                return username
-            }
-
-            if (attempt < 2) {
-                delay(50)
-            }
-        }
-
-        return null
-    }
+    suspend fun getAuthData(): AuthData? = sessionManager.getAuthData()
 
     fun getUserFlow(): Flow<User> {
-        return sessionManager.userFlow.map { user -> 
+        return sessionManager.userFlow.map { user ->
             user ?: throw IllegalStateException("User is null")
         }
     }

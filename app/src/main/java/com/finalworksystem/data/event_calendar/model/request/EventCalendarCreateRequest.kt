@@ -1,26 +1,34 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.event_calendar.model.request
 
-import com.google.gson.annotations.SerializedName
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class EventCalendarCreateRequest(
-    @SerializedName("typeId")
+    @SerialName("typeId")
     val typeId: Int,
 
-    @SerializedName("name")
+    @SerialName("name")
     val name: String?,
 
-    @SerializedName("addressId")
+    @SerialName("addressId")
     val addressId: Int,
 
-    @SerializedName("userId")
+    @SerialName("userId")
     val userId: Int?,
 
-    @SerializedName("workId")
+    @SerialName("workId")
     val workId: Int?,
 
-    @SerializedName("start")
+    @SerialName("start")
     val start: String,
 
-    @SerializedName("end")
+    @SerialName("end")
     val end: String
 )

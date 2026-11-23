@@ -1,36 +1,23 @@
 package com.finalworksystem.presentation.ui.work
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.finalworksystem.ui.theme.AppIcons
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScrollableTabRow
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,10 +28,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.finalworksystem.R
 import com.finalworksystem.domain.common.util.DateUtils
 import com.finalworksystem.domain.work.model.Work
+import com.finalworksystem.presentation.ui.component.BackNavigationButton
 import com.finalworksystem.presentation.ui.component.BaseCard
 import com.finalworksystem.presentation.ui.component.TitleDialog
 import com.finalworksystem.presentation.ui.work.component.EventTabContent
@@ -54,8 +41,22 @@ import com.finalworksystem.presentation.ui.work.component.WorkDetailConversation
 import com.finalworksystem.presentation.ui.work.component.WorkInfoItemWithAvatar
 import com.finalworksystem.presentation.ui.work.component.WorkInfoItemWithIcon
 import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
+import com.finalworksystem.ui.designsystem.AppButton
+import com.finalworksystem.ui.designsystem.AppButtonVariant
+import com.finalworksystem.ui.designsystem.AppCardStyle
+import com.finalworksystem.ui.designsystem.AppIcon
+import com.finalworksystem.ui.designsystem.AppIconButton
+import com.finalworksystem.ui.designsystem.AppLoadingState
+import com.finalworksystem.ui.designsystem.AppScaffold
+import com.finalworksystem.ui.designsystem.AppSectionHeader
+import com.finalworksystem.ui.designsystem.AppSurface
+import com.finalworksystem.ui.designsystem.AppTab
+import com.finalworksystem.ui.designsystem.AppTabRow
+import com.finalworksystem.ui.designsystem.AppTag
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.designsystem.AppTopBar
+import com.finalworksystem.ui.theme.AppTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkDetailScreen(
     workId: Int,
@@ -71,7 +72,7 @@ fun WorkDetailScreen(
     var errorMessage by remember { mutableStateOf("") }
     var showTitleDialog by remember { mutableStateOf(false) }
 
-    val workDetailState by workDetailViewModel.workDetailState.collectAsState()
+    val workDetailState by workDetailViewModel.workDetailState.collectAsStateWithLifecycle()
 
     LaunchedEffect(workId) {
         workDetailViewModel.loadWorkDetail(workId, forceRefresh = false)
@@ -94,18 +95,19 @@ fun WorkDetailScreen(
         }
     }
 
-    Scaffold(
+    AppScaffold(
         topBar = {
-            TopAppBar(
+            AppTopBar(
                 title = {
                     val currentState = workDetailState
                     val workTitle = when (currentState) {
                         is WorkDetailViewModel.WorkDetailState.Success -> currentState.work.title
                         else -> stringResource(R.string.work_details)
                     }
-                    Text(
+                    AppText(
                         text = workTitle,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = AppTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = if (currentState is WorkDetailViewModel.WorkDetailState.Success) {
@@ -115,28 +117,20 @@ fun WorkDetailScreen(
                         }
                     )
                 },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back)
-                        )
-                    }
-                },
+                navigationIcon = { BackNavigationButton(onClick = onNavigateBack) },
                 actions = {
-                    IconButton(onClick = {
-                        workDetailViewModel.loadWorkDetail(workId, forceRefresh = true)
-                        workDetailViewModel.loadTasksForWork(workId, forceRefresh = true)
-                        workDetailViewModel.loadVersionsForWork(workId, forceRefresh = true)
-                        workDetailViewModel.loadEventsForWork(workId, forceRefresh = true)
-                        workDetailViewModel.loadWorkMessages(workId, forceRefresh = true)
-                        workDetailViewModel.loadConversationWork(workId, forceRefresh = true)
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = stringResource(R.string.refresh)
-                        )
-                    }
+                    AppIconButton(
+                        icon = AppIcons.Refresh,
+                        contentDescription = stringResource(R.string.refresh),
+                        onClick = {
+                            workDetailViewModel.loadWorkDetail(workId, forceRefresh = true)
+                            workDetailViewModel.loadTasksForWork(workId, forceRefresh = true)
+                            workDetailViewModel.loadVersionsForWork(workId, forceRefresh = true)
+                            workDetailViewModel.loadEventsForWork(workId, forceRefresh = true)
+                            workDetailViewModel.loadWorkMessages(workId, forceRefresh = true)
+                            workDetailViewModel.loadConversationWork(workId, forceRefresh = true)
+                        }
+                    )
                 }
             )
         }
@@ -148,9 +142,7 @@ fun WorkDetailScreen(
         ) {
             when (workDetailState) {
                 is WorkDetailViewModel.WorkDetailState.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                    AppLoadingState(modifier = Modifier.fillMaxSize())
                 }
                 is WorkDetailViewModel.WorkDetailState.Success -> {
                     val work = (workDetailState as WorkDetailViewModel.WorkDetailState.Success).work
@@ -170,13 +162,12 @@ fun WorkDetailScreen(
             }
 
             if (showError) {
-                Snackbar(
+                ErrorBanner(
+                    message = errorMessage,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Text(text = errorMessage)
-                }
+                )
             }
         }
     }
@@ -192,6 +183,34 @@ fun WorkDetailScreen(
 }
 
 @Composable
+private fun ErrorBanner(message: String, modifier: Modifier = Modifier) {
+    AppSurface(
+        modifier = modifier.fillMaxWidth(),
+        shape = AppTheme.shapes.medium,
+        color = AppTheme.colors.inverseSurface,
+        shadowElevation = 6.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AppIcon(
+                imageVector = AppIcons.Info,
+                contentDescription = null,
+                tint = AppTheme.colors.error,
+                modifier = Modifier.size(20.dp)
+            )
+            AppText(
+                text = message,
+                style = AppTheme.typography.bodyMedium,
+                modifier = Modifier.padding(start = 12.dp)
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
 fun WorkDetailContent(
     work: Work,
     workDetailViewModel: WorkDetailViewModel,
@@ -203,14 +222,15 @@ fun WorkDetailContent(
 ) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabs = listOf(
-        stringResource(R.string.task_tab),
-        stringResource(R.string.version_tab),
-        stringResource(R.string.message_tab),
-        stringResource(R.string.event_tab)
+        AppTab(stringResource(R.string.task_tab), AppIcons.Task),
+        AppTab(stringResource(R.string.version_tab), AppIcons.Article),
+        AppTab(stringResource(R.string.message_tab), AppIcons.Comment),
+        AppTab(stringResource(R.string.event_tab), AppIcons.CalendarToday)
     )
     val scrollState = rememberScrollState()
 
-    val conversationWorkState by workDetailViewModel.conversationWorkState.collectAsState()
+    val conversationWorkState by workDetailViewModel.conversationWorkState.collectAsStateWithLifecycle()
+    val colors = AppTheme.colors
 
     Column(
         modifier = Modifier
@@ -219,81 +239,92 @@ fun WorkDetailContent(
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            BaseCard(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp)
-                ) {
-                    Text(
-                        text = work.title,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-
-            BaseCard(
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            // Header card: title + tags
+            BaseCard(style = AppCardStyle.Accent) {
                 Column(
                     modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text(
-                        text = stringResource(R.string.work_information),
-                        style = MaterialTheme.typography.titleMedium,
+                    work.shortcut?.takeIf { it.isNotBlank() }?.let { shortcut ->
+                        AppText(
+                            text = shortcut,
+                            style = AppTheme.typography.labelMedium,
+                            color = colors.onPrimaryContainer.copy(alpha = 0.75f)
+                        )
+                    }
+                    AppText(
+                        text = work.title,
+                        style = AppTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = colors.onPrimaryContainer
                     )
-
-                    WorkInfoItemWithIcon(
-                        icon = Icons.Default.Info,
-                        label = stringResource(R.string.type),
-                        value = work.type.name,
-                        iconTint = MaterialTheme.colorScheme.primary
-                    )
-
-                    WorkInfoItemWithIcon(
-                        icon = Icons.Default.CheckCircle,
-                        label = stringResource(R.string.status),
-                        value = work.status.name,
-                        iconTint = MaterialTheme.colorScheme.primary
-                    )
-
-                    WorkInfoItemWithIcon(
-                        icon = Icons.Default.DateRange,
-                        label = stringResource(R.string.deadline),
-                        value = DateUtils.formatToYmd(work.deadline),
-                        iconTint = MaterialTheme.colorScheme.error
-                    )
-
-                    work.deadlineProgram?.let { deadlineProgram ->
-                        WorkInfoItemWithIcon(
-                            icon = Icons.Default.DateRange,
-                            label = stringResource(R.string.program_deadline),
-                            value = DateUtils.formatToYmd(deadlineProgram),
-                            iconTint = MaterialTheme.colorScheme.error
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        AppTag(text = work.type.name, color = colors.primary, icon = AppIcons.Info)
+                        AppTag(text = work.status.name, color = colors.tertiary, icon = AppIcons.CheckCircle)
+                        AppTag(
+                            text = DateUtils.formatToYmd(work.deadline),
+                            color = colors.warning,
+                            icon = AppIcons.DateRange
                         )
                     }
                 }
             }
 
-            BaseCard(
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            BaseCard {
                 Column(
-                    modifier = Modifier.padding(20.dp),
+                    modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(
-                        text = stringResource(R.string.people),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
+                    AppSectionHeader(
+                        title = stringResource(R.string.work_information),
+                        icon = AppIcons.Work
+                    )
+
+                    WorkInfoItemWithIcon(
+                        icon = AppIcons.Info,
+                        label = stringResource(R.string.type),
+                        value = work.type.name,
+                        iconTint = colors.primary
+                    )
+
+                    WorkInfoItemWithIcon(
+                        icon = AppIcons.CheckCircle,
+                        label = stringResource(R.string.status),
+                        value = work.status.name,
+                        iconTint = colors.tertiary
+                    )
+
+                    WorkInfoItemWithIcon(
+                        icon = AppIcons.DateRange,
+                        label = stringResource(R.string.deadline),
+                        value = DateUtils.formatToYmd(work.deadline),
+                        iconTint = colors.error
+                    )
+
+                    work.deadlineProgram?.let { deadlineProgram ->
+                        WorkInfoItemWithIcon(
+                            icon = AppIcons.DateRange,
+                            label = stringResource(R.string.program_deadline),
+                            value = DateUtils.formatToYmd(deadlineProgram),
+                            iconTint = colors.warning
+                        )
+                    }
+                }
+            }
+
+            BaseCard {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    AppSectionHeader(
+                        title = stringResource(R.string.people),
+                        icon = AppIcons.Groups
                     )
 
                     work.author?.let { author ->
@@ -341,26 +372,23 @@ fun WorkDetailContent(
             when (val state = conversationWorkState) {
                 is WorkDetailViewModel.ConversationWorkState.Success -> {
                     if (state.conversationWork != null) {
-                        BaseCard(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
+                        BaseCard {
                             Column(
-                                modifier = Modifier.padding(20.dp),
+                                modifier = Modifier.padding(16.dp),
                                 verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                Text(
-                                    text = stringResource(R.string.communication),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.primary
+                                AppSectionHeader(
+                                    title = stringResource(R.string.communication),
+                                    icon = AppIcons.Comment
                                 )
 
-                                Button(
-                                    onClick = { onNavigateToConversationDetail?.invoke(state.conversationWork!!.id) },
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text(stringResource(R.string.open_conversation))
-                                }
+                                AppButton(
+                                    text = stringResource(R.string.open_conversation),
+                                    onClick = { onNavigateToConversationDetail?.invoke(state.conversationWork.id) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    variant = AppButtonVariant.Primary,
+                                    leadingIcon = AppIcons.Send
+                                )
                             }
                         }
                     }
@@ -371,18 +399,13 @@ fun WorkDetailContent(
             }
         }
 
-        ScrollableTabRow(
+        AppTabRow(
+            tabs = tabs,
             selectedTabIndex = selectedTabIndex,
-            edgePadding = 0.dp
-        ) {
-            tabs.forEachIndexed { index, title ->
-                Tab(
-                    selected = selectedTabIndex == index,
-                    onClick = { selectedTabIndex = index },
-                    text = { Text(title) }
-                )
-            }
-        }
+            onTabSelected = { selectedTabIndex = it },
+            scrollable = true,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
 
         Box(
             modifier = Modifier

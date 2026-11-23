@@ -1,18 +1,19 @@
 package com.finalworksystem.presentation.ui.component
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.finalworksystem.R
+import com.finalworksystem.ui.designsystem.AppFab
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
 
 @Composable
 fun SearchResetFloatingActionButton(
@@ -22,28 +23,29 @@ fun SearchResetFloatingActionButton(
     modifier: Modifier = Modifier
 ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalAlignment = Alignment.End,
         modifier = modifier
     ) {
-        if (searchQuery.isNotBlank()) {
-            FloatingActionButton(
-                onClick = onResetClick,
-                modifier = Modifier.size(56.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Clear,
-                    contentDescription = stringResource(R.string.reset_search)
-                )
-            }
-        }
-        
-        FloatingActionButton(
-            onClick = onSearchClick
+        AnimatedVisibility(
+            visible = searchQuery.isNotBlank(),
+            enter = scaleIn(),
+            exit = scaleOut()
         ) {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = stringResource(R.string.search)
+            AppFab(
+                onClick = onResetClick,
+                icon = AppIcons.Clear,
+                contentDescription = stringResource(R.string.reset_search),
+                containerColor = AppTheme.colors.surfaceElevated,
+                contentColor = AppTheme.colors.error,
+                small = true
             )
         }
+
+        AppFab(
+            onClick = onSearchClick,
+            icon = AppIcons.Search,
+            contentDescription = stringResource(R.string.search)
+        )
     }
 }

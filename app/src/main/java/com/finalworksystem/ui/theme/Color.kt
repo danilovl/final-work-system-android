@@ -1,13 +1,136 @@
 package com.finalworksystem.ui.theme
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 
-val Blue80 = Color(0xFFB3D9FF)
-val BlueGrey80 = Color(0xFFB8D4E8)
-val LightBlue80 = Color(0xFFD1E7FF)
+/**
+ * Semantic color palette of the application design system.
+ * Token names follow a familiar naming (primary / surface / onSurfaceVariant ...),
+ * but the palette is fully custom and not tied to Material.
+ */
+@Immutable
+data class AppColors(
+    val primary: Color,
+    val onPrimary: Color,
+    val primaryContainer: Color,
+    val onPrimaryContainer: Color,
+    val primaryGradientEnd: Color,
+    val secondary: Color,
+    val onSecondary: Color,
+    val secondaryContainer: Color,
+    val onSecondaryContainer: Color,
+    val tertiary: Color,
+    val onTertiary: Color,
+    val tertiaryContainer: Color,
+    val onTertiaryContainer: Color,
+    val background: Color,
+    val onBackground: Color,
+    val surface: Color,
+    val onSurface: Color,
+    val surfaceVariant: Color,
+    val onSurfaceVariant: Color,
+    val surfaceElevated: Color,
+    val inverseSurface: Color,
+    val inverseOnSurface: Color,
+    val outline: Color,
+    val outlineVariant: Color,
+    val error: Color,
+    val onError: Color,
+    val errorContainer: Color,
+    val onErrorContainer: Color,
+    val success: Color,
+    val onSuccess: Color,
+    val successContainer: Color,
+    val onSuccessContainer: Color,
+    val warning: Color,
+    val onWarning: Color,
+    val warningContainer: Color,
+    val onWarningContainer: Color,
+    val scrim: Color,
+    val shadow: Color,
+    val isDark: Boolean
+)
 
-val Blue40 = Color(0xFF1976D2)
-val BlueGrey40 = Color(0xFF455A64)
-val DarkBlue40 = Color(0xFF0D47A1)
+val LightAppColors = AppColors(
+    primary = Color(0xFF4F46E5),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFE6E8FF),
+    onPrimaryContainer = Color(0xFF2E2A8C),
+    primaryGradientEnd = Color(0xFF7C3AED),
+    secondary = Color(0xFF0EA5E9),
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xFFE0F2FE),
+    onSecondaryContainer = Color(0xFF075985),
+    tertiary = Color(0xFF8B5CF6),
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xFFEDE9FE),
+    onTertiaryContainer = Color(0xFF4C1D95),
+    background = Color(0xFFF4F5FA),
+    onBackground = Color(0xFF0F172A),
+    surface = Color(0xFFFFFFFF),
+    onSurface = Color(0xFF0F172A),
+    surfaceVariant = Color(0xFFEEF0F6),
+    onSurfaceVariant = Color(0xFF64748B),
+    surfaceElevated = Color(0xFFFFFFFF),
+    inverseSurface = Color(0xFF1E2130),
+    inverseOnSurface = Color(0xFFF1F5F9),
+    outline = Color(0xFFCBD2DE),
+    outlineVariant = Color(0xFFE6E9F0),
+    error = Color(0xFFE11D48),
+    onError = Color(0xFFFFFFFF),
+    errorContainer = Color(0xFFFFE4E8),
+    onErrorContainer = Color(0xFF881337),
+    success = Color(0xFF059669),
+    onSuccess = Color(0xFFFFFFFF),
+    successContainer = Color(0xFFD7F7EA),
+    onSuccessContainer = Color(0xFF064E3B),
+    warning = Color(0xFFD97706),
+    onWarning = Color(0xFFFFFFFF),
+    warningContainer = Color(0xFFFEF3C7),
+    onWarningContainer = Color(0xFF78350F),
+    scrim = Color(0xFF0B1020),
+    shadow = Color(0xFF1E1B4B),
+    isDark = false
+)
 
-val White = Color(0xFFFFFFFF)
+val DarkAppColors = AppColors(
+    primary = Color(0xFF8B93FF),
+    onPrimary = Color(0xFF14123D),
+    primaryContainer = Color(0xFF2B2A6B),
+    onPrimaryContainer = Color(0xFFE0E3FF),
+    primaryGradientEnd = Color(0xFFA78BFA),
+    secondary = Color(0xFF38BDF8),
+    onSecondary = Color(0xFF082F49),
+    secondaryContainer = Color(0xFF0C3B5A),
+    onSecondaryContainer = Color(0xFFE0F2FE),
+    tertiary = Color(0xFFA78BFA),
+    onTertiary = Color(0xFF2E1065),
+    tertiaryContainer = Color(0xFF3B1F78),
+    onTertiaryContainer = Color(0xFFEDE9FE),
+    background = Color(0xFF0B0D14),
+    onBackground = Color(0xFFE5E9F2),
+    surface = Color(0xFF151823),
+    onSurface = Color(0xFFE5E9F2),
+    surfaceVariant = Color(0xFF1F2331),
+    onSurfaceVariant = Color(0xFF97A3B8),
+    surfaceElevated = Color(0xFF1A1E2B),
+    inverseSurface = Color(0xFFE5E9F2),
+    inverseOnSurface = Color(0xFF151823),
+    outline = Color(0xFF384155),
+    outlineVariant = Color(0xFF262B3B),
+    error = Color(0xFFFB7185),
+    onError = Color(0xFF4C0519),
+    errorContainer = Color(0xFF4A1220),
+    onErrorContainer = Color(0xFFFFE4E8),
+    success = Color(0xFF34D399),
+    onSuccess = Color(0xFF022C22),
+    successContainer = Color(0xFF0B3B2E),
+    onSuccessContainer = Color(0xFFD1FAE5),
+    warning = Color(0xFFFBBF24),
+    onWarning = Color(0xFF451A03),
+    warningContainer = Color(0xFF4A2A06),
+    onWarningContainer = Color(0xFFFEF3C7),
+    scrim = Color(0xFF000000),
+    shadow = Color(0xFF000000),
+    isDark = true
+)

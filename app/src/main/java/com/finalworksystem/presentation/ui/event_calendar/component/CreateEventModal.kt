@@ -1,37 +1,14 @@
 package com.finalworksystem.presentation.ui.event_calendar.component
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DatePickerState
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TimePickerState
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,18 +19,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.finalworksystem.R
 import com.finalworksystem.data.event_calendar.model.request.EventCalendarCreateRequest
 import com.finalworksystem.domain.event_calendar.model.EventCalendarManageCreateData
+import com.finalworksystem.ui.designsystem.AppButton
+import com.finalworksystem.ui.designsystem.AppButtonVariant
+import com.finalworksystem.ui.designsystem.AppDatePickerDialog
+import com.finalworksystem.ui.designsystem.AppDialog
+import com.finalworksystem.ui.designsystem.AppDropdownField
+import com.finalworksystem.ui.designsystem.AppDropdownMenuItem
+import com.finalworksystem.ui.designsystem.AppIcon
+import com.finalworksystem.ui.designsystem.AppIconBadge
+import com.finalworksystem.ui.designsystem.AppSelectField
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.designsystem.AppTextField
+import com.finalworksystem.ui.designsystem.AppTimePickerDialog
+import com.finalworksystem.ui.designsystem.toUtcMillis
+import com.finalworksystem.ui.designsystem.utcMillisToLocalDate
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateEventModal(
     createData: EventCalendarManageCreateData,
@@ -76,371 +65,231 @@ fun CreateEventModal(
     onCreateEvent: (EventCalendarCreateRequest) -> Unit,
     onDismiss: () -> Unit
 ) {
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Card(
+    val displayFormatter = remember { DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm") }
+    val unknownAddress = stringResource(R.string.unknown_address)
+
+    AppDialog(onDismissRequest = onDismiss) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 16.dp),
-            shape = RoundedCornerShape(16.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column(
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AppIconBadge(icon = AppIcons.Add, size = 40)
+                Spacer(modifier = Modifier.width(12.dp))
+                AppText(
+                    text = stringResource(R.string.create_event),
+                    style = AppTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = AppTheme.colors.onSurface
+                )
+            }
+
+            AppSelectField(
+                selected = createData.types.find { it.id == selectedTypeId },
+                options = createData.types,
+                optionLabel = { it.name },
+                onSelect = { onTypeSelected(it.id) },
+                label = { AppText(stringResource(R.string.event_type)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            AppTextField(
+                value = eventName,
+                onValueChange = onNameChanged,
+                label = { AppText(stringResource(R.string.event_name_optional)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            AppSelectField(
+                selected = createData.addresses.find { it.id == selectedAddressId },
+                options = createData.addresses,
+                optionLabel = { it.name ?: unknownAddress },
+                onSelect = { onAddressSelected(it.id) },
+                label = { AppText(stringResource(R.string.address)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            var expandedParticipant by remember { mutableStateOf(false) }
+            AppDropdownField(
+                value = createData.participants.find { it.user.id == selectedUserId }?.let {
+                    it.user.fullName ?: "${it.user.firstname} ${it.user.lastname}"
+                } ?: if (selectedUserId == null) stringResource(R.string.none) else "",
+                expanded = expandedParticipant,
+                onExpandedChange = { expandedParticipant = it },
+                label = { AppText(stringResource(R.string.participant)) },
+                leadingIcon = {
+                    AppIcon(
+                        imageVector = AppIcons.Person,
+                        contentDescription = null,
+                        tint = AppTheme.colors.onSurfaceVariant
+                    )
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                AppDropdownMenuItem(
+                    text = stringResource(R.string.none),
+                    selected = selectedUserId == null,
+                    onClick = {
+                        onUserSelected(null)
+                        onWorkSelected(null)
+                        expandedParticipant = false
+                    }
+                )
+                createData.participants.forEach { participant ->
+                    AppDropdownMenuItem(
+                        text = participant.user.fullName ?: "${participant.user.firstname} ${participant.user.lastname}",
+                        supportingText = participant.work?.title?.takeIf { it.isNotBlank() },
+                        selected = participant.user.id == selectedUserId,
+                        onClick = {
+                            onUserSelected(participant.user.id)
+                            onWorkSelected(participant.work?.id)
+                            expandedParticipant = false
+                        }
+                    )
+                }
+            }
+
+            var showStartDatePicker by remember { mutableStateOf(false) }
+            var showStartTimePicker by remember { mutableStateOf(false) }
+            var showEndDatePicker by remember { mutableStateOf(false) }
+            var showEndTimePicker by remember { mutableStateOf(false) }
+
+            AppTextField(
+                value = startDateTime?.format(displayFormatter) ?: "",
+                onValueChange = { },
+                readOnly = true,
+                label = { AppText(stringResource(R.string.start_date_time)) },
+                placeholder = { AppText(stringResource(R.string.select_date_time)) },
+                leadingIcon = {
+                    AppIcon(
+                        imageVector = AppIcons.CalendarToday,
+                        contentDescription = null,
+                        tint = AppTheme.colors.onSurfaceVariant
+                    )
+                },
+                onClick = { showStartDatePicker = true },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            AppTextField(
+                value = endDateTime?.format(displayFormatter) ?: "",
+                onValueChange = { },
+                readOnly = true,
+                label = { AppText(stringResource(R.string.end_date_time)) },
+                placeholder = { AppText(stringResource(R.string.select_date_time)) },
+                leadingIcon = {
+                    AppIcon(
+                        imageVector = AppIcons.DateRange,
+                        contentDescription = null,
+                        tint = AppTheme.colors.onSurfaceVariant
+                    )
+                },
+                onClick = { showEndDatePicker = true },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            if (showStartDatePicker) {
+                AppDatePickerDialog(
+                    onDismissRequest = { showStartDatePicker = false },
+                    onDateSelected = { selectedDateMillis ->
+                        selectedDateMillis?.let { millis ->
+                            val selectedLocalDate = utcMillisToLocalDate(millis)
+                            val currentTime = startDateTime?.toLocalTime() ?: LocalTime.of(9, 0)
+                            onStartDateTimeChanged(LocalDateTime.of(selectedLocalDate, currentTime))
+                        }
+                        showStartDatePicker = false
+                        showStartTimePicker = true
+                    },
+                    initialSelectedDateMillis = (startDateTime?.toLocalDate() ?: selectedDate).toUtcMillis(),
+                    title = stringResource(R.string.start_date_time)
+                )
+            }
+
+            if (showStartTimePicker) {
+                AppTimePickerDialog(
+                    onDismissRequest = { showStartTimePicker = false },
+                    onTimeSelected = { hour, minute ->
+                        val currentDate = startDateTime?.toLocalDate() ?: selectedDate
+                        onStartDateTimeChanged(LocalDateTime.of(currentDate, LocalTime.of(hour, minute)))
+                        showStartTimePicker = false
+                    },
+                    initialHour = startDateTime?.hour ?: 9,
+                    initialMinute = startDateTime?.minute ?: 0,
+                    title = stringResource(R.string.start_date_time)
+                )
+            }
+
+            if (showEndDatePicker) {
+                AppDatePickerDialog(
+                    onDismissRequest = { showEndDatePicker = false },
+                    onDateSelected = { selectedDateMillis ->
+                        selectedDateMillis?.let { millis ->
+                            val selectedLocalDate = utcMillisToLocalDate(millis)
+                            val currentTime = endDateTime?.toLocalTime() ?: LocalTime.of(10, 0)
+                            onEndDateTimeChanged(LocalDateTime.of(selectedLocalDate, currentTime))
+                        }
+                        showEndDatePicker = false
+                        showEndTimePicker = true
+                    },
+                    initialSelectedDateMillis = (endDateTime?.toLocalDate() ?: selectedDate).toUtcMillis(),
+                    title = stringResource(R.string.end_date_time)
+                )
+            }
+
+            if (showEndTimePicker) {
+                AppTimePickerDialog(
+                    onDismissRequest = { showEndTimePicker = false },
+                    onTimeSelected = { hour, minute ->
+                        val currentDate = endDateTime?.toLocalDate() ?: selectedDate
+                        onEndDateTimeChanged(LocalDateTime.of(currentDate, LocalTime.of(hour, minute)))
+                        showEndTimePicker = false
+                    },
+                    initialHour = endDateTime?.hour ?: 10,
+                    initialMinute = endDateTime?.minute ?: 0,
+                    title = stringResource(R.string.end_date_time)
+                )
+            }
+
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text(
-                    text = stringResource(R.string.create_event),
-                    style = MaterialTheme.typography.headlineSmall.copy(fontSize = 20.sp),
-                    fontWeight = FontWeight.Bold
+                AppButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = onDismiss,
+                    variant = AppButtonVariant.Outline,
+                    modifier = Modifier.weight(1f)
                 )
-
-                var expandedType by remember { mutableStateOf(false) }
-                ExposedDropdownMenuBox(
-                    expanded = expandedType,
-                    onExpandedChange = { expandedType = !expandedType }
-                ) {
-                    OutlinedTextField(
-                        value = createData.types.find { it.id == selectedTypeId }?.name ?: "",
-                        onValueChange = { },
-                        readOnly = true,
-                        label = { Text(stringResource(R.string.event_type), fontSize = 12.sp) },
-                        textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedType) },
-                        modifier = Modifier
-                            .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true)
-                            .fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expandedType,
-                        onDismissRequest = { expandedType = false }
-                    ) {
-                        createData.types.forEach { type ->
-                            DropdownMenuItem(
-                                text = { Text(type.name, fontSize = 14.sp) },
-                                onClick = {
-                                    onTypeSelected(type.id)
-                                    expandedType = false
-                                }
+                AppButton(
+                    text = stringResource(R.string.create),
+                    onClick = {
+                        if (selectedTypeId != null && selectedAddressId != null &&
+                            startDateTime != null && endDateTime != null) {
+                            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                            val request = EventCalendarCreateRequest(
+                                typeId = selectedTypeId,
+                                name = eventName.ifBlank { null },
+                                addressId = selectedAddressId,
+                                userId = selectedUserId,
+                                workId = selectedWorkId,
+                                start = startDateTime.format(formatter),
+                                end = endDateTime.format(formatter)
                             )
+                            onCreateEvent(request)
                         }
-                    }
-                }
-
-                OutlinedTextField(
-                    value = eventName,
-                    onValueChange = onNameChanged,
-                    label = { Text(stringResource(R.string.event_name_optional), fontSize = 12.sp) },
-                    textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
-                    modifier = Modifier.fillMaxWidth()
+                    },
+                    enabled = !isCreatingEvent && selectedTypeId != null && selectedAddressId != null &&
+                            startDateTime != null && endDateTime != null,
+                    loading = isCreatingEvent,
+                    modifier = Modifier.weight(1f)
                 )
-
-                var expandedAddress by remember { mutableStateOf(false) }
-                ExposedDropdownMenuBox(
-                    expanded = expandedAddress,
-                    onExpandedChange = { expandedAddress = !expandedAddress }
-                ) {
-                    OutlinedTextField(
-                        value = createData.addresses.find { it.id == selectedAddressId }?.name ?: "",
-                        onValueChange = { },
-                        readOnly = true,
-                        label = { Text(stringResource(R.string.address), fontSize = 12.sp) },
-                        textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedAddress) },
-                        modifier = Modifier
-                            .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true)
-                            .fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expandedAddress,
-                        onDismissRequest = { expandedAddress = false }
-                    ) {
-                        createData.addresses.forEach { address ->
-                            DropdownMenuItem(
-                                text = { Text(address.name ?: stringResource(R.string.unknown_address), fontSize = 14.sp) },
-                                onClick = {
-                                    onAddressSelected(address.id)
-                                    expandedAddress = false
-                                }
-                            )
-                        }
-                    }
-                }
-
-                var expandedParticipant by remember { mutableStateOf(false) }
-                ExposedDropdownMenuBox(
-                    expanded = expandedParticipant,
-                    onExpandedChange = { expandedParticipant = !expandedParticipant }
-                ) {
-                    OutlinedTextField(
-                        value = createData.participants.find { it.user.id == selectedUserId }?.let { 
-                            it.user.fullName ?: "${it.user.firstname} ${it.user.lastname}"
-                        } ?: if (selectedUserId == null) stringResource(R.string.none) else "",
-                        onValueChange = { },
-                        readOnly = true,
-                        label = { Text(stringResource(R.string.participant), fontSize = 12.sp) },
-                        textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedParticipant) },
-                        modifier = Modifier
-                            .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true)
-                            .fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expandedParticipant,
-                        onDismissRequest = { expandedParticipant = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { 
-                                Text(
-                                    text = stringResource(R.string.none),
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            },
-                            onClick = {
-                                onUserSelected(null)
-                                onWorkSelected(null)
-                                expandedParticipant = false
-                            }
-                        )
-                        createData.participants.forEach { participant ->
-                            DropdownMenuItem(
-                                text = { 
-                                    Column {
-                                        Text(
-                                            text = participant.user.fullName ?: "${participant.user.firstname} ${participant.user.lastname}",
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Medium
-                                        )
-                                        participant.work?.title?.let { title ->
-                                            if (title.isNotBlank()) {
-                                                Text(
-                                                    text = title,
-                                                    fontSize = 11.sp,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                            }
-                                        }
-                                    }
-                                },
-                                onClick = {
-                                    onUserSelected(participant.user.id)
-                                    onWorkSelected(participant.work?.id)
-                                    expandedParticipant = false
-                                }
-                            )
-                        }
-                    }
-                }
-
-                var showStartDatePicker by remember { mutableStateOf(false) }
-                var showStartTimePicker by remember { mutableStateOf(false) }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { showStartDatePicker = true }
-                ) {
-                    OutlinedTextField(
-                        value = startDateTime?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) ?: "",
-                        onValueChange = { },
-                        readOnly = true,
-                        label = { Text(stringResource(R.string.start_date_time), fontSize = 12.sp) },
-                        placeholder = { Text(stringResource(R.string.select_date_time), fontSize = 12.sp) },
-                        textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = false
-                    )
-                }
-
-                var showEndDatePicker by remember { mutableStateOf(false) }
-                var showEndTimePicker by remember { mutableStateOf(false) }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { showEndDatePicker = true }
-                ) {
-                    OutlinedTextField(
-                        value = endDateTime?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) ?: "",
-                        onValueChange = { },
-                        readOnly = true,
-                        label = { Text(stringResource(R.string.end_date_time), fontSize = 12.sp) },
-                        placeholder = { Text(stringResource(R.string.select_date_time), fontSize = 12.sp) },
-                        textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = false
-                    )
-                }
-
-                if (showStartDatePicker) {
-                    val datePickerState = rememberDatePickerState(
-                        initialSelectedDateMillis = startDateTime?.toLocalDate()?.toEpochDay()
-                            ?.times(24 * 60 * 60 * 1000)
-                            ?: (selectedDate.toEpochDay() * 24 * 60 * 60 * 1000)
-                    )
-                    CustomDatePickerDialog(
-                        onDateSelected = { selectedDateMillis ->
-                            selectedDateMillis?.let { millis ->
-                                val selectedLocalDate = LocalDate.ofEpochDay(millis / (24 * 60 * 60 * 1000))
-                                val currentTime = startDateTime?.toLocalTime() ?: LocalTime.of(9, 0)
-                                onStartDateTimeChanged(LocalDateTime.of(selectedLocalDate, currentTime))
-                            }
-                            showStartDatePicker = false
-                            showStartTimePicker = true
-                        },
-                        onDismiss = { showStartDatePicker = false },
-                        datePickerState = datePickerState
-                    )
-                }
-
-                if (showStartTimePicker) {
-                    val timePickerState = rememberTimePickerState(
-                        initialHour = startDateTime?.hour ?: 9,
-                        initialMinute = startDateTime?.minute ?: 0
-                    )
-                    TimePickerDialog(
-                        onTimeSelected = { hour, minute ->
-                            val currentDate = startDateTime?.toLocalDate() ?: selectedDate
-                            onStartDateTimeChanged(LocalDateTime.of(currentDate, LocalTime.of(hour, minute)))
-                            showStartTimePicker = false
-                        },
-                        onDismiss = { showStartTimePicker = false },
-                        timePickerState = timePickerState
-                    )
-                }
-
-                if (showEndDatePicker) {
-                    val datePickerState = rememberDatePickerState(
-                        initialSelectedDateMillis = endDateTime?.toLocalDate()?.toEpochDay()
-                            ?.times(24 * 60 * 60 * 1000)
-                            ?: (selectedDate.toEpochDay() * 24 * 60 * 60 * 1000)
-                    )
-                    CustomDatePickerDialog(
-                        onDateSelected = { selectedDateMillis ->
-                            selectedDateMillis?.let { millis ->
-                                val selectedLocalDate = LocalDate.ofEpochDay(millis / (24 * 60 * 60 * 1000))
-                                val currentTime = endDateTime?.toLocalTime() ?: LocalTime.of(10, 0)
-                                onEndDateTimeChanged(LocalDateTime.of(selectedLocalDate, currentTime))
-                            }
-                            showEndDatePicker = false
-                            showEndTimePicker = true
-                        },
-                        onDismiss = { showEndDatePicker = false },
-                        datePickerState = datePickerState
-                    )
-                }
-
-                if (showEndTimePicker) {
-                    val timePickerState = rememberTimePickerState(
-                        initialHour = endDateTime?.hour ?: 10,
-                        initialMinute = endDateTime?.minute ?: 0
-                    )
-                    TimePickerDialog(
-                        onTimeSelected = { hour, minute ->
-                            val currentDate = endDateTime?.toLocalDate() ?: selectedDate
-                            onEndDateTimeChanged(LocalDateTime.of(currentDate, LocalTime.of(hour, minute)))
-                            showEndTimePicker = false
-                        },
-                        onDismiss = { showEndTimePicker = false },
-                        timePickerState = timePickerState
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
-                ) {
-                    TextButton(onClick = onDismiss) {
-                        Text("Cancel", fontSize = 14.sp)
-                    }
-                    Button(
-                        onClick = {
-                            if (selectedTypeId != null && selectedAddressId != null && 
-                                startDateTime != null && endDateTime != null) {
-                                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                                val request = EventCalendarCreateRequest(
-                                    typeId = selectedTypeId,
-                                    name = eventName.ifBlank { null },
-                                    addressId = selectedAddressId,
-                                    userId = selectedUserId,
-                                    workId = selectedWorkId,
-                                    start = startDateTime.format(formatter),
-                                    end = endDateTime.format(formatter)
-                                )
-                                onCreateEvent(request)
-                            }
-                        },
-                        enabled = !isCreatingEvent && selectedTypeId != null && selectedAddressId != null && 
-                                startDateTime != null && endDateTime != null
-                    ) {
-                        if (isCreatingEvent) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(14.dp),
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        } else {
-                            Text("Create", fontSize = 14.sp)
-                        }
-                    }
-                }
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CustomDatePickerDialog(
-    onDateSelected: (Long?) -> Unit,
-    onDismiss: () -> Unit,
-    datePickerState: DatePickerState
-) {
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(onClick = { onDateSelected(datePickerState.selectedDateMillis) }) {
-                Text("OK")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    ) {
-        DatePicker(state = datePickerState)
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TimePickerDialog(
-    onTimeSelected: (Int, Int) -> Unit,
-    onDismiss: () -> Unit,
-    timePickerState: TimePickerState
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(onClick = { 
-                onTimeSelected(timePickerState.hour, timePickerState.minute)
-            }) {
-                Text("OK")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        },
-        text = {
-            TimePicker(state = timePickerState)
-        }
-    )
 }

@@ -1,21 +1,29 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.conversation.model
 
 import com.finalworksystem.data.conversation.model.response.WorkStatusDto
 import com.finalworksystem.data.conversation.model.response.WorkTypeDto
 import com.finalworksystem.data.conversation.model.response.toDomain
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class ConversationWorkDetailDto(
-    val id: Int,
-    val title: String,
-    val shortcut: String?,
-    val deadline: String,
-    val deadlineProgram: String?,
-    val status: WorkStatusDto,
-    val type: WorkTypeDto,
-    val author: ConversationUserDto?,
-    val supervisor: ConversationUserDto?,
-    val opponent: ConversationUserDto?,
-    val consultant: ConversationUserDto?
+    val id: Int = 0,
+    val title: String = "",
+    val shortcut: String? = null,
+    val deadline: String = "",
+    val deadlineProgram: String? = null,
+    val status: WorkStatusDto = WorkStatusDto(),
+    val type: WorkTypeDto = WorkTypeDto(),
+    val author: ConversationUserDto? = null,
+    val supervisor: ConversationUserDto? = null,
+    val opponent: ConversationUserDto? = null,
+    val consultant: ConversationUserDto? = null
 )
 
 fun ConversationWorkDetailDto.toEntity(): com.finalworksystem.domain.conversation.model.ConversationWork {

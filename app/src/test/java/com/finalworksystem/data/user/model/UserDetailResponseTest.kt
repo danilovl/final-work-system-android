@@ -3,7 +3,7 @@ package com.finalworksystem.data.user.model
 import com.finalworksystem.data.user.model.response.UserDetailResponse
 import com.finalworksystem.data.user.model.response.toDataModel
 import com.finalworksystem.data.user.model.response.toDomain
-import com.google.gson.Gson
+import com.finalworksystem.infrastructure.api.serialization.ApiJson
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -15,11 +15,10 @@ class UserDetailResponseTest {
     fun testJsonParsingWithRolesArray() {
         println("[DEBUG_LOG] Testing JSON parsing with roles as array")
 
-        val gson = Gson()
         val jsonResponse = """{"id":155,"username":"xdanv09","firstname":"Vladimir","lastname":"Danilov","fullName":"Danilov Vladimir","degreeBefore":"Bc.","degreeAfter":null,"email":"xdanv09@vse.cz","token":"20b2eb840f4f97e7be64c250340c36029bd7780e","roles":["ROLE_STUDENT","ROLE_ADMIN","ROLE_USER"]}"""
 
         try {
-            val userDetailResponse = gson.fromJson(jsonResponse, UserDetailResponse::class.java)
+            val userDetailResponse = ApiJson.decodeFromString<UserDetailResponse>(jsonResponse)
 
             assertEquals(155, userDetailResponse.id)
             assertEquals("xdanv09", userDetailResponse.username)
@@ -117,11 +116,10 @@ class UserDetailResponseTest {
     fun testJsonParsingWithDifferentRolesArray() {
         println("[DEBUG_LOG] Testing JSON parsing with different roles structure")
 
-        val gson = Gson()
         val jsonResponse = """{"id":156,"username":"supervisor01","firstname":"John","lastname":"Smith","fullName":"Smith John","degreeBefore":"Dr.","degreeAfter":null,"email":"supervisor@vse.cz","token":"30c3fb950e5f08f8ce75d351450d47139ce8890f","roles":["ROLE_SUPERVISOR","ROLE_USER"]}"""
 
         try {
-            val userDetailResponse = gson.fromJson(jsonResponse, UserDetailResponse::class.java)
+            val userDetailResponse = ApiJson.decodeFromString<UserDetailResponse>(jsonResponse)
 
             assertEquals(156, userDetailResponse.id)
             assertEquals("supervisor01", userDetailResponse.username)

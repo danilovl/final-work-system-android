@@ -1,34 +1,23 @@
 package com.finalworksystem.presentation.ui.work.component
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.finalworksystem.R
-import com.finalworksystem.presentation.ui.component.BaseCard
+import com.finalworksystem.presentation.ui.component.PagedLazyColumn
 import com.finalworksystem.presentation.ui.task.component.TaskCard
 import com.finalworksystem.presentation.view_model.work.WorkDetailViewModel
+import com.finalworksystem.ui.designsystem.AppFab
+import com.finalworksystem.ui.theme.AppIcons
 
 @Composable
 fun TaskTabContent(
@@ -37,114 +26,35 @@ fun TaskTabContent(
     onNavigateToTaskDetail: ((Int, Int) -> Unit)? = null,
     onNavigateToTaskCreate: ((Int) -> Unit)? = null
 ) {
-    val tasksState by workDetailViewModel.tasksState.collectAsState()
-    val listState = rememberLazyListState()
+    val tasks = workDetailViewModel.tasks.collectAsLazyPagingItems()
 
     LaunchedEffect(workId) {
-        workDetailViewModel.loadTasksForWork(workId, forceRefresh = false)
-    }
-
-    val shouldLoadMore by remember {
-        derivedStateOf {
-            val layoutInfo = listState.layoutInfo
-            val totalItemsNumber = layoutInfo.totalItemsCount
-            val lastVisibleItemIndex = (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) + 1
-
-            totalItemsNumber > 0 && lastVisibleItemIndex > (totalItemsNumber - 3)
-        }
-    }
-
-    LaunchedEffect(shouldLoadMore) {
-        if (shouldLoadMore && tasksState is WorkDetailViewModel.TasksState.Success) {
-            val currentState = tasksState as WorkDetailViewModel.TasksState.Success
-            if (currentState.hasMoreTasks && !currentState.isLoadingMore) {
-                workDetailViewModel.loadMoreTasks(workId)
-            }
-        }
+        workDetailViewModel.loadTasksForWork(workId)
     }
 
     Box(modifier = Modifier.fillMaxWidth()) {
-        when (tasksState) {
-            is WorkDetailViewModel.TasksState.Loading -> {
-                BaseCard(modifier = Modifier.fillMaxWidth()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(40.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-            }
-            is WorkDetailViewModel.TasksState.Success -> {
-                val successState = tasksState as WorkDetailViewModel.TasksState.Success
-                val tasks = successState.tasks
-                if (tasks.isEmpty()) {
-                    BaseCard(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = stringResource(R.string.no_tasks_available),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(20.dp)
-                        )
-                    }
-                } else {
-                    LazyColumn(state = listState) {
-                        items(tasks) { task ->
-                            TaskCard(
-                                task = task,
-                                onClick = if (onNavigateToTaskDetail != null) { { onNavigateToTaskDetail(workId, task.id) } } else null
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-
-                        if (successState.isLoadingMore) {
-                            item {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator()
-                                }
-                            }
-                        }
-
-                        item {
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
-                    }
-                }
-            }
-            is WorkDetailViewModel.TasksState.Error -> {
-                val errorState = tasksState as WorkDetailViewModel.TasksState.Error
-                val errorMessage = errorState.message
-                BaseCard(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = stringResource(R.string.error_loading_tasks, errorMessage),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(20.dp)
-                    )
-                }
-            }
-            else -> {
-            }
+        PagedLazyColumn(
+            items = tasks,
+            emptyText = stringResource(R.string.no_tasks_available),
+            // Space at the bottom so the last card is not hidden behind the button.
+            contentPadding = PaddingValues(bottom = 88.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) { task ->
+            TaskCard(
+                task = task,
+                onClick = onNavigateToTaskDetail?.let { navigate -> { navigate(workId, task.id) } }
+            )
         }
 
         if (onNavigateToTaskCreate != null) {
-            FloatingActionButton(
+            AppFab(
                 onClick = { onNavigateToTaskCreate(workId) },
+                icon = AppIcons.Add,
+                contentDescription = stringResource(R.string.create_task),
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(16.dp),
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(R.string.create_task))
-            }
+                    .padding(16.dp)
+            )
         }
     }
 }

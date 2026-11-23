@@ -1,7 +1,11 @@
 package com.finalworksystem.presentation.view_model.task
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.paging.PagingData
+import com.finalworksystem.presentation.paging.Page
+import com.finalworksystem.presentation.paging.PagedList
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import androidx.lifecycle.viewModelScope
 import com.finalworksystem.application.use_case.task.PostTaskCreateUseCase
 import com.finalworksystem.application.use_case.work.GetWorkDetailUseCase
@@ -22,14 +26,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class TaskCreateViewModel(
-    application: Application,
     private val postTaskCreateUseCase: PostTaskCreateUseCase,
     private val getWorkListWithPaginationUseCase: GetWorkListWithPaginationUseCase,
     private val getWorkDetailUseCase: GetWorkDetailUseCase,
     private val popupMessageService: PopupMessageService,
     private val globalCacheManager: GlobalCacheManager,
     private val userService: UserService
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     sealed class SubmissionState {
         object Idle : SubmissionState()
@@ -38,32 +41,28 @@ class TaskCreateViewModel(
         data class Error(val message: String) : SubmissionState()
     }
 
-    data class WorkPickerState(
-        val works: List<Work> = emptyList(),
-        val isLoading: Boolean = false,
-        val isLoadingMore: Boolean = false,
-        val hasMore: Boolean = false,
-        val searchQuery: String = "",
-        val currentPage: Int = 1,
-        val totalCount: Int = 0
-    )
-
     private val _submissionState = MutableStateFlow<SubmissionState>(SubmissionState.Idle)
     val submissionState: StateFlow<SubmissionState> = _submissionState.asStateFlow()
 
-    private val _workPickerState = MutableStateFlow(WorkPickerState())
-    val workPickerState: StateFlow<WorkPickerState> = _workPickerState.asStateFlow()
+    /** Works of the supervisor for the work selection dialog, searched by title. */
+    private val pagedWorks = PagedList<String, Work>(viewModelScope, PAGE_SIZE) { search, page, pageSize ->
+        getWorkListWithPaginationUseCase(
+            type = WorkListType.SUPERVISOR,
+            page = page,
+            limit = pageSize,
+            filter = WorkFilter(title = search.ifBlank { null })
+        ).first().map { Page(it.works, it.totalCount) }
+    }
+
+    val works: Flow<PagingData<Work>> = pagedWorks.items
+
+    val workSearchQuery: String get() = pagedWorks.query.orEmpty()
 
     val nameState = MutableStateFlow("")
     val descriptionState = MutableStateFlow("")
     val deadlineState = MutableStateFlow("")
     val selectedWork = MutableStateFlow<Work?>(null)
 
-    private val pageSize = 20
-
-    init {
-        loadWorks()
-    }
 
     fun setSelectedWorkById(workId: Int) {
         if (workId != -1) {
@@ -81,72 +80,12 @@ class TaskCreateViewModel(
         }
     }
 
-    fun loadWorks(query: String = "") {
-        viewModelScope.launch {
-            _workPickerState.value = _workPickerState.value.copy(
-                isLoading = true,
-                searchQuery = query,
-                currentPage = 1
-            )
-
-            getWorkListWithPaginationUseCase(
-                type = WorkListType.SUPERVISOR,
-                page = 1,
-                limit = pageSize,
-                filter = WorkFilter(title = query.ifBlank { null })
-            ).collect { result ->
-                result.fold(
-                    onSuccess = { paginatedWorks ->
-                        val hasMore = paginatedWorks.works.size < paginatedWorks.totalCount
-                        _workPickerState.value = _workPickerState.value.copy(
-                            works = paginatedWorks.works,
-                            isLoading = false,
-                            hasMore = hasMore,
-                            totalCount = paginatedWorks.totalCount
-                        )
-                    },
-                    onFailure = { error ->
-                        _workPickerState.value = _workPickerState.value.copy(isLoading = false)
-                        popupMessageService.showMessage(error.message ?: "Failed to load works", PopupMessageService.MessageLevel.ERROR)
-                    }
-                )
-            }
-        }
+    fun searchWorks(query: String) {
+        pagedWorks.load(query.trim())
     }
 
-    fun loadMoreWorks() {
-        val currentState = _workPickerState.value
-        if (currentState.isLoading || currentState.isLoadingMore || !currentState.hasMore) return
-
-        viewModelScope.launch {
-            val nextPage = currentState.currentPage + 1
-            _workPickerState.value = currentState.copy(isLoadingMore = true)
-
-            getWorkListWithPaginationUseCase(
-                type = WorkListType.SUPERVISOR,
-                page = nextPage,
-                limit = pageSize,
-                filter = WorkFilter(title = currentState.searchQuery.ifBlank { null })
-            ).collect { result ->
-                result.fold(
-                    onSuccess = { paginatedWorks ->
-                        val updatedWorks = currentState.works + paginatedWorks.works
-                        val hasMore = updatedWorks.size < paginatedWorks.totalCount
-                        _workPickerState.value = currentState.copy(
-                            works = updatedWorks,
-                            isLoadingMore = false,
-                            hasMore = hasMore,
-                            currentPage = nextPage,
-                            totalCount = paginatedWorks.totalCount
-                        )
-                    },
-                    onFailure = { error ->
-                        _workPickerState.value = currentState.copy(isLoadingMore = false)
-                        popupMessageService.showMessage(error.message ?: "Failed to load more works", PopupMessageService.MessageLevel.ERROR)
-                    }
-                )
-            }
-        }
+    fun refreshWorks() {
+        pagedWorks.refresh()
     }
 
     fun submitCreateTask() {
@@ -198,5 +137,9 @@ class TaskCreateViewModel(
 
     fun resetSubmissionState() {
         _submissionState.value = SubmissionState.Idle
+    }
+
+    private companion object {
+        const val PAGE_SIZE = 20
     }
 }

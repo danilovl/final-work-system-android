@@ -1,26 +1,19 @@
 package com.finalworksystem.presentation.ui.event.component
 
+import com.finalworksystem.ui.theme.AppIcons
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.finalworksystem.R
 import com.finalworksystem.presentation.ui.component.BaseCard
+import com.finalworksystem.ui.designsystem.AppButton
+import com.finalworksystem.ui.designsystem.AppButtonVariant
+import com.finalworksystem.ui.designsystem.AppSectionHeader
 
 @Composable
 fun EventActionsCard(
@@ -34,38 +27,27 @@ fun EventActionsCard(
             modifier = modifier.fillMaxWidth()
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(
-                    text = stringResource(R.string.actions),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
+                AppSectionHeader(
+                    title = stringResource(R.string.actions),
+                    icon = AppIcons.Edit
                 )
 
-                OutlinedButton(
+                AppButton(
+                    text = if (isDeletingEvent) {
+                        stringResource(R.string.deleting)
+                    } else {
+                        stringResource(R.string.delete_event)
+                    },
                     onClick = onDeleteEventClick,
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !isDeletingEvent
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = stringResource(R.string.delete_event),
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    if (isDeletingEvent) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.deleting))
-                    } else {
-                        Text(stringResource(R.string.delete_event))
-                    }
-                }
+                    enabled = !isDeletingEvent,
+                    variant = AppButtonVariant.DangerSoft,
+                    leadingIcon = if (isDeletingEvent) null else AppIcons.Delete,
+                    loading = isDeletingEvent
+                )
             }
         }
     }

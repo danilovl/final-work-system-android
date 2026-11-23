@@ -1,7 +1,7 @@
 package com.finalworksystem
 
 import com.finalworksystem.data.event.model.response.ParticipantResponse
-import com.google.gson.Gson
+import com.finalworksystem.infrastructure.api.serialization.ApiJson
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -14,12 +14,11 @@ class SimpleNullWorkTest {
     fun testParticipantParsingWithNullWork() {
         println("[DEBUG_LOG] Testing participant parsing with null work")
 
-        val gson = Gson()
 
         val participantJson = """{"id":194,"firstName":null,"secondName":null,"email":null,"user":{"id":155,"username":"xdanv09","firstname":"Vladimir","lastname":"Danilov","fullName":"Danilov Vladimir","email":"xdanv09@vse.cz","degreeBefore":"Bc.","degreeAfter":null,"roles":["ROLE_STUDENT","ROLE_ADMIN","ROLE_USER"]},"work":null}"""
 
         try {
-            val participantDto = gson.fromJson(participantJson, ParticipantResponse::class.java)
+            val participantDto = ApiJson.decodeFromString<ParticipantResponse>(participantJson)
 
             assertNotNull(participantDto)
             assertEquals(194, participantDto.id)
@@ -43,11 +42,10 @@ class SimpleNullWorkTest {
     fun testParticipantParsingWithValidWork() {
         println("[DEBUG_LOG] Testing participant parsing with valid work")
 
-        val gson = Gson()
         val participantJson = """{"id":194,"firstName":null,"secondName":null,"email":null,"user":{"id":155,"username":"xdanv09","firstname":"Vladimir","lastname":"Danilov","fullName":"Danilov Vladimir","email":"xdanv09@vse.cz","degreeBefore":"Bc.","degreeAfter":null,"roles":["ROLE_STUDENT","ROLE_ADMIN","ROLE_USER"]},"work":{"id":109,"title":"Test Work","shortcut":null,"deadline":"2018-04-25T00:00:00+02:00","deadlineProgram":null,"status":{"id":1,"name":"Active","description":null,"color":"#42f442"},"type":{"id":1,"name":"Diploma","description":null,"shortcut":"DP"},"author":null,"supervisor":null,"opponent":null,"consultant":null}}"""
 
         try {
-            val participantDto = gson.fromJson(participantJson, ParticipantResponse::class.java)
+            val participantDto = ApiJson.decodeFromString<ParticipantResponse>(participantJson)
             assertNotNull(participantDto)
             assertEquals(194, participantDto.id)
             assertNotNull(participantDto.work)

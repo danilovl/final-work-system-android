@@ -1,112 +1,69 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.task.model.response
 
 import com.finalworksystem.data.task.model.Task
 import com.finalworksystem.data.task.model.WorkInfo
 import com.finalworksystem.data.task.model.toDomainModel
 import com.finalworksystem.data.work.model.response.WorkResponse
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.annotations.JsonAdapter
-import com.google.gson.annotations.SerializedName
-import java.lang.reflect.Type
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import com.finalworksystem.infrastructure.api.serialization.UnwrappingSerializer
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KeepGeneratedSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class TaskListResponse(
-    @SerializedName("numItemsPerPage")
-    val numItemsPerPage: Int,
+    @SerialName("numItemsPerPage")
+    val numItemsPerPage: Int = 0,
 
-    @SerializedName("totalCount")
-    val totalCount: Int,
+    @SerialName("totalCount")
+    val totalCount: Int = 0,
 
-    @SerializedName("currentItemCount")
-    val currentItemCount: Int,
+    @SerialName("currentItemCount")
+    val currentItemCount: Int = 0,
 
-    @SerializedName("result")
-    val result: List<TaskResponse>
+    @SerialName("result")
+    val result: List<TaskResponse> = emptyList()
 )
 
-private data class TaskResponseDelegateDto(
-    @SerializedName("id")
-    val id: Int?,
-
-    @SerializedName("active")
-    val active: Boolean?,
-
-    @SerializedName("name")
-    val name: String?,
-
-    @SerializedName("description")
-    val description: String?,
-
-    @SerializedName("complete")
-    val complete: Boolean?,
-
-    @SerializedName("notifyComplete")
-    val notifyComplete: Boolean?,
-
-    @SerializedName("deadline")
-    val deadline: String?,
-
-    @SerializedName("work")
-    val work: WorkResponse?
-)
-
-class TaskResponseAdapter : JsonDeserializer<TaskResponse> {
-    override fun deserialize(
-        json: JsonElement?,
-        typeOfT: Type?,
-        context: JsonDeserializationContext?
-    ): TaskResponse? {
-        if (json == null || !json.isJsonObject) {
-            return null
-        }
-        val jsonObject = json.asJsonObject
-        val targetObject = when {
-            jsonObject.has("result") && jsonObject.get("result").isJsonObject -> jsonObject.getAsJsonObject("result")
-            jsonObject.has("task") && jsonObject.get("task").isJsonObject -> jsonObject.getAsJsonObject("task")
-            jsonObject.has("data") && jsonObject.get("data").isJsonObject -> jsonObject.getAsJsonObject("data")
-            else -> jsonObject
-        }
-        val dto = context?.deserialize<TaskResponseDelegateDto>(targetObject, TaskResponseDelegateDto::class.java) ?: return null
-
-        return TaskResponse(
-            id = dto.id,
-            active = dto.active,
-            name = dto.name,
-            description = dto.description,
-            complete = dto.complete,
-            notifyComplete = dto.notifyComplete,
-            deadline = dto.deadline,
-            work = dto.work
-        )
-    }
-}
-
-@JsonAdapter(TaskResponseAdapter::class)
+@OptIn(ExperimentalSerializationApi::class)
+@KeepGeneratedSerializer
+@Serializable(with = TaskResponseSerializer::class)
 data class TaskResponse(
-    @SerializedName("id")
-    val id: Int?,
+    @SerialName("id")
+    val id: Int? = null,
 
-    @SerializedName("active")
-    val active: Boolean?,
+    @SerialName("active")
+    val active: Boolean? = null,
 
-    @SerializedName("name")
-    val name: String?,
+    @SerialName("name")
+    val name: String? = null,
 
-    @SerializedName("description")
-    val description: String?,
+    @SerialName("description")
+    val description: String? = null,
 
-    @SerializedName("complete")
-    val complete: Boolean?,
+    @SerialName("complete")
+    val complete: Boolean? = null,
 
-    @SerializedName("notifyComplete")
-    val notifyComplete: Boolean?,
+    @SerialName("notifyComplete")
+    val notifyComplete: Boolean? = null,
 
-    @SerializedName("deadline")
-    val deadline: String?,
+    @SerialName("deadline")
+    val deadline: String? = null,
 
-    @SerializedName("work")
-    val work: WorkResponse?
+    @SerialName("work")
+    val work: WorkResponse? = null
+)
+
+/** Accepts the object either directly or wrapped in one of listOf("result", "task", "data"). */
+object TaskResponseSerializer : UnwrappingSerializer<TaskResponse>(
+    TaskResponse.generatedSerializer(),
+    listOf("result", "task", "data")
 )
 
 fun TaskResponse.toDataModel(): Task {

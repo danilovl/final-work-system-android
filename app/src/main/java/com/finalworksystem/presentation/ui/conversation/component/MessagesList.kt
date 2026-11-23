@@ -1,80 +1,40 @@
 package com.finalworksystem.presentation.ui.conversation.component
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.finalworksystem.presentation.ui.component.CommonMessagesList
-import com.finalworksystem.presentation.ui.component.MessagesState
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.paging.compose.LazyPagingItems
+import com.finalworksystem.R
+import com.finalworksystem.domain.conversation.model.ConversationMessage
+import com.finalworksystem.presentation.ui.component.PagedLazyColumn
 
+/**
+ * Messages of a conversation in the order returned by the API;
+ * further pages are loaded while scrolling down.
+ */
 @Composable
 fun MessagesList(
-    messagesState: MessagesState,
+    messages: LazyPagingItems<ConversationMessage>,
     currentUserId: Int,
     conversationId: Int,
     onMarkAsRead: (Int, Int) -> Unit,
-    onLoadMore: () -> Unit,
-    modifier: Modifier = Modifier,
-    reverseLayout: Boolean = false
+    modifier: Modifier = Modifier
 ) {
-    when (messagesState) {
-        is MessagesState.Loading -> {
-            CommonMessagesList(
-                messages = emptyList(),
-                hasMoreMessages = false,
-                isLoadingMore = false,
-                isLoading = true,
-                errorMessage = null,
-                currentUserId = currentUserId,
-                conversationId = conversationId,
-                onMarkAsRead = onMarkAsRead,
-                onLoadMore = onLoadMore,
-                modifier = modifier,
-                reverseLayout = reverseLayout
-            )
-        }
-        is MessagesState.Success -> {
-            CommonMessagesList(
-                messages = messagesState.messages,
-                hasMoreMessages = messagesState.hasMoreMessages,
-                isLoadingMore = messagesState.isLoadingMore,
-                isLoading = false,
-                errorMessage = null,
-                currentUserId = currentUserId,
-                conversationId = conversationId,
-                onMarkAsRead = onMarkAsRead,
-                onLoadMore = onLoadMore,
-                modifier = modifier,
-                reverseLayout = reverseLayout
-            )
-        }
-        is MessagesState.Error -> {
-            CommonMessagesList(
-                messages = emptyList(),
-                hasMoreMessages = false,
-                isLoadingMore = false,
-                isLoading = false,
-                errorMessage = messagesState.message,
-                currentUserId = currentUserId,
-                conversationId = conversationId,
-                onMarkAsRead = onMarkAsRead,
-                onLoadMore = onLoadMore,
-                modifier = modifier,
-                reverseLayout = reverseLayout
-            )
-        }
-        else -> {
-            CommonMessagesList(
-                messages = emptyList(),
-                hasMoreMessages = false,
-                isLoadingMore = false,
-                isLoading = false,
-                errorMessage = null,
-                currentUserId = currentUserId,
-                conversationId = conversationId,
-                onMarkAsRead = onMarkAsRead,
-                onLoadMore = onLoadMore,
-                modifier = modifier,
-                reverseLayout = reverseLayout
-            )
-        }
+    PagedLazyColumn(
+        items = messages,
+        emptyText = stringResource(R.string.no_messages),
+        modifier = modifier,
+        contentPadding = PaddingValues(top = 12.dp, bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) { message ->
+        MessageItem(
+            message = message,
+            currentUserId = currentUserId,
+            conversationId = conversationId,
+            onMarkAsRead = onMarkAsRead
+        )
     }
 }

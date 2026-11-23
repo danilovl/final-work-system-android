@@ -1,16 +1,25 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.auth.model
 
-import com.google.gson.annotations.SerializedName
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class LoginRequest(
-    @SerializedName("username")
-    val username: String,
+    @SerialName("username")
+    val username: String = "",
 
-    @SerializedName("password")
-    val password: String
+    @SerialName("password")
+    val password: String = ""
 )
 
+@Serializable
 data class LoginResponse(
-    @SerializedName("token")
-    val token: String
+    @SerialName("token")
+    val token: String = ""
 )

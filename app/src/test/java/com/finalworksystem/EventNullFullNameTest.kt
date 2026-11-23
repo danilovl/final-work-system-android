@@ -3,7 +3,7 @@ package com.finalworksystem
 import com.finalworksystem.data.event.model.response.EventResponse
 import com.finalworksystem.data.event.model.response.toDataModel
 import com.finalworksystem.data.event.model.toDomainModel
-import com.google.gson.Gson
+import com.finalworksystem.infrastructure.api.serialization.ApiJson
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -16,7 +16,6 @@ class EventNullFullNameTest {
     fun testEventParsingWithNullFullName() {
         println("[DEBUG_LOG] Testing event parsing with null fullName - fixing 'Error loading eventsL PArameter as non null is null dada,evet,User full name'")
 
-        val gson = Gson()
 
         val eventJson = """
         {
@@ -65,7 +64,7 @@ class EventNullFullNameTest {
         """.trimIndent()
 
         try {
-            val eventDto = gson.fromJson(eventJson, EventResponse::class.java)
+            val eventDto = ApiJson.decodeFromString<EventResponse>(eventJson)
             assertNotNull("EventDto should be parsed successfully", eventDto)
 
             println("[DEBUG_LOG] EventDto parsed successfully")

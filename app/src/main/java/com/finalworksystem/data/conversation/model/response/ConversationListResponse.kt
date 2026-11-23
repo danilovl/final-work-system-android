@@ -1,17 +1,25 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.conversation.model.response
 
-import com.google.gson.annotations.SerializedName
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class ConversationListResponse(
-    @SerializedName("numItemsPerPage")
-    val numItemsPerPage: Int,
+    @SerialName("numItemsPerPage")
+    val numItemsPerPage: Int = 0,
 
-    @SerializedName("totalCount")
-    val totalCount: Int,
+    @SerialName("totalCount")
+    val totalCount: Int = 0,
 
-    @SerializedName("currentItemCount")
-    val currentItemCount: Int,
+    @SerialName("currentItemCount")
+    val currentItemCount: Int = 0,
 
-    @SerializedName("result")
-    val result: List<ConversationResponse>
+    @SerialName("result")
+    val result: List<ConversationResponse> = emptyList()
 )

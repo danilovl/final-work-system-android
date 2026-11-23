@@ -1,44 +1,28 @@
 package com.finalworksystem.presentation.ui.conversation
 
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.finalworksystem.R
 import com.finalworksystem.domain.conversation.model.getDisplayName
 import com.finalworksystem.domain.user.model.User
+import com.finalworksystem.presentation.ui.component.BackNavigationButton
 import com.finalworksystem.presentation.ui.component.SearchModal
 import com.finalworksystem.presentation.ui.component.SearchResetFloatingActionButton
 import com.finalworksystem.presentation.ui.conversation.component.MessageForm
@@ -46,9 +30,17 @@ import com.finalworksystem.presentation.ui.conversation.component.MessagesList
 import com.finalworksystem.presentation.ui.conversation.component.ParticipantsFullList
 import com.finalworksystem.presentation.view_model.conversation.ConversationDetailViewModel
 import com.finalworksystem.presentation.view_model.conversation.state.ConversationDetailState
-import com.finalworksystem.presentation.view_model.conversation.state.toGeneric
+import com.finalworksystem.ui.designsystem.AppBottomSheet
+import com.finalworksystem.ui.designsystem.AppButton
+import com.finalworksystem.ui.designsystem.AppButtonVariant
+import com.finalworksystem.ui.designsystem.AppEmptyState
+import com.finalworksystem.ui.designsystem.AppIconButton
+import com.finalworksystem.ui.designsystem.AppLoadingState
+import com.finalworksystem.ui.designsystem.AppScaffold
+import com.finalworksystem.ui.designsystem.AppTopBar
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConversationDetailScreen(
     conversationId: Int,
@@ -57,10 +49,10 @@ fun ConversationDetailScreen(
     viewModel: ConversationDetailViewModel,
     onNavigateBack: () -> Unit = {}
 ) {
-    val conversationDetailState by viewModel.conversationDetailState.collectAsState()
-    val messagesState by viewModel.messagesState.collectAsState()
-    val sendMessageState by viewModel.sendMessageState.collectAsState()
-    val messageSearchQuery by viewModel.messageSearchQuery.collectAsState()
+    val conversationDetailState by viewModel.conversationDetailState.collectAsStateWithLifecycle()
+    val messages = viewModel.messages.collectAsLazyPagingItems()
+    val sendMessageState by viewModel.sendMessageState.collectAsStateWithLifecycle()
+    val messageSearchQuery by viewModel.messageSearchQuery.collectAsStateWithLifecycle()
 
     var isSearchModalVisible by remember { mutableStateOf(false) }
 
@@ -79,60 +71,45 @@ fun ConversationDetailScreen(
 
     when (val detailState = conversationDetailState) {
         is ConversationDetailState.Loading -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
+            AppLoadingState()
         }
         is ConversationDetailState.Success -> {
             var showParticipantsSheet by remember { mutableStateOf(false) }
-            val sheetState = rememberModalBottomSheetState()
             val conversationTitle = detailState.conversation.getDisplayName()
+            val participantsCount = detailState.conversation.participants.size
 
-            Scaffold(
+            AppScaffold(
                 topBar = {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                text = conversationTitle,
-                                style = MaterialTheme.typography.titleMedium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        },
+                    AppTopBar(
+                        title = conversationTitle,
+                        subtitle = stringResource(R.string.participants_count, participantsCount),
                         navigationIcon = {
-                            IconButton(onClick = {
+                            BackNavigationButton(onClick = {
                                 viewModel.updateMessageSearchQuery("")
                                 onNavigateBack()
-                            }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = stringResource(R.string.back)
-                                )
-                            }
+                            })
                         },
                         actions = {
                             if (messageSearchQuery.isNotBlank()) {
-                                IconButton(onClick = {
-                                    viewModel.clearMessageSearch(conversationId)
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Clear,
-                                        contentDescription = stringResource(R.string.clear_search)
-                                    )
-                                }
-                            }
-                            IconButton(onClick = {
-                                viewModel.loadConversationDetail(conversationId)
-                                viewModel.loadMessages(conversationId, messageSearchQuery.takeIf { it.isNotBlank() })
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Refresh,
-                                    contentDescription = stringResource(R.string.refresh)
+                                AppIconButton(
+                                    icon = AppIcons.Clear,
+                                    contentDescription = stringResource(R.string.clear_search),
+                                    onClick = { viewModel.clearMessageSearch(conversationId) }
                                 )
                             }
+                            AppIconButton(
+                                icon = AppIcons.Groups,
+                                contentDescription = stringResource(R.string.participants_count, participantsCount),
+                                onClick = { showParticipantsSheet = true }
+                            )
+                            AppIconButton(
+                                icon = AppIcons.Refresh,
+                                contentDescription = stringResource(R.string.refresh),
+                                onClick = {
+                                    viewModel.loadConversationDetail(conversationId)
+                                    viewModel.loadMessages(conversationId, messageSearchQuery.takeIf { it.isNotBlank() })
+                                }
+                            )
                         }
                     )
                 },
@@ -148,7 +125,8 @@ fun ConversationDetailScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues)
-                        .padding(16.dp)
+                        .consumeWindowInsets(paddingValues)
+                        .imePadding()
                         .pointerInput(Unit) {
                             detectDragGestures { change, dragAmount ->
                                 if (change.position.x > size.width * 0.8f && dragAmount.x < -50f) {
@@ -162,14 +140,15 @@ fun ConversationDetailScreen(
                         }
                 ) {
                     MessagesList(
-                        messagesState = messagesState.toGeneric(),
+                        messages = messages,
                         currentUserId = currentUserId,
                         conversationId = conversationId,
                         onMarkAsRead = { convId, messageId ->
                             viewModel.markMessageAsRead(convId, messageId)
                         },
-                        onLoadMore = { viewModel.loadMoreMessages(conversationId) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 16.dp)
                     )
 
                     MessageForm(
@@ -185,9 +164,8 @@ fun ConversationDetailScreen(
             }
 
             if (showParticipantsSheet) {
-                ModalBottomSheet(
-                    onDismissRequest = { showParticipantsSheet = false },
-                    sheetState = sheetState
+                AppBottomSheet(
+                    onDismissRequest = { showParticipantsSheet = false }
                 ) {
                     ParticipantsFullList(
                         participants = detailState.conversation.participants,
@@ -197,38 +175,25 @@ fun ConversationDetailScreen(
             }
         }
         is ConversationDetailState.Error -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = stringResource(R.string.error_prefix, detailState.message),
-                        color = MaterialTheme.colorScheme.error
+            AppEmptyState(
+                title = stringResource(R.string.error_prefix, detailState.message),
+                icon = AppIcons.Info,
+                iconTint = AppTheme.colors.error,
+                action = {
+                    AppButton(
+                        text = stringResource(R.string.retry),
+                        onClick = {
+                            viewModel.loadConversationDetail(conversationId)
+                            viewModel.loadMessages(conversationId)
+                        },
+                        variant = AppButtonVariant.Primary,
+                        leadingIcon = AppIcons.Refresh
                     )
-                    IconButton(onClick = {
-                        viewModel.loadConversationDetail(conversationId)
-                        viewModel.loadMessages(conversationId)
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowUp,
-                            contentDescription = stringResource(R.string.retry),
-                            modifier = Modifier.size(40.dp)
-                        )
-                    }
                 }
-            }
+            )
         }
         is ConversationDetailState.Idle -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
+            AppLoadingState()
         }
         is ConversationDetailState.NotFound -> {
             // Handled by LaunchedEffect

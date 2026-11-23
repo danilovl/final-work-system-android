@@ -1,28 +1,26 @@
 package com.finalworksystem.presentation.ui.task.component
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.finalworksystem.R
 import com.finalworksystem.domain.task.model.TaskStatus
+import com.finalworksystem.ui.designsystem.AppAlertDialog
+import com.finalworksystem.ui.designsystem.AppButton
+import com.finalworksystem.ui.designsystem.AppButtonVariant
+import com.finalworksystem.ui.designsystem.AppIcon
+import com.finalworksystem.ui.designsystem.AppRadioRow
+import com.finalworksystem.ui.designsystem.AppTag
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
 
 @Composable
 fun TaskStatusDialog(
@@ -31,67 +29,69 @@ fun TaskStatusDialog(
     isChangingStatus: Boolean,
     onDismiss: () -> Unit,
     onStatusSelected: (TaskStatus) -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     if (showDialog) {
-        AlertDialog(
+        AppAlertDialog(
             onDismissRequest = onDismiss,
+            modifier = modifier,
+            icon = { AppIcon(imageVector = AppIcons.Edit, contentDescription = null) },
             title = {
-                Text(stringResource(R.string.change_task_status))
+                AppText(stringResource(R.string.change_task_status))
             },
             text = {
                 Column {
-                    Text(
-                        text = stringResource(R.string.select_new_status),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
+                    AppText(text = stringResource(R.string.select_new_status))
 
-                    TaskStatus.values().forEach { status ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .selectable(
-                                    selected = selectedStatus == status,
-                                    onClick = { onStatusSelected(status) },
-                                    role = Role.RadioButton
-                                )
-                                .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        TaskStatus.values().forEach { status ->
+                            AppRadioRow(
                                 selected = selectedStatus == status,
-                                onClick = { onStatusSelected(status) }
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = status.value.replaceFirstChar { it.uppercase() },
-                                style = MaterialTheme.typography.bodyLarge
-                            )
+                                onClick = { onStatusSelected(status) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                AppTag(
+                                    text = status.value.replaceFirstChar { it.uppercase() },
+                                    color = taskStatusColor(status),
+                                    icon = taskStatusIcon(status)
+                                )
+                            }
                         }
                     }
                 }
             },
             confirmButton = {
-                Button(
+                AppButton(
+                    text = stringResource(R.string.change_status),
                     onClick = onConfirm,
-                    enabled = selectedStatus != null && !isChangingStatus
-                ) {
-                    if (isChangingStatus) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(stringResource(R.string.change_status))
-                    }
-                }
+                    enabled = selectedStatus != null && !isChangingStatus,
+                    loading = isChangingStatus
+                )
             },
             dismissButton = {
-                TextButton(onClick = onDismiss) {
-                    Text(stringResource(R.string.cancel))
-                }
+                AppButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = onDismiss,
+                    variant = AppButtonVariant.Ghost
+                )
             }
         )
     }
+}
+
+@Composable
+private fun taskStatusColor(status: TaskStatus): Color = when (status) {
+    TaskStatus.COMPLETE -> AppTheme.colors.success
+    TaskStatus.ACTIVE -> AppTheme.colors.primary
+    TaskStatus.NOTIFY -> AppTheme.colors.warning
+}
+
+@Composable
+private fun taskStatusIcon(status: TaskStatus) = when (status) {
+    TaskStatus.COMPLETE -> AppIcons.CheckCircle
+    TaskStatus.ACTIVE -> AppIcons.Task
+    TaskStatus.NOTIFY -> AppIcons.Notifications
 }

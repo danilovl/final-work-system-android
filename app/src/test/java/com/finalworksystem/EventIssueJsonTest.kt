@@ -1,8 +1,8 @@
 package com.finalworksystem
 
 import com.finalworksystem.data.event.model.response.EventListResponse
-import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
+import com.finalworksystem.infrastructure.api.serialization.ApiJson
+import kotlinx.serialization.SerializationException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -16,14 +16,13 @@ class EventIssueJsonTest {
     fun testActualIssueJsonParsing() {
         println("[DEBUG_LOG] Testing actual JSON from issue description")
 
-        val gson = Gson()
 
         val issueJson = """{"count":10,"totalCount":10,"success":true,"result":[{"id":147,"name":null,"start":"2025-05-30T08:30:00+02:00","end":"2025-05-30T13:00:00+02:00","type":{"id":1,"name":"Konzultace","description":null,"color":"#3b91ad","registrable":true},"owner":{"id":36,"username":"pecinovr","firstname":"Rudolf","lastname":"Pecinovský","email":"rudolf@pecinovsky.cz","degreeBefore":"Ing., CSc.","degreeAfter":null,"roles":["ROLE_SUPERVISOR","ROLE_USER"]},"address":{"id":1,"name":"JM 371","description":null,"street":"Chemická 951, 148 00 Praha-Kunratice, Česko","skype":false,"latitude":50.0205889,"longitude":14.4936111,"owner":{"id":36,"username":"pecinovr","firstname":"Rudolf","lastname":"Pecinovský","email":"rudolf@pecinovsky.cz","degreeBefore":"Ing., CSc.","degreeAfter":null,"roles":["ROLE_SUPERVISOR","ROLE_USER"]}}},{"id":132,"name":null,"start":"2019-10-25T17:00:00+02:00","end":"2019-10-25T19:30:00+02:00","type":{"id":1,"name":"Konzultace","description":null,"color":"#3b91ad","registrable":true},"owner":{"id":36,"username":"pecinovr","firstname":"Rudolf","lastname":"Pecinovský","email":"rudolf@pecinovsky.cz","degreeBefore":"Ing., CSc.","degreeAfter":null,"roles":["ROLE_SUPERVISOR","ROLE_USER"]},"address":{"id":1,"name":"JM 371","description":null,"street":"Chemická 951, 148 00 Praha-Kunratice, Česko","skype":false,"latitude":50.0205889,"longitude":14.4936111,"owner":{"id":36,"username":"pecinovr","firstname":"Rudolf","lastname":"Pecinovský","email":"rudolf@pecinovsky.cz","degreeBefore":"Ing., CSc.","degreeAfter":null,"roles":["ROLE_SUPERVISOR","ROLE_USER"]}}}]}"""
 
         println("[DEBUG_LOG] JSON length: ${issueJson.length}")
 
         try {
-            val responseDto = gson.fromJson(issueJson, EventListResponse::class.java)
+            val responseDto = ApiJson.decodeFromString<EventListResponse>(issueJson)
 
             assertNotNull(responseDto)
             assertEquals(10, responseDto.count)
@@ -74,8 +73,8 @@ class EventIssueJsonTest {
             println("[DEBUG_LOG] All events parsed correctly without fullName or token fields")
             println("[DEBUG_LOG] Participant field is correctly optional")
 
-        } catch (e: JsonSyntaxException) {
-            println("[DEBUG_LOG] JsonSyntaxException occurred: ${e.message}")
+        } catch (e: SerializationException) {
+            println("[DEBUG_LOG] SerializationException occurred: ${e.message}")
             e.printStackTrace()
             fail("JSON parsing should not fail with issue JSON: ${e.message}")
         } catch (e: Exception) {

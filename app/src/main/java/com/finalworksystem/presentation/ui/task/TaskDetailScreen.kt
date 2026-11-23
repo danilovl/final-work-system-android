@@ -7,23 +7,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.finalworksystem.R
 import com.finalworksystem.domain.task.model.Task
 import com.finalworksystem.domain.task.model.TaskStatus
@@ -37,6 +30,16 @@ import com.finalworksystem.presentation.ui.task.component.TaskInformationCard
 import com.finalworksystem.presentation.ui.task.component.TaskStatusDialog
 import com.finalworksystem.presentation.ui.task.component.TaskWorkInfoCard
 import com.finalworksystem.presentation.view_model.task.TaskDetailViewModel
+import com.finalworksystem.ui.designsystem.AppAlertDialog
+import com.finalworksystem.ui.designsystem.AppButton
+import com.finalworksystem.ui.designsystem.AppButtonVariant
+import com.finalworksystem.ui.designsystem.AppEmptyState
+import com.finalworksystem.ui.designsystem.AppIcon
+import com.finalworksystem.ui.designsystem.AppLoadingState
+import com.finalworksystem.ui.designsystem.AppScaffold
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
 
 @Composable
 fun TaskDetailScreen(
@@ -48,14 +51,14 @@ fun TaskDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToWorkDetail: (Int) -> Unit
 ) {
-    val taskDetailState by taskDetailViewModel.taskDetailState.collectAsState()
+    val taskDetailState by taskDetailViewModel.taskDetailState.collectAsStateWithLifecycle()
     var showTitleDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(workId, taskId) {
         taskDetailViewModel.loadTaskDetail(workId, taskId)
     }
 
-    Scaffold(
+    AppScaffold(
         topBar = {
             TaskDetailTopBar(
                 taskDetailState = taskDetailState,
@@ -71,10 +74,9 @@ fun TaskDetailScreen(
                 .padding(paddingValues)
         ) {
             when (val state = taskDetailState) {
-                is TaskDetailViewModel.TaskDetailState.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                is TaskDetailViewModel.TaskDetailState.Loading,
+                is TaskDetailViewModel.TaskDetailState.Idle -> {
+                    AppLoadingState()
                 }
                 is TaskDetailViewModel.TaskDetailState.Success -> {
                     TaskDetailContent(
@@ -89,20 +91,18 @@ fun TaskDetailScreen(
                     )
                 }
                 is TaskDetailViewModel.TaskDetailState.Error -> {
-                    Column(
-                        modifier = Modifier.align(Alignment.Center),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = stringResource(R.string.error_prefix, state.message),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-                is TaskDetailViewModel.TaskDetailState.Idle -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
+                    AppEmptyState(
+                        title = stringResource(R.string.error_prefix, state.message),
+                        icon = AppIcons.Info,
+                        iconTint = AppTheme.colors.error,
+                        action = {
+                            AppButton(
+                                text = stringResource(R.string.refresh),
+                                onClick = { taskDetailViewModel.loadTaskDetail(workId, taskId) },
+                                variant = AppButtonVariant.Secondary,
+                                leadingIcon = AppIcons.Refresh
+                            )
+                        }
                     )
                 }
             }
@@ -133,9 +133,9 @@ fun TaskDetailContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         TaskBasicInfoCard(task = task)
 
@@ -159,7 +159,7 @@ fun TaskDetailContent(
             showDialog = showStatusDialog,
             selectedStatus = selectedStatus,
             isChangingStatus = isChangingStatus,
-            onDismiss = { 
+            onDismiss = {
                 showStatusDialog = false
                 selectedStatus = null
             },
@@ -179,12 +179,15 @@ fun TaskDetailContent(
         )
 
         if (showDeleteConfirmDialog) {
-            AlertDialog(
+            AppAlertDialog(
                 onDismissRequest = { showDeleteConfirmDialog = false },
-                title = { Text(stringResource(R.string.delete_task)) },
-                text = { Text(stringResource(R.string.delete_task_confirm)) },
+                icon = { AppIcon(imageVector = AppIcons.Delete, contentDescription = null) },
+                title = { AppText(stringResource(R.string.delete_task)) },
+                text = { AppText(stringResource(R.string.delete_task_confirm)) },
                 confirmButton = {
-                    TextButton(
+                    AppButton(
+                        text = stringResource(R.string.delete),
+                        variant = AppButtonVariant.Danger,
                         onClick = {
                             showDeleteConfirmDialog = false
                             isDeletingTask = true
@@ -195,16 +198,14 @@ fun TaskDetailContent(
                                 }
                             }
                         }
-                    ) {
-                        Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
-                    }
+                    )
                 },
                 dismissButton = {
-                    TextButton(
+                    AppButton(
+                        text = stringResource(R.string.cancel),
+                        variant = AppButtonVariant.Ghost,
                         onClick = { showDeleteConfirmDialog = false }
-                    ) {
-                        Text(stringResource(R.string.cancel))
-                    }
+                    )
                 }
             )
         }

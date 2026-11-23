@@ -3,14 +3,13 @@ package com.finalworksystem
 import com.finalworksystem.data.user.model.response.UserListResponse
 import com.finalworksystem.data.user.model.response.UserResponse
 import com.finalworksystem.data.user.model.response.toDomainModel
-import com.google.gson.Gson
+import com.finalworksystem.infrastructure.api.serialization.ApiJson
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 
 class UserSearchMappingTest {
 
-    private val gson = Gson()
 
     @Test
     fun testUserSearchResponseMapping_withNullWorks() {
@@ -36,7 +35,7 @@ class UserSearchMappingTest {
             }
         """.trimIndent()
 
-        val response = gson.fromJson(json, UserListResponse::class.java)
+        val response = ApiJson.decodeFromString<UserListResponse>(json)
         val domainResult = response.toDomainModel()
 
         assertNotNull(domainResult)
@@ -65,7 +64,7 @@ class UserSearchMappingTest {
             }
         """.trimIndent()
 
-        val response = gson.fromJson(json, UserListResponse::class.java)
+        val response = ApiJson.decodeFromString<UserListResponse>(json)
         val domainResult = response.toDomainModel()
 
         assertNotNull(domainResult)
@@ -116,7 +115,7 @@ class UserSearchMappingTest {
             }
         """.trimIndent()
 
-        val response = gson.fromJson(json, UserListResponse::class.java)
+        val response = ApiJson.decodeFromString<UserListResponse>(json)
         val domainResult = response.toDomainModel()
 
         assertNotNull(domainResult)

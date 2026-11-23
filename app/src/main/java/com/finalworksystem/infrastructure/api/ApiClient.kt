@@ -2,124 +2,124 @@ package com.finalworksystem.infrastructure.api
 
 import android.content.Context
 import com.finalworksystem.BuildConfig
-import com.finalworksystem.data.conversation.model.response.ConversationWorkResponseDto
-import com.finalworksystem.data.conversation.model.response.ConversationWorkResponseDtoAdapter
-import com.finalworksystem.data.user.model.response.UserWithWorksResponse
-import com.finalworksystem.data.user.model.response.UserWithWorksResponseAdapter
-import com.finalworksystem.data.work.model.response.WorkResponse
-import com.finalworksystem.data.work.model.response.WorkResponseAdapter
-import com.finalworksystem.infrastructure.api.util.SafeDoubleAdapter
-import com.finalworksystem.infrastructure.api.util.SafeIntAdapter
-import com.finalworksystem.infrastructure.api.util.SafeLongAdapter
+import com.finalworksystem.infrastructure.api.interceptor.ApiHeadersInterceptor
+import com.finalworksystem.infrastructure.api.interceptor.CacheInvalidationInterceptor
+import com.finalworksystem.infrastructure.api.interceptor.RetryInterceptor
+import com.finalworksystem.infrastructure.api.interceptor.ShortTermCacheInterceptor
+import com.finalworksystem.infrastructure.api.serialization.ApiJson
 import com.finalworksystem.infrastructure.cache.GlobalCacheManager
+import com.finalworksystem.infrastructure.session.LogoutReason
 import com.finalworksystem.infrastructure.user.UserService
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import okhttp3.Cache
-import okhttp3.CacheControl
-import okhttp3.Interceptor
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import retrofit2.create
 import java.io.File
 import java.util.concurrent.TimeUnit
 
+/**
+ * Builds the HTTP clients of the application.
+ *
+ * - [httpClient] — REST API: credentials, retry of idempotent requests, short-term HTTP cache,
+ *   logout on `401` via [SessionExpiredAuthenticator].
+ * - [imageHttpClient] — images loaded by Coil: credentials only (Coil keeps its own caches).
+ *
+ * Both clients share one connection pool and dispatcher.
+ */
 class ApiClient(
-    private val userService: UserService, 
-    private val context: Context,
-    private val globalCacheManager: GlobalCacheManager
+    private val userService: UserService,
+    context: Context,
+    globalCacheManager: GlobalCacheManager
 ) {
-    private val timeout = 30L
-    private val cacheSize = 10 * 1024 * 1024L // 10 MB
+    private val httpCache = Cache(File(context.cacheDir, "http_cache"), HTTP_CACHE_SIZE)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    private fun createOkHttpClient(): OkHttpClient {
-        val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+    init {
+        // Responses of one user must never be served to the next one.
+        scope.launch {
+            globalCacheManager.cacheCleanupEvents.collect {
+                CacheInvalidationInterceptor.evictAll(httpCache)
+            }
+        }
+    }
+
+    private val baseClient: OkHttpClient = OkHttpClient.Builder()
+        .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .build()
+
+    val httpClient: OkHttpClient by lazy {
+        val builder = baseClient.newBuilder()
+            .addInterceptor(
+                ApiHeadersInterceptor(
+                    credentials = { userService.getAuthData() },
+                    onMissingCredentials = { userService.logout(LogoutReason.TOKEN_EXPIRED) }
+                )
+            )
+            .addInterceptor(CacheInvalidationInterceptor(httpCache))
+            .addInterceptor(RetryInterceptor())
+            .authenticator(SessionExpiredAuthenticator { userService.logout(LogoutReason.TOKEN_EXPIRED) })
+
+        if (BuildConfig.API_CACHE_REQUEST) {
+            builder
+                .cache(httpCache)
+                .addNetworkInterceptor(ShortTermCacheInterceptor(CACHE_MAX_AGE_SECONDS))
         }
 
-        val cacheDir = File(context.cacheDir, "http_cache")
-        val cache = Cache(cacheDir, cacheSize)
+        builder.addLogging().build()
+    }
 
-        return OkHttpClient.Builder()
-            .cache(cache)
-            .addInterceptor(AuthInterceptor(userService, globalCacheManager, BuildConfig.API_CACHE_REQUEST))
-            .addInterceptor(getCacheInterceptor())
-            .addInterceptor(loggingInterceptor)
-            .connectTimeout(timeout, TimeUnit.SECONDS)
-            .readTimeout(timeout, TimeUnit.SECONDS)
-            .writeTimeout(timeout, TimeUnit.SECONDS)
+    val imageHttpClient: OkHttpClient by lazy {
+        baseClient.newBuilder()
+            // Images must not end the session; the avatar simply falls back to the placeholder.
+            .addInterceptor(ApiHeadersInterceptor(credentials = { userService.getAuthData() }))
             .build()
-    }
-
-    private fun getCacheInterceptor() = Interceptor { chain ->
-        val request = chain.request()
-        val response = chain.proceed(request)
-
-        if (request.method == "GET") {
-            val cacheControl = CacheControl.Builder()
-                .maxAge(10, TimeUnit.SECONDS)
-                .build()
-
-            response.newBuilder()
-                .header("Cache-Control", cacheControl.toString())
-                .build()
-        } else {
-            response
-        }
-    }
-
-    private val gson: Gson by lazy {
-        GsonBuilder()
-            .registerTypeAdapter(Int::class.java, SafeIntAdapter())
-            .registerTypeAdapter(Integer::class.java, SafeIntAdapter())
-            .registerTypeAdapter(Long::class.java, SafeLongAdapter())
-            .registerTypeAdapter(java.lang.Long::class.java, SafeLongAdapter())
-            .registerTypeAdapter(Double::class.java, SafeDoubleAdapter())
-            .registerTypeAdapter(java.lang.Double::class.java, SafeDoubleAdapter())
-            .registerTypeAdapter(UserWithWorksResponse::class.java, UserWithWorksResponseAdapter())
-            .registerTypeAdapter(WorkResponse::class.java, WorkResponseAdapter())
-            .registerTypeAdapter(ConversationWorkResponseDto::class.java, ConversationWorkResponseDtoAdapter())
-            .create()
     }
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(ApiConstant.BASE_URL)
-            .client(createOkHttpClient())
-            .addConverterFactory(GsonConverterFactory.create(gson))
+            .client(httpClient)
+            .addConverterFactory(ApiJson.asConverterFactory("application/json; charset=UTF-8".toMediaType()))
             .build()
     }
 
-    val apiAuthService: ApiAuthService by lazy {
-        retrofit.create(ApiAuthService::class.java)
+    val apiAuthService: ApiAuthService by lazy { retrofit.create() }
+    val apiUserService: ApiUserService by lazy { retrofit.create() }
+    val apiWorkService: ApiWorkService by lazy { retrofit.create() }
+    val apiTaskService: ApiTaskService by lazy { retrofit.create() }
+    val apiSystemEventService: ApiSystemEventService by lazy { retrofit.create() }
+    val apiConversationService: ApiConversationService by lazy { retrofit.create() }
+    val apiVersionService: ApiVersionService by lazy { retrofit.create() }
+    val apiEventService: ApiEventService by lazy { retrofit.create() }
+
+    private fun OkHttpClient.Builder.addLogging(): OkHttpClient.Builder {
+        if (BuildConfig.DEBUG) {
+            // Network logging only in debug builds; credentials are never written to logcat.
+            addInterceptor(
+                HttpLoggingInterceptor { message -> timber.log.Timber.tag("OkHttp").d(message) }.apply {
+                    level = HttpLoggingInterceptor.Level.HEADERS
+                    redactHeader(ApiConstant.AUTH_KEY)
+                    redactHeader(ApiConstant.AUTH_USER_TOKEN_KEY)
+                    redactHeader(ApiConstant.AUTH_USER_USERNAME)
+                }
+            )
+        }
+
+        return this
     }
 
-    val apiUserService: ApiUserService by lazy {
-        retrofit.create(ApiUserService::class.java)
-    }
-
-    val apiWorkService: ApiWorkService by lazy {
-        retrofit.create(ApiWorkService::class.java)
-    }
-
-    val apiTaskService: ApiTaskService by lazy {
-        retrofit.create(ApiTaskService::class.java)
-    }
-
-    val apiSystemEventService: ApiSystemEventService by lazy {
-        retrofit.create(ApiSystemEventService::class.java)
-    }
-
-    val apiConversationService: ApiConversationService by lazy {
-        retrofit.create(ApiConversationService::class.java)
-    }
-
-    val apiVersionService: ApiVersionService by lazy {
-        retrofit.create(ApiVersionService::class.java)
-    }
-
-    val apiEventService: ApiEventService by lazy {
-        retrofit.create(ApiEventService::class.java)
+    private companion object {
+        const val TIMEOUT_SECONDS = 30L
+        const val HTTP_CACHE_SIZE = 10L * 1024 * 1024
+        const val CACHE_MAX_AGE_SECONDS = 10
     }
 }

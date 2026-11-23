@@ -1,32 +1,35 @@
 package com.finalworksystem.presentation.ui.event_calendar.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BookmarkAdd
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.finalworksystem.R
+import com.finalworksystem.presentation.ui.component.BaseCard
+import com.finalworksystem.ui.designsystem.AppIcon
+import com.finalworksystem.ui.designsystem.AppIconButton
+import com.finalworksystem.ui.designsystem.AppIconButtonVariant
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
 import com.finalworksystem.domain.event_calendar.model.CalendarEvent as DomainCalendarEvent
 
 @Composable
@@ -39,107 +42,101 @@ fun EventItem(
     onReserveEvent: ((DomainCalendarEvent) -> Unit)? = null
 ) {
     val eventColor = parseColor(event.color)
-    val isClickable = true
-    val alpha = if (isClickable) 0.1f else 0.05f
 
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-            .then(
-                if (isClickable) {
-                    Modifier.clickable { onClick() }
-                } else {
-                    Modifier
-                }
-            ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = eventColor.copy(alpha = alpha)
-        )
-    ) {
+    BaseCard(onClick = onClick) {
         Row(
-            modifier = Modifier.padding(12.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min)
+                .padding(horizontal = 14.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
                     .width(4.dp)
-                    .height(60.dp)
-                    .background(
-                        color = eventColor,
-                        shape = RoundedCornerShape(2.dp)
-                    )
+                    .fillMaxHeight()
+                    .heightIn(min = 44.dp)
+                    .background(color = eventColor, shape = RoundedCornerShape(2.dp))
             )
 
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
+                AppText(
                     text = event.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
+                    style = AppTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = AppTheme.colors.onSurface
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
-
                 if (isSameDay(event.start, event.end)) {
-                    Text(
-                        text = stringResource(R.string.date_prefix, formatDate(event.start)),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    EventMetaRow(
+                        icon = AppIcons.CalendarToday,
+                        text = stringResource(R.string.date_prefix, formatDate(event.start))
                     )
-
-                    Spacer(modifier = Modifier.height(2.dp))
-
-                    Text(
-                        text = stringResource(R.string.time_range, formatTime(event.start), formatTime(event.end)),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    EventMetaRow(
+                        icon = AppIcons.Today,
+                        text = stringResource(R.string.time_range, formatTime(event.start), formatTime(event.end))
                     )
                 } else {
-                    Text(
-                        text = stringResource(R.string.start_prefix, formatDateTime(event.start)),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    EventMetaRow(
+                        icon = AppIcons.CalendarToday,
+                        text = stringResource(R.string.start_prefix, formatDateTime(event.start))
                     )
-
-                    Spacer(modifier = Modifier.height(2.dp))
-
-                    Text(
-                        text = stringResource(R.string.end_prefix, formatDateTime(event.end)),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    EventMetaRow(
+                        icon = AppIcons.DateRange,
+                        text = stringResource(R.string.end_prefix, formatDateTime(event.end))
                     )
                 }
             }
 
             if (isStudent && !event.hasParticipant && onReserveEvent != null) {
-                IconButton(
+                Spacer(modifier = Modifier.width(8.dp))
+                AppIconButton(
+                    icon = AppIcons.BookmarkAdd,
+                    contentDescription = stringResource(R.string.reserve_event),
                     onClick = { onReserveEvent(event) },
-                    modifier = Modifier.align(Alignment.CenterVertically)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.BookmarkAdd,
-                        contentDescription = stringResource(R.string.reserve_event),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
+                    variant = AppIconButtonVariant.Tonal,
+                    tint = AppTheme.colors.primary,
+                    size = 38.dp,
+                    iconSize = 20.dp
+                )
             }
 
             if (isSupervisor && onDeleteEvent != null) {
-                IconButton(
+                Spacer(modifier = Modifier.width(8.dp))
+                AppIconButton(
+                    icon = AppIcons.Delete,
+                    contentDescription = stringResource(R.string.delete_event),
                     onClick = { onDeleteEvent(event) },
-                    modifier = Modifier.align(Alignment.CenterVertically)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = stringResource(R.string.delete_event),
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
+                    variant = AppIconButtonVariant.Tonal,
+                    tint = AppTheme.colors.error,
+                    containerColor = AppTheme.colors.errorContainer,
+                    size = 38.dp,
+                    iconSize = 20.dp
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun EventMetaRow(icon: ImageVector, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        AppIcon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(14.dp),
+            tint = AppTheme.colors.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        AppText(
+            text = text,
+            style = AppTheme.typography.bodySmall,
+            color = AppTheme.colors.onSurfaceVariant
+        )
     }
 }

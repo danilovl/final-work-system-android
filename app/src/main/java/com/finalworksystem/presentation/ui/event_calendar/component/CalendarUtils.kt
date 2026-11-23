@@ -1,17 +1,24 @@
 package com.finalworksystem.presentation.ui.event_calendar.component
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
-import com.finalworksystem.ui.theme.Blue40
+import com.finalworksystem.ui.theme.AppTheme
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
-fun parseColor(colorString: String?): Color {
+/** Parses an event color; falls back to the theme primary color when missing or invalid. */
+@Composable
+@ReadOnlyComposable
+fun parseColor(colorString: String?): Color = parseColor(colorString, AppTheme.colors.primary)
+
+fun parseColor(colorString: String?, fallback: Color): Color {
     if (colorString.isNullOrBlank()) {
-        return Blue40
+        return fallback
     }
 
     val cleanColor = colorString.trim()
@@ -30,7 +37,7 @@ fun parseColor(colorString: String?): Color {
                 if (values.size == 3) {
                     Color(values[0], values[1], values[2])
                 } else {
-                    Blue40
+                    fallback
                 }
             }
             else -> {
@@ -38,7 +45,7 @@ fun parseColor(colorString: String?): Color {
             }
         }
     } catch (_: Exception) {
-        Blue40
+        fallback
     }
 }
 

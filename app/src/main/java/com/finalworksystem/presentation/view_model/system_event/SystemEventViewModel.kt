@@ -1,88 +1,61 @@
 package com.finalworksystem.presentation.view_model.system_event
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.filter
 import com.finalworksystem.application.use_case.system_event.GetSystemEventsWithPaginationUseCase
 import com.finalworksystem.application.use_case.system_event.MarkAllSystemEventsAsViewedUseCase
 import com.finalworksystem.application.use_case.system_event.MarkSystemEventAsViewedUseCase
 import com.finalworksystem.domain.system_event.model.SystemEvent
 import com.finalworksystem.domain.system_event.model.SystemEventTypeEnum
 import com.finalworksystem.infrastructure.popup.PopupMessageService
+import com.finalworksystem.presentation.paging.Page
+import com.finalworksystem.presentation.paging.PagedList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class SystemEventViewModel(
-    application: Application,
     private val getSystemEventsWithPaginationUseCase: GetSystemEventsWithPaginationUseCase,
     private val markSystemEventAsViewedUseCase: MarkSystemEventAsViewedUseCase,
     private val markAllSystemEventsAsViewedUseCase: MarkAllSystemEventsAsViewedUseCase,
     private val popupMessageService: PopupMessageService
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
-    private val _systemEventsState = MutableStateFlow<SystemEventsState>(SystemEventsState.Idle)
-    val systemEventsState: StateFlow<SystemEventsState> = _systemEventsState.asStateFlow()
+    private val pagedEvents = PagedList<SystemEventTypeEnum, SystemEvent>(viewModelScope, PAGE_SIZE) { type, page, pageSize ->
+        getSystemEventsWithPaginationUseCase(type, page, pageSize).first()
+            .map { (events, _, totalCount) -> Page(events, totalCount) }
+    }
 
-    private var currentPage = 1
-    private val pageSize = 20
-    private var currentType = SystemEventTypeEnum.UNREAD
-    private var isLoadingMore = false
+    /** Events marked as viewed since the last load; hidden without reloading the list. */
+    private val viewedEventIds = MutableStateFlow<Set<Int>>(emptySet())
+    private val allViewed = MutableStateFlow(false)
 
+    val events: Flow<PagingData<SystemEvent>> =
+        combine(pagedEvents.items, viewedEventIds, allViewed) { data, viewedIds, all ->
+            when {
+                all -> data.filter { false }
+                viewedIds.isEmpty() -> data
+                else -> data.filter { it.id !in viewedIds }
+            }
+        }
+
+    val totalCount: StateFlow<Int> = pagedEvents.totalCount
+
+    /** Shows the events of the type; an already shown list is reloaded, events change often. */
     fun loadSystemEvents(type: SystemEventTypeEnum = SystemEventTypeEnum.UNREAD) {
-        viewModelScope.launch {
-            _systemEventsState.value = SystemEventsState.Loading
-            currentPage = 1
-            currentType = type
-
-            getSystemEventsWithPaginationUseCase(type, currentPage, pageSize).collect { result ->
-                result.fold(
-                    onSuccess = { (events, hasMore, totalCount) ->
-                        _systemEventsState.value = SystemEventsState.Success(events, hasMore, false, totalCount)
-                    },
-                    onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        _systemEventsState.value = SystemEventsState.Error(errorMessage)
-                        popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
-                    }
-                )
-            }
-        }
+        clearLocalChanges()
+        pagedEvents.reload(type)
     }
 
-    fun loadMoreEvents() {
-        val currentState = _systemEventsState.value
-        if (currentState !is SystemEventsState.Success || !currentState.hasMoreEvents || isLoadingMore || currentState.isLoadingMore) {
-            return
-        }
-
-        isLoadingMore = true
-        _systemEventsState.value = currentState.copy(isLoadingMore = true)
-
-        viewModelScope.launch {
-            currentPage++
-
-            getSystemEventsWithPaginationUseCase(currentType, currentPage, pageSize).collect { result ->
-                isLoadingMore = false
-                result.fold(
-                    onSuccess = { (newEvents, hasMore, totalCount) ->
-                        val currentEvents = currentState.events
-                        val updatedEvents = currentEvents + newEvents
-                        _systemEventsState.value = SystemEventsState.Success(updatedEvents, hasMore, false, totalCount)
-                    },
-                    onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        _systemEventsState.value = currentState.copy(isLoadingMore = false)
-                        popupMessageService.showMessage("Failed to load more events: $errorMessage", PopupMessageService.MessageLevel.ERROR)
-                    }
-                )
-            }
-        }
-    }
-
-    fun resetSystemEventsState() {
-        _systemEventsState.value = SystemEventsState.Idle
+    fun refresh() {
+        clearLocalChanges()
+        pagedEvents.refresh()
     }
 
     fun changeViewed(eventId: Int) {
@@ -90,11 +63,8 @@ class SystemEventViewModel(
             markSystemEventAsViewedUseCase(eventId).collect { result ->
                 result.fold(
                     onSuccess = {
-                        val currentState = _systemEventsState.value
-                        if (currentState is SystemEventsState.Success) {
-                            val updatedEvents = currentState.events.filter { it.id != eventId }
-                            _systemEventsState.value = SystemEventsState.Success(updatedEvents, currentState.hasMoreEvents, currentState.isLoadingMore, currentState.totalCount)
-                        }
+                        viewedEventIds.update { it + eventId }
+                        pagedEvents.adjustTotalCount(-1)
                     },
                     onFailure = { error ->
                         val errorMessage = error.message ?: "Unknown error"
@@ -110,7 +80,8 @@ class SystemEventViewModel(
             markAllSystemEventsAsViewedUseCase().collect { result ->
                 result.fold(
                     onSuccess = {
-                        _systemEventsState.value = SystemEventsState.Success(emptyList(), false, false, 0)
+                        allViewed.value = true
+                        pagedEvents.adjustTotalCount(-pagedEvents.totalCount.value)
                     },
                     onFailure = { error ->
                         val errorMessage = error.message ?: "Unknown error"
@@ -121,15 +92,12 @@ class SystemEventViewModel(
         }
     }
 
-    sealed class SystemEventsState {
-        object Idle : SystemEventsState()
-        object Loading : SystemEventsState()
-        data class Success(
-            val events: List<SystemEvent>, 
-            val hasMoreEvents: Boolean = false,
-            val isLoadingMore: Boolean = false,
-            val totalCount: Int = 0
-        ) : SystemEventsState()
-        data class Error(val message: String) : SystemEventsState()
+    private fun clearLocalChanges() {
+        viewedEventIds.value = emptySet()
+        allViewed.value = false
+    }
+
+    private companion object {
+        const val PAGE_SIZE = 20
     }
 }

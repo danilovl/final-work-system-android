@@ -2,17 +2,17 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
     namespace = "com.finalworksystem"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.finalworksystem"
-        minSdk = 34
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -37,9 +37,14 @@ android {
         buildConfigField("boolean", "API_CACHE_REQUEST", "$apiCacheRequestBoolean")
 
         manifestPlaceholders["API_GOOGLE_KEY"] = apiGoogleKey
+        // Release allows plain HTTP only when the configured server itself is HTTP.
+        manifestPlaceholders["usesCleartextTraffic"] = baseUrl.startsWith("http://").toString()
     }
 
     buildTypes {
+        debug {
+            manifestPlaceholders["usesCleartextTraffic"] = "true"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -53,16 +58,18 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
     buildFeatures {
         compose = true
         buildConfig = true
     }
+    lint {
+        // Existing compose-lints findings are recorded here; new code must not add any.
+        baseline = file("lint-baseline.xml")
+    }
     testOptions {
         unitTests {
             isReturnDefaultValues = true
+            isIncludeAndroidResources = true
         }
     }
 }
@@ -71,34 +78,49 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
+    implementation(libs.androidx.foundation)
     implementation(libs.retrofit)
-    implementation(libs.retrofit.gson)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
-    implementation(libs.gson)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.retrofit.kotlinx.serialization)
+    implementation(libs.datastore)
     implementation(libs.datastore.preferences)
     implementation(libs.navigation.compose)
     implementation(libs.viewmodel.compose)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
-    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
+    implementation(libs.timber)
 
     implementation(libs.maps.compose)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.mockito.kotlin)
-    testImplementation(libs.mockito.core)
+    testImplementation(libs.koin.test)
+    testImplementation(libs.mockk)
+    testImplementation(libs.turbine)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.paging.testing)
+    testImplementation(libs.okhttp.mockwebserver)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    lintChecks(libs.compose.lint.checks)
 }

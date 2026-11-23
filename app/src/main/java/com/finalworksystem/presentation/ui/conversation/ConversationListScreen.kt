@@ -1,25 +1,17 @@
 package com.finalworksystem.presentation.ui.conversation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.finalworksystem.R
 import com.finalworksystem.infrastructure.popup.PopupMessageHandler
 import com.finalworksystem.infrastructure.popup.PopupMessageService
@@ -27,8 +19,12 @@ import com.finalworksystem.presentation.ui.component.BaseTopAppBar
 import com.finalworksystem.presentation.ui.component.DoubleCheckIcon
 import com.finalworksystem.presentation.ui.component.SearchModal
 import com.finalworksystem.presentation.ui.component.SearchResetFloatingActionButton
+import com.finalworksystem.presentation.ui.component.isRefreshing
 import com.finalworksystem.presentation.ui.conversation.component.ConversationsList
 import com.finalworksystem.presentation.view_model.conversation.ConversationListViewModel
+import com.finalworksystem.ui.designsystem.AppIconButton
+import com.finalworksystem.ui.designsystem.AppScaffold
+import com.finalworksystem.ui.designsystem.AppSnackbarHostState
 
 @Composable
 fun ConversationListScreen(
@@ -37,9 +33,10 @@ fun ConversationListScreen(
     onNavigateBack: () -> Unit,
     onNavigateToConversationDetail: (Int) -> Unit
 ) {
-    val conversationsState by conversationListViewModel.conversationsState.collectAsState()
-    val searchQuery by conversationListViewModel.searchQuery.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
+    val conversations = conversationListViewModel.conversations.collectAsLazyPagingItems()
+    val totalCount by conversationListViewModel.totalCount.collectAsStateWithLifecycle()
+    val searchQuery by conversationListViewModel.searchQuery.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { AppSnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
     var isSearchModalVisible by remember { mutableStateOf(false) }
@@ -51,21 +48,20 @@ fun ConversationListScreen(
     )
 
     LaunchedEffect(Unit) {
-        val currentSearchQuery = searchQuery.takeIf { it.isNotBlank() }
-        conversationListViewModel.loadConversations(search = currentSearchQuery)
+        conversationListViewModel.loadConversations()
     }
 
-    Scaffold(
+    AppScaffold(
         topBar = {
             BaseTopAppBar(
                 title = stringResource(R.string.conversation),
                 onNavigateBack = onNavigateBack,
-                onReload = { conversationListViewModel.loadConversations() },
-                loadedCount = (conversationsState as? ConversationListViewModel.ConversationsState.Success)?.conversations?.size ?: 0,
-                totalCount = (conversationsState as? ConversationListViewModel.ConversationsState.Success)?.totalCount ?: 0,
-                isLoading = conversationsState is ConversationListViewModel.ConversationsState.Loading,
+                onReload = { conversationListViewModel.refresh() },
+                loadedCount = conversations.itemCount,
+                totalCount = totalCount,
+                isLoading = conversations.isRefreshing,
                 additionalActions = {
-                    IconButton(onClick = { conversationListViewModel.markAllMessagesAsRead() }) {
+                    AppIconButton(onClick = { conversationListViewModel.markAllMessagesAsRead() }) {
                         DoubleCheckIcon()
                     }
                 }
@@ -79,53 +75,11 @@ fun ConversationListScreen(
             )
         }
     ) { paddingValues ->
-        when (conversationsState) {
-            is ConversationListViewModel.ConversationsState.Loading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-            is ConversationListViewModel.ConversationsState.Success -> {
-                val successState = conversationsState as ConversationListViewModel.ConversationsState.Success
-                ConversationsList(
-                    conversations = successState.conversations,
-                    hasMoreConversations = successState.hasMoreConversations,
-                    isLoadingMore = successState.isLoadingMore,
-                    onLoadMore = { conversationListViewModel.loadMoreConversations() },
-                    onConversationClick = onNavigateToConversationDetail,
-                    modifier = Modifier.padding(paddingValues)
-                )
-            }
-            is ConversationListViewModel.ConversationsState.Error -> {
-                val errorState = conversationsState as ConversationListViewModel.ConversationsState.Error
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = stringResource(R.string.error_prefix, errorState.message),
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-            is ConversationListViewModel.ConversationsState.Idle -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(stringResource(R.string.loading_conversations))
-                }
-            }
-        }
+        ConversationsList(
+            conversations = conversations,
+            onConversationClick = onNavigateToConversationDetail,
+            modifier = Modifier.padding(paddingValues)
+        )
     }
 
     SearchModal(

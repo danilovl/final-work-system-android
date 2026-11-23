@@ -1,135 +1,126 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.user.model.response
 
 import com.finalworksystem.data.user.model.User
 import com.finalworksystem.data.work.model.response.WorkResponse
 import com.finalworksystem.data.work.model.response.toDomainModel
+import com.finalworksystem.domain.user.model.User as DomainUser
 import com.finalworksystem.domain.user.model.UserListResult
 import com.finalworksystem.domain.user.model.UserWithWorks
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.annotations.JsonAdapter
-import com.google.gson.annotations.SerializedName
-import com.google.gson.reflect.TypeToken
-import java.lang.reflect.Type
-import com.finalworksystem.domain.user.model.User as DomainUser
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KeepGeneratedSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonTransformingSerializer
 
+@Serializable
 data class UserDetailResponse(
-    @SerializedName("id")
-    val id: Int?,
+    @SerialName("id")
+    val id: Int? = null,
 
-    @SerializedName("username")
-    val username: String?,
+    @SerialName("username")
+    val username: String? = null,
 
-    @SerializedName("firstname")
-    val firstname: String?,
+    @SerialName("firstname")
+    val firstname: String? = null,
 
-    @SerializedName("lastname")
-    val lastname: String?,
+    @SerialName("lastname")
+    val lastname: String? = null,
 
-    @SerializedName("fullName")
-    val fullName: String?,
+    @SerialName("fullName")
+    val fullName: String? = null,
 
-    @SerializedName("degreeBefore")
-    val degreeBefore: String?,
+    @SerialName("degreeBefore")
+    val degreeBefore: String? = null,
 
-    @SerializedName("degreeAfter")
-    val degreeAfter: String?,
+    @SerialName("degreeAfter")
+    val degreeAfter: String? = null,
 
-    @SerializedName("email")
-    val email: String?,
+    @SerialName("email")
+    val email: String? = null,
 
-    @SerializedName("token")
-    val token: String?,
+    @SerialName("token")
+    val token: String? = null,
 
-    @SerializedName("roles")
-    val roles: List<String>?
+    @SerialName("roles")
+    val roles: List<String>? = null
 )
 
+@Serializable
 data class UserListResponse(
-    @SerializedName("numItemsPerPage")
-    val numItemsPerPage: Int?,
+    @SerialName("numItemsPerPage")
+    val numItemsPerPage: Int? = null,
 
-    @SerializedName("totalCount")
-    val totalCount: Int?,
+    @SerialName("totalCount")
+    val totalCount: Int? = null,
 
-    @SerializedName("currentItemCount")
-    val currentItemCount: Int?,
+    @SerialName("currentItemCount")
+    val currentItemCount: Int? = null,
 
-    @SerializedName("result")
-    val result: List<UserWithWorksResponse>?
+    @SerialName("result")
+    val result: List<UserWithWorksResponse>? = null
 )
 
-class UserWithWorksResponseAdapter : JsonDeserializer<UserWithWorksResponse> {
-    override fun deserialize(
-        json: JsonElement?,
-        typeOfT: Type?,
-        context: JsonDeserializationContext?
-    ): UserWithWorksResponse {
-        if (json == null || !json.isJsonObject) {
-            return UserWithWorksResponse(user = null, works = emptyList())
-        }
-        val jsonObject = json.asJsonObject
-        return if (jsonObject.has("user")) {
-            val userElement = jsonObject.get("user")
-            val user = if (userElement != null && !userElement.isJsonNull) {
-                context?.deserialize<UserResponse>(userElement, UserResponse::class.java)
-            } else {
-                null
-            }
-            val worksElement = jsonObject.get("works")
-            val works = if (worksElement != null && !worksElement.isJsonNull) {
-                context?.deserialize<List<WorkResponse>>(
-                    worksElement,
-                    object : TypeToken<List<WorkResponse>>() {}.type
-                )
-            } else {
-                emptyList()
-            }
-            UserWithWorksResponse(user = user, works = works ?: emptyList())
-        } else {
-            val user = context?.deserialize<UserResponse>(jsonObject, UserResponse::class.java)
-            UserWithWorksResponse(user = user, works = emptyList())
-        }
+@OptIn(ExperimentalSerializationApi::class)
+@KeepGeneratedSerializer
+@Serializable(with = UserWithWorksResponseSerializer::class)
+data class UserWithWorksResponse(
+    @SerialName("user")
+    val user: UserResponse? = null,
+
+    @SerialName("works")
+    val works: List<WorkResponse>? = null
+)
+
+/**
+ * The user list contains either `{"user": {...}, "works": [...]}`
+ * or a bare user object; the latter is normalized to `{"user": {...}}`.
+ */
+object UserWithWorksResponseSerializer : JsonTransformingSerializer<UserWithWorksResponse>(
+    UserWithWorksResponse.generatedSerializer()
+) {
+    override fun transformDeserialize(element: JsonElement): JsonElement {
+        if (element !is JsonObject) return JsonObject(emptyMap())
+        if (element.containsKey("user")) return element
+        return JsonObject(mapOf("user" to element))
     }
 }
 
-@JsonAdapter(UserWithWorksResponseAdapter::class)
-data class UserWithWorksResponse(
-    @SerializedName("user")
-    val user: UserResponse?,
-
-    @SerializedName("works")
-    val works: List<WorkResponse>?
-)
-
+@Serializable
 data class UserResponse(
-    @SerializedName("id")
-    val id: Int?,
+    @SerialName("id")
+    val id: Int? = null,
 
-    @SerializedName("username")
-    val username: String?,
+    @SerialName("username")
+    val username: String? = null,
 
-    @SerializedName("firstname")
-    val firstname: String?,
+    @SerialName("firstname")
+    val firstname: String? = null,
 
-    @SerializedName("lastname")
-    val lastname: String?,
+    @SerialName("lastname")
+    val lastname: String? = null,
 
-    @SerializedName("fullName")
-    val fullName: String?,
+    @SerialName("fullName")
+    val fullName: String? = null,
 
-    @SerializedName("email")
-    val email: String?,
+    @SerialName("email")
+    val email: String? = null,
 
-    @SerializedName("degreeBefore")
-    val degreeBefore: String?,
+    @SerialName("degreeBefore")
+    val degreeBefore: String? = null,
 
-    @SerializedName("degreeAfter")
-    val degreeAfter: String?,
+    @SerialName("degreeAfter")
+    val degreeAfter: String? = null,
 
-    @SerializedName("roles")
-    val roles: List<String>?
+    @SerialName("roles")
+    val roles: List<String>? = null
 )
 
 fun UserDetailResponse?.toDataModel(): User {

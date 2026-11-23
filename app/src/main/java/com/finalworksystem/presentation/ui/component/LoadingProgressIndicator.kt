@@ -1,15 +1,17 @@
 package com.finalworksystem.presentation.ui.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.ui.designsystem.AppSpinner
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.theme.AppTheme
 
 @Composable
 fun LoadingProgressIndicator(
@@ -20,21 +22,23 @@ fun LoadingProgressIndicator(
     when {
         isLoading && loadedCount == 0 -> {
             Box(
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(32.dp),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(
+                AppSpinner(
                     modifier = Modifier.size(20.dp),
                     strokeWidth = 2.dp
                 )
             }
         }
         else -> {
-            Text(
+            AppText(
                 text = "$loadedCount/$totalCount",
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
+                style = AppTheme.typography.labelMedium,
+                color = AppTheme.colors.onPrimaryContainer,
+                modifier = Modifier
+                    .background(AppTheme.colors.primaryContainer, CircleShape)
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
             )
         }
     }

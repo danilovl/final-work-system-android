@@ -31,10 +31,10 @@ fun AppNavigationWithDrawer(
     conversationDetailViewModel: ConversationDetailViewModel = koinViewModel(),
     userViewModel: UserViewModel = koinViewModel(),
     onLogoutNavigation: (() -> Unit)? = null,
-    startDestination: String = AppRoutes.LOGIN
+    startDestination: AppRoute = AppRoute.Login
 ) {
     val networkConnectivityService = koinInject<NetworkConnectivityService>()
-    val actions = remember(navController) { AppActions(navController, workListViewModel, networkConnectivityService) }
+    val actions = remember(navController) { AppActions(navController, networkConnectivityService) }
 
     GlobalNavigationDrawer(
         onNavigateToHome = actions.navigateToHome,

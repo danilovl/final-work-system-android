@@ -10,7 +10,6 @@ import com.finalworksystem.application.use_case.work.GetWorkTypesUseCase
 import com.finalworksystem.application.use_case.work.PostWorkCreateUseCase
 import com.finalworksystem.data.work.model.request.WorkCreateRequest
 import com.finalworksystem.domain.user.model.User
-import com.finalworksystem.domain.user.model.UserType
 import com.finalworksystem.domain.user.model.UserWithWorks
 import com.finalworksystem.domain.work.model.Work
 import com.finalworksystem.domain.work.model.WorkCategory
@@ -18,7 +17,7 @@ import com.finalworksystem.domain.work.model.WorkManageCreateData
 import com.finalworksystem.domain.work.model.WorkStatus
 import com.finalworksystem.domain.work.model.WorkType
 import com.finalworksystem.infrastructure.popup.PopupMessageService
-import com.finalworksystem.presentation.ui.work.component.UserPickerState
+import com.finalworksystem.presentation.paging.UserPicker
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -69,17 +68,8 @@ class WorkCreateViewModel(
     val selectedOpponent = MutableStateFlow<User?>(null)
     val selectedConsultant = MutableStateFlow<User?>(null)
 
-    private val _userPickersState = MutableStateFlow<Map<UserType, UserPickerState>>(
-        mapOf(
-            UserType.AUTHOR to UserPickerState(),
-            UserType.SUPERVISOR to UserPickerState(),
-            UserType.OPPONENT to UserPickerState(),
-            UserType.CONSULTANT to UserPickerState()
-        )
-    )
-    val userPickersState: StateFlow<Map<UserType, UserPickerState>> = _userPickersState.asStateFlow()
-
-    private val pageSize = 20
+    /** Searchable paged user lists for the author / opponent / consultant dialogs. */
+    val userPicker = UserPicker(viewModelScope, getUserListUseCase)
 
     fun loadManageCreateData() {
         viewModelScope.launch {
@@ -117,77 +107,6 @@ class WorkCreateViewModel(
                     ?: "Failed to load options"
                 _createDataState.value = CreateDataState.Error(errorMsg)
                 popupMessageService.showMessage(errorMsg, PopupMessageService.MessageLevel.ERROR)
-            }
-        }
-    }
-
-    fun loadUsers(type: UserType, query: String = "") {
-        viewModelScope.launch {
-            val currentState = _userPickersState.value[type] ?: UserPickerState()
-            _userPickersState.value = _userPickersState.value + (type to currentState.copy(
-                isLoading = true,
-                searchQuery = query,
-                currentPage = 1
-            ))
-
-            getUserListUseCase(type = type, page = 1, pageSize = pageSize, search = query.ifBlank { null }).collect { result ->
-                result.fold(
-                    onSuccess = { userListResult ->
-                        val hasMore = userListResult.currentItemCount < userListResult.totalCount
-                        _userPickersState.value = _userPickersState.value + (type to UserPickerState(
-                            users = userListResult.result,
-                            isLoading = false,
-                            isLoadingMore = false,
-                            hasMore = hasMore,
-                            searchQuery = query,
-                            currentPage = 1,
-                            totalCount = userListResult.totalCount
-                        ))
-                    },
-                    onFailure = { error ->
-                        val msg = error.message ?: "Failed to search users"
-                        _userPickersState.value = _userPickersState.value + (type to currentState.copy(
-                            isLoading = false
-                        ))
-                        popupMessageService.showMessage(msg, PopupMessageService.MessageLevel.ERROR)
-                    }
-                )
-            }
-        }
-    }
-
-    fun loadMoreUsers(type: UserType) {
-        val currentState = _userPickersState.value[type] ?: return
-        if (currentState.isLoading || currentState.isLoadingMore || !currentState.hasMore) {
-            return
-        }
-
-        viewModelScope.launch {
-            val nextPage = currentState.currentPage + 1
-            _userPickersState.value = _userPickersState.value + (type to currentState.copy(
-                isLoadingMore = true
-            ))
-
-            getUserListUseCase(type = type, page = nextPage, pageSize = pageSize, search = currentState.searchQuery.ifBlank { null }).collect { result ->
-                result.fold(
-                    onSuccess = { userListResult ->
-                        val updatedUsers = currentState.users + userListResult.result
-                        val hasMore = updatedUsers.size < userListResult.totalCount
-                        _userPickersState.value = _userPickersState.value + (type to currentState.copy(
-                            users = updatedUsers,
-                            isLoadingMore = false,
-                            hasMore = hasMore,
-                            currentPage = nextPage,
-                            totalCount = userListResult.totalCount
-                        ))
-                    },
-                    onFailure = { error ->
-                        _userPickersState.value = _userPickersState.value + (type to currentState.copy(
-                            isLoadingMore = false
-                        ))
-                        popupMessageService.showMessage(error.message ?: "Failed to load more users", PopupMessageService.MessageLevel.ERROR)
-                    }
-                )
             }
         }
     }

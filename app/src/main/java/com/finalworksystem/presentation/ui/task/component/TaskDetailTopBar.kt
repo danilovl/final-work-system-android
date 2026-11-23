@@ -1,23 +1,20 @@
 package com.finalworksystem.presentation.ui.task.component
 
 import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import com.finalworksystem.R
+import com.finalworksystem.presentation.ui.component.BackNavigationButton
 import com.finalworksystem.presentation.view_model.task.TaskDetailViewModel
+import com.finalworksystem.ui.designsystem.AppIconButton
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.designsystem.AppTopBar
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskDetailTopBar(
     taskDetailState: TaskDetailViewModel.TaskDetailState,
@@ -25,15 +22,16 @@ fun TaskDetailTopBar(
     onRefresh: () -> Unit,
     onTitleClick: () -> Unit
 ) {
-    TopAppBar(
+    AppTopBar(
         title = {
             val taskTitle = when (taskDetailState) {
                 is TaskDetailViewModel.TaskDetailState.Success -> taskDetailState.task.name
                 else -> stringResource(R.string.task_detail)
             }
-            Text(
+            AppText(
                 text = taskTitle,
-                style = MaterialTheme.typography.titleMedium,
+                style = AppTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = if (taskDetailState is TaskDetailViewModel.TaskDetailState.Success) {
@@ -43,15 +41,13 @@ fun TaskDetailTopBar(
                 }
             )
         },
-        navigationIcon = {
-            IconButton(onClick = onNavigateBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-            }
-        },
+        navigationIcon = { BackNavigationButton(onClick = onNavigateBack) },
         actions = {
-            IconButton(onClick = onRefresh) {
-                Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.refresh))
-            }
+            AppIconButton(
+                icon = AppIcons.Refresh,
+                contentDescription = stringResource(R.string.refresh),
+                onClick = onRefresh
+            )
         }
     )
 }

@@ -46,6 +46,7 @@ object ApiConstant {
     const val API_KEY_USER_LIST = ApiEndpoint.User.GET_LIST
     const val API_KEY_USER_SEARCH = ApiEndpoint.User.GET_SEARCH
     const val API_KEY_USER_PROFILE_IMAGE = ApiEndpoint.User.GET_PROFILE_IMAGE
+    const val API_KEY_USER_CHANGE_PASSWORD = ApiEndpoint.User.PUT_CHANGE_PASSWORD
 
     const val API_KEY_VERSION_WORK_LIST = ApiEndpoint.Version.Work.GET_LIST
 

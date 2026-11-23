@@ -1,83 +1,72 @@
 package com.finalworksystem.presentation.ui.user.component
 
-import android.graphics.BitmapFactory
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.finalworksystem.R
-import com.finalworksystem.application.use_case.user.GetCachedProfileImageUseCase
-import org.koin.compose.koinInject
+import com.finalworksystem.infrastructure.image.ProfileImageCache
+import com.finalworksystem.ui.designsystem.AppIcon
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
 
 @Composable
 fun UserAvatar(
     firstname: String,
     lastname: String,
     userId: Int,
-    modifier: Modifier = Modifier,
-    getCachedProfileImageUseCase: GetCachedProfileImageUseCase = koinInject()
+    modifier: Modifier = Modifier
 ) {
-    val profileImage by getCachedProfileImageUseCase(userId).collectAsState(initial = null)
-
-    Card(
-        modifier = modifier.size(40.dp),
-        shape = CircleShape,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondary
+    val colors = AppTheme.colors
+    val imageUrl = remember(userId) { ProfileImageCache.url(userId) }
+    var isImageLoaded by remember(userId) { mutableStateOf(false) }
+    val placeholderBrush = Brush.linearGradient(
+        listOf(
+            colors.primary.copy(alpha = if (colors.isDark) 0.35f else 0.18f),
+            colors.primaryGradientEnd.copy(alpha = if (colors.isDark) 0.25f else 0.10f)
         )
+    )
+
+    BoxWithConstraints(
+        modifier = modifier
+            .size(40.dp)
+            .clip(CircleShape)
+            .background(placeholderBrush, CircleShape),
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            if (profileImage != null && profileImage!!.imageData.isNotEmpty()) {
-                val bitmap = BitmapFactory.decodeByteArray(
-                    profileImage!!.imageData, 
-                    0, 
-                    profileImage!!.imageData.size
-                )
-                if (bitmap != null) {
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = stringResource(R.string.profile_image_for, "$firstname $lastname"),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = stringResource(R.string.user_avatar_for, "$firstname $lastname"),
-                        tint = MaterialTheme.colorScheme.onSecondary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            } else {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = stringResource(R.string.user_avatar_for, "$firstname $lastname"),
-                    tint = MaterialTheme.colorScheme.onSecondary,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+        // Placeholder stays visible while loading and when the user has no image.
+        if (!isImageLoaded) {
+            AppIcon(
+                imageVector = AppIcons.Person,
+                contentDescription = stringResource(R.string.user_avatar_for, "$firstname $lastname"),
+                tint = colors.primary,
+                modifier = Modifier.size(maxWidth * 0.55f)
+            )
         }
+
+        AsyncImage(
+            model = imageUrl,
+            contentDescription = stringResource(R.string.profile_image_for, "$firstname $lastname"),
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop,
+            onSuccess = { isImageLoaded = true },
+            onError = { isImageLoaded = false }
+        )
     }
 }

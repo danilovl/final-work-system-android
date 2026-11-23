@@ -1,38 +1,46 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.work.model.request
 
-import com.google.gson.annotations.SerializedName
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class WorkCreateRequest(
-    @SerializedName("title")
+    @SerialName("title")
     val title: String,
 
-    @SerializedName("shortcut")
+    @SerialName("shortcut")
     val shortcut: String? = null,
 
-    @SerializedName("typeId")
+    @SerialName("typeId")
     val typeId: Int,
 
-    @SerializedName("statusId")
+    @SerialName("statusId")
     val statusId: Int,
 
-    @SerializedName("categoriesIds")
+    @SerialName("categoriesIds")
     val categoriesIds: List<Int>? = null,
 
-    @SerializedName("deadline")
+    @SerialName("deadline")
     val deadline: String,
 
-    @SerializedName("deadlineProgram")
+    @SerialName("deadlineProgram")
     val deadlineProgram: String? = null,
 
-    @SerializedName("authorId")
+    @SerialName("authorId")
     val authorId: Int? = null,
 
-    @SerializedName("supervisorId")
+    @SerialName("supervisorId")
     val supervisorId: Int? = null,
 
-    @SerializedName("opponentId")
+    @SerialName("opponentId")
     val opponentId: Int? = null,
 
-    @SerializedName("consultantId")
+    @SerialName("consultantId")
     val consultantId: Int? = null
 )

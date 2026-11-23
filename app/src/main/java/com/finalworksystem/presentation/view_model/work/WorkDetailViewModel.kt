@@ -1,8 +1,8 @@
 package com.finalworksystem.presentation.view_model.work
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
 import com.finalworksystem.application.use_case.conversation.GetConversationWorkUseCase
 import com.finalworksystem.application.use_case.conversation.GetWorkConversationMessagesUseCase
 import com.finalworksystem.application.use_case.event.GetEventsForWorkUseCase
@@ -20,15 +20,19 @@ import com.finalworksystem.infrastructure.cache.CacheCleanupReason
 import com.finalworksystem.infrastructure.cache.GlobalCacheManager
 import com.finalworksystem.infrastructure.popup.PopupMessageService
 import com.finalworksystem.infrastructure.user.UserService
-import com.finalworksystem.presentation.view_model.work.state.WorkMessagesState
+import com.finalworksystem.presentation.paging.Page
+import com.finalworksystem.presentation.paging.PagedList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class WorkDetailViewModel(
-    application: Application,
     private val getWorkDetailUseCase: GetWorkDetailUseCase,
     private val getTasksForWorkUseCase: GetTasksForWorkUseCase,
     private val getEventsForWorkUseCase: GetEventsForWorkUseCase,
@@ -36,53 +40,28 @@ class WorkDetailViewModel(
     private val getWorkConversationMessagesUseCase: GetWorkConversationMessagesUseCase,
     private val getConversationWorkUseCase: GetConversationWorkUseCase,
     private val popupMessageService: PopupMessageService,
-    private val userService: UserService,
-    private val globalCacheManager: GlobalCacheManager
-) : AndroidViewModel(application) {
+    userService: UserService,
+    globalCacheManager: GlobalCacheManager
+) : ViewModel() {
 
     sealed class WorkDetailState {
-        object Idle : WorkDetailState()
-        object Loading : WorkDetailState()
+        data object Idle : WorkDetailState()
+        data object Loading : WorkDetailState()
         data class Success(val work: Work) : WorkDetailState()
         data class Error(val message: String) : WorkDetailState()
         data object NotFound : WorkDetailState()
     }
 
-    sealed class TasksState {
-        object Idle : TasksState()
-        object Loading : TasksState()
-        data class Success(
-            val tasks: List<Task>,
-            val hasMoreTasks: Boolean = false,
-            val isLoadingMore: Boolean = false,
-            val totalCount: Int = 0
-        ) : TasksState()
-        data class Error(val message: String) : TasksState()
-    }
-
-    sealed class VersionsState {
-        object Idle : VersionsState()
-        object Loading : VersionsState()
-        data class Success(
-            val versions: List<Version>,
-            val hasMoreVersions: Boolean = false,
-            val isLoadingMore: Boolean = false,
-            val totalCount: Int = 0
-        ) : VersionsState()
-        data class Error(val message: String) : VersionsState()
-    }
-
     sealed class EventsState {
-        object Idle : EventsState()
-        object Loading : EventsState()
+        data object Idle : EventsState()
+        data object Loading : EventsState()
         data class Success(val events: List<Event>) : EventsState()
         data class Error(val message: String) : EventsState()
     }
 
-
     sealed class ConversationWorkState {
-        object Idle : ConversationWorkState()
-        object Loading : ConversationWorkState()
+        data object Idle : ConversationWorkState()
+        data object Loading : ConversationWorkState()
         data class Success(val conversationWork: ConversationWorkResponse?) : ConversationWorkState()
         data class Error(val message: String) : ConversationWorkState()
     }
@@ -90,89 +69,66 @@ class WorkDetailViewModel(
     private val _workDetailState = MutableStateFlow<WorkDetailState>(WorkDetailState.Idle)
     val workDetailState: StateFlow<WorkDetailState> = _workDetailState.asStateFlow()
 
-    private val _tasksState = MutableStateFlow<TasksState>(TasksState.Idle)
-    val tasksState: StateFlow<TasksState> = _tasksState.asStateFlow()
-
-    private val _versionsState = MutableStateFlow<VersionsState>(VersionsState.Idle)
-    val versionsState: StateFlow<VersionsState> = _versionsState.asStateFlow()
-
     private val _eventsState = MutableStateFlow<EventsState>(EventsState.Idle)
     val eventsState: StateFlow<EventsState> = _eventsState.asStateFlow()
-
-    private val _workMessagesState = MutableStateFlow<WorkMessagesState>(WorkMessagesState.Idle)
-    val workMessagesState: StateFlow<WorkMessagesState> = _workMessagesState.asStateFlow()
 
     private val _conversationWorkState = MutableStateFlow<ConversationWorkState>(ConversationWorkState.Idle)
     val conversationWorkState: StateFlow<ConversationWorkState> = _conversationWorkState.asStateFlow()
 
-    private var hasLeftWorkListSection = false
+    // Paged tabs; the query is the work id.
+    private val pagedTasks = PagedList<Int, Task>(viewModelScope, TASKS_PAGE_SIZE) { workId, page, pageSize ->
+        getTasksForWorkUseCase(workId, page, pageSize).first()
+            .map { Page(it.tasks, it.totalCount) }
+    }
+
+    private val pagedVersions = PagedList<Int, Version>(viewModelScope, VERSIONS_PAGE_SIZE) { workId, page, pageSize ->
+        getVersionsForWorkWithPaginationUseCase(workId, page, pageSize).first()
+            .map { Page(it.versions, it.totalCount) }
+    }
+
+    private val pagedMessages = PagedList<Int, ConversationMessage>(viewModelScope, MESSAGES_PAGE_SIZE) { workId, page, pageSize ->
+        getWorkConversationMessagesUseCase(workId, page, pageSize).first()
+            .map { Page(it.result, it.totalCount) }
+    }
+
+    val tasks: Flow<PagingData<Task>> = pagedTasks.items
+    val tasksTotalCount: StateFlow<Int> = pagedTasks.totalCount
+
+    val versions: Flow<PagingData<Version>> = pagedVersions.items
+    val versionsTotalCount: StateFlow<Int> = pagedVersions.totalCount
+
+    val workMessages: Flow<PagingData<ConversationMessage>> = pagedMessages.items
 
     private var cachedWorkDetails: Map<Int, Work> = mapOf()
-    private var cachedTasks: Map<Int, List<Task>> = mapOf()
-    private var cachedVersions: Map<Int, List<Version>> = mapOf()
     private var cachedEvents: Map<Int, List<Event>> = mapOf()
-    private var cachedWorkMessages: Map<Int, List<ConversationMessage>> = mapOf()
     private var cachedConversationWork: Map<Int, ConversationWorkResponse?> = mapOf()
 
-    private var currentTasksPageMap: MutableMap<Int, Int> = mutableMapOf()
-    private var totalTasksCountMap: MutableMap<Int, Int> = mutableMapOf()
-    private val tasksPageSize = 15
-    private var isLoadingMoreTasks = false
-
-    private val messagesPageSize = 20
-    private var isLoadingMoreMessages = false
-    private val currentMessagesPageMap = mutableMapOf<Int, Int>()
-    private val totalMessagesCountMap = mutableMapOf<Int, Int>()
-
-    private val versionsPageSize = 20
-    private var isLoadingMoreVersions = false
-    private val currentVersionsPageMap = mutableMapOf<Int, Int>()
-    private val totalVersionsCountMap = mutableMapOf<Int, Int>()
-
-    private var currentUserId: Int? = null
-
     init {
+        // Data of one user must never be shown to another one.
         viewModelScope.launch {
-            userService.getUserFlowSafe().collect { user ->
-                val newUserId = user?.id
-                if (currentUserId != null && currentUserId != newUserId) {
-                    clearWorkCache()
-                }
-                currentUserId = newUserId
-            }
+            userService.getUserFlowSafe()
+                .map { it?.id }
+                .distinctUntilChanged()
+                .drop(1)
+                .collect { clearWorkCache() }
         }
 
         viewModelScope.launch {
             globalCacheManager.cacheCleanupEvents.collect { cacheCleanupEvent ->
-                val reason = cacheCleanupEvent.reason
-                clearWorkCache()
-                
-                if (reason != CacheCleanupReason.DATA_UPDATED) {
-                    popupMessageService.showMessage(
-                        "Cache cleared due to ${reason.name.lowercase()}", 
-                        PopupMessageService.MessageLevel.INFO
-                    )
+                if (cacheCleanupEvent.reason == CacheCleanupReason.DATA_UPDATED) {
+                    refreshShownWork()
                 } else {
-                    val currentState = _workDetailState.value
-                    if (currentState is WorkDetailState.Success) {
-                        val workId = currentState.work.id
-                        loadTasksForWork(workId, forceRefresh = true)
-                        loadVersionsForWork(workId, forceRefresh = true)
-                        loadEventsForWork(workId, forceRefresh = true)
-                        loadWorkMessages(workId, forceRefresh = true)
-                    }
+                    clearWorkCache()
                 }
             }
         }
     }
 
     fun loadWorkDetail(id: Int, type: String? = null, forceRefresh: Boolean = false) {
-        if (!forceRefresh && !hasLeftWorkListSection && cachedWorkDetails.containsKey(id)) {
-            val cachedWorkDetail = cachedWorkDetails[id]
-            if (cachedWorkDetail != null) {
-                _workDetailState.value = WorkDetailState.Success(cachedWorkDetail)
-                return
-            }
+        val cachedWorkDetail = cachedWorkDetails[id]
+        if (!forceRefresh && cachedWorkDetail != null) {
+            _workDetailState.value = WorkDetailState.Success(cachedWorkDetail)
+            return
         }
 
         viewModelScope.launch {
@@ -182,7 +138,6 @@ class WorkDetailViewModel(
                 result.fold(
                     onSuccess = { work ->
                         cachedWorkDetails = cachedWorkDetails + (id to work)
-
                         _workDetailState.value = WorkDetailState.Success(work)
                     },
                     onFailure = { error ->
@@ -204,94 +159,22 @@ class WorkDetailViewModel(
     }
 
     fun loadTasksForWork(workId: Int, forceRefresh: Boolean = false) {
-        if (!forceRefresh && cachedTasks.containsKey(workId)) {
-            val cachedTasksList = cachedTasks[workId]
-            if (cachedTasksList != null) {
-                val totalCount = totalTasksCountMap[workId] ?: 0
-                val hasMore = if (totalCount > 0) {
-                    cachedTasksList.size < totalCount
-                } else {
-                    val currentPage = currentTasksPageMap[workId] ?: 1
-                    cachedTasksList.size >= tasksPageSize * currentPage
-                }
-                _tasksState.value = TasksState.Success(cachedTasksList, hasMore, false, totalCount)
-                return
-            }
-        }
-
-        viewModelScope.launch {
-            _tasksState.value = TasksState.Loading
-            currentTasksPageMap[workId] = 1
-
-            getTasksForWorkUseCase(workId, 1, tasksPageSize).collect { result ->
-                result.fold(
-                    onSuccess = { paginatedTasks ->
-                        val tasks = paginatedTasks.tasks
-                        totalTasksCountMap[workId] = paginatedTasks.totalCount
-                        val hasMore = tasks.size < paginatedTasks.totalCount
-
-                        cachedTasks = cachedTasks + (workId to tasks)
-
-                        _tasksState.value = TasksState.Success(tasks, hasMore, false, paginatedTasks.totalCount)
-                    },
-                    onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        _tasksState.value = TasksState.Error(errorMessage)
-                        if (!error.isNotFound()) {
-                            popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
-                        }
-                    }
-                )
-            }
-        }
+        pagedTasks.loadOrRefresh(workId, forceRefresh)
     }
 
-    fun loadMoreTasks(workId: Int) {
-        val currentState = _tasksState.value
-        if (currentState !is TasksState.Success || !currentState.hasMoreTasks || isLoadingMoreTasks || currentState.isLoadingMore) {
-            return
-        }
+    fun loadVersionsForWork(workId: Int, forceRefresh: Boolean = false) {
+        pagedVersions.loadOrRefresh(workId, forceRefresh)
+    }
 
-        isLoadingMoreTasks = true
-        _tasksState.value = currentState.copy(isLoadingMore = true)
-
-        viewModelScope.launch {
-            val currentPage = currentTasksPageMap[workId] ?: 1
-            val nextPage = currentPage + 1
-            currentTasksPageMap[workId] = nextPage
-
-            getTasksForWorkUseCase(workId, nextPage, tasksPageSize).collect { result ->
-                isLoadingMoreTasks = false
-                result.fold(
-                    onSuccess = { paginatedTasks ->
-                        val newTasks = paginatedTasks.tasks
-                        val currentTasks = currentState.tasks
-                        val updatedTasks = currentTasks + newTasks
-                        totalTasksCountMap[workId] = paginatedTasks.totalCount
-                        val hasMore = updatedTasks.size < paginatedTasks.totalCount
-
-                        cachedTasks = cachedTasks + (workId to updatedTasks)
-
-                        _tasksState.value = TasksState.Success(updatedTasks, hasMore, false, paginatedTasks.totalCount)
-                    },
-                    onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        currentTasksPageMap[workId] = currentPage
-                        _tasksState.value = currentState.copy(isLoadingMore = false)
-                        popupMessageService.showMessage("Failed to load more tasks: $errorMessage", PopupMessageService.MessageLevel.ERROR)
-                    }
-                )
-            }
-        }
+    fun loadWorkMessages(workId: Int, forceRefresh: Boolean = false) {
+        pagedMessages.loadOrRefresh(workId, forceRefresh)
     }
 
     fun loadEventsForWork(workId: Int, forceRefresh: Boolean = false) {
-        if (!forceRefresh && cachedEvents.containsKey(workId)) {
-            val cachedEventsList = cachedEvents[workId]
-            if (cachedEventsList != null) {
-                _eventsState.value = EventsState.Success(cachedEventsList)
-                return
-            }
+        val cachedEventsList = cachedEvents[workId]
+        if (!forceRefresh && cachedEventsList != null) {
+            _eventsState.value = EventsState.Success(cachedEventsList)
+            return
         }
 
         viewModelScope.launch {
@@ -315,187 +198,21 @@ class WorkDetailViewModel(
         }
     }
 
-    fun loadVersionsForWork(workId: Int, forceRefresh: Boolean = false) {
-        if (!forceRefresh && cachedVersions.containsKey(workId)) {
-            val cachedVersionsList = cachedVersions[workId]
-            if (cachedVersionsList != null) {
-                val totalCount = totalVersionsCountMap[workId] ?: 0
-                val hasMore = if (totalCount > 0) {
-                    cachedVersionsList.size < totalCount
-                } else {
-                    val currentPage = currentVersionsPageMap[workId] ?: 1
-                    cachedVersionsList.size >= versionsPageSize * currentPage
-                }
-                _versionsState.value = VersionsState.Success(cachedVersionsList, hasMore, false, totalCount)
-                return
-            }
-        }
-
-        viewModelScope.launch {
-            _versionsState.value = VersionsState.Loading
-            currentVersionsPageMap[workId] = 1
-
-            getVersionsForWorkWithPaginationUseCase(workId, 1, versionsPageSize).collect { result ->
-                result.fold(
-                    onSuccess = { paginatedVersions ->
-                        val versions = paginatedVersions.versions
-                        totalVersionsCountMap[workId] = paginatedVersions.totalCount
-                        val hasMore = versions.size < paginatedVersions.totalCount
-
-                        cachedVersions = cachedVersions + (workId to versions)
-
-                        _versionsState.value = VersionsState.Success(versions, hasMore, false, paginatedVersions.totalCount)
-                    },
-                    onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        _versionsState.value = VersionsState.Error(errorMessage)
-                        if (!error.isNotFound()) {
-                            popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
-                        }
-                    }
-                )
-            }
-        }
-    }
-
-    fun loadMoreVersions(workId: Int) {
-        val currentState = _versionsState.value
-        if (currentState !is VersionsState.Success || !currentState.hasMoreVersions || isLoadingMoreVersions || currentState.isLoadingMore) {
-            return
-        }
-
-        isLoadingMoreVersions = true
-        _versionsState.value = currentState.copy(isLoadingMore = true)
-
-        viewModelScope.launch {
-            val currentPage = currentVersionsPageMap[workId] ?: 1
-            val nextPage = currentPage + 1
-            currentVersionsPageMap[workId] = nextPage
-
-            getVersionsForWorkWithPaginationUseCase(workId, nextPage, versionsPageSize).collect { result ->
-                isLoadingMoreVersions = false
-                result.fold(
-                    onSuccess = { paginatedVersions ->
-                        val newVersions = paginatedVersions.versions
-                        val currentVersions = currentState.versions
-                        val updatedVersions = currentVersions + newVersions
-                        totalVersionsCountMap[workId] = paginatedVersions.totalCount
-                        val hasMore = updatedVersions.size < paginatedVersions.totalCount
-
-                        cachedVersions = cachedVersions + (workId to updatedVersions)
-
-                        _versionsState.value = VersionsState.Success(updatedVersions, hasMore, false, paginatedVersions.totalCount)
-                    },
-                    onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        currentVersionsPageMap[workId] = currentPage
-                        _versionsState.value = currentState.copy(isLoadingMore = false)
-                        popupMessageService.showMessage("Failed to load more versions: $errorMessage", PopupMessageService.MessageLevel.ERROR)
-                    }
-                )
-            }
-        }
-    }
-
-    fun loadWorkMessages(workId: Int, forceRefresh: Boolean = false) {
-        if (!forceRefresh && cachedWorkMessages.containsKey(workId)) {
-            val cachedMessagesList = cachedWorkMessages[workId]
-            if (cachedMessagesList != null) {
-                val totalCount = totalMessagesCountMap[workId] ?: 0
-                val hasMore = if (totalCount > 0) {
-                    cachedMessagesList.size < totalCount
-                } else {
-                    val currentPage = currentMessagesPageMap[workId] ?: 1
-                    cachedMessagesList.size >= messagesPageSize * currentPage
-                }
-                _workMessagesState.value = WorkMessagesState.Success(cachedMessagesList, hasMore, false)
-                return
-            }
-        }
-
-        viewModelScope.launch {
-            _workMessagesState.value = WorkMessagesState.Loading
-            currentMessagesPageMap[workId] = 1
-
-            getWorkConversationMessagesUseCase(workId, 1, messagesPageSize).collect { result ->
-                result.fold(
-                    onSuccess = { messagesResponse ->
-                        val messages = messagesResponse.result
-                        totalMessagesCountMap[workId] = messagesResponse.totalCount
-                        val hasMore = messages.size < messagesResponse.totalCount
-
-                        cachedWorkMessages = cachedWorkMessages + (workId to messages)
-
-                        _workMessagesState.value = WorkMessagesState.Success(messages, hasMore, false)
-                    },
-                    onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        _workMessagesState.value = WorkMessagesState.Error(errorMessage)
-                        if (!error.isNotFound()) {
-                            popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
-                        }
-                    }
-                )
-            }
-        }
-    }
-
-    fun loadMoreWorkMessages(workId: Int) {
-        val currentState = _workMessagesState.value
-        if (currentState !is WorkMessagesState.Success || !currentState.hasMoreMessages || isLoadingMoreMessages || currentState.isLoadingMore) {
-            return
-        }
-
-        isLoadingMoreMessages = true
-        _workMessagesState.value = currentState.copy(isLoadingMore = true)
-
-        viewModelScope.launch {
-            val currentPage = currentMessagesPageMap[workId] ?: 1
-            val nextPage = currentPage + 1
-            currentMessagesPageMap[workId] = nextPage
-
-            getWorkConversationMessagesUseCase(workId, nextPage, messagesPageSize).collect { result ->
-                isLoadingMoreMessages = false
-                result.fold(
-                    onSuccess = { messagesResponse ->
-                        val newMessages = messagesResponse.result
-                        val currentMessages = currentState.messages
-                        val updatedMessages = currentMessages + newMessages
-                        totalMessagesCountMap[workId] = messagesResponse.totalCount
-                        val hasMore = updatedMessages.size < messagesResponse.totalCount
-
-                        cachedWorkMessages = cachedWorkMessages + (workId to updatedMessages)
-
-                        _workMessagesState.value = WorkMessagesState.Success(updatedMessages, hasMore, false)
-                    },
-                    onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        currentMessagesPageMap[workId] = currentPage
-                        _workMessagesState.value = currentState.copy(isLoadingMore = false)
-                        popupMessageService.showMessage("Failed to load more messages: $errorMessage", PopupMessageService.MessageLevel.ERROR)
-                    }
-                )
-            }
-        }
-    }
-
     fun loadConversationWork(workId: Int, forceRefresh: Boolean = false) {
         if (!forceRefresh && cachedConversationWork.containsKey(workId)) {
-            val cachedData = cachedConversationWork[workId]
-            _conversationWorkState.value = ConversationWorkState.Success(cachedData)
+            _conversationWorkState.value = ConversationWorkState.Success(cachedConversationWork[workId])
             return
         }
 
         viewModelScope.launch {
             _conversationWorkState.value = ConversationWorkState.Loading
 
-            val result = getConversationWorkUseCase(workId).first()
-            result.fold(
-                onSuccess = { conversationWork: ConversationWorkResponse? ->
+            getConversationWorkUseCase(workId).first().fold(
+                onSuccess = { conversationWork ->
                     cachedConversationWork = cachedConversationWork + (workId to conversationWork)
                     _conversationWorkState.value = ConversationWorkState.Success(conversationWork)
                 },
-                onFailure = { error: Throwable ->
+                onFailure = { error ->
                     val errorMessage = error.message ?: "Unknown error"
                     _conversationWorkState.value = ConversationWorkState.Error(errorMessage)
                 }
@@ -505,10 +222,32 @@ class WorkDetailViewModel(
 
     fun clearWorkCache() {
         cachedWorkDetails = mapOf()
-        cachedTasks = mapOf()
-        cachedVersions = mapOf()
         cachedEvents = mapOf()
-        cachedWorkMessages = mapOf()
         cachedConversationWork = mapOf()
+        pagedTasks.reset()
+        pagedVersions.reset()
+        pagedMessages.reset()
+    }
+
+    /** Something was created or changed: reload the tabs of the work that is shown. */
+    private fun refreshShownWork() {
+        val currentState = _workDetailState.value
+        if (currentState is WorkDetailState.Success) {
+            val workId = currentState.work.id
+            loadTasksForWork(workId, forceRefresh = true)
+            loadVersionsForWork(workId, forceRefresh = true)
+            loadEventsForWork(workId, forceRefresh = true)
+            loadWorkMessages(workId, forceRefresh = true)
+        }
+    }
+
+    private fun <T : Any> PagedList<Int, T>.loadOrRefresh(workId: Int, forceRefresh: Boolean) {
+        if (forceRefresh) reload(workId) else load(workId)
+    }
+
+    private companion object {
+        const val TASKS_PAGE_SIZE = 15
+        const val VERSIONS_PAGE_SIZE = 20
+        const val MESSAGES_PAGE_SIZE = 20
     }
 }

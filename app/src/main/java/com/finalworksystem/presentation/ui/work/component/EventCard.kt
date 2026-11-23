@@ -1,5 +1,6 @@
 package com.finalworksystem.presentation.ui.work.component
 
+import com.finalworksystem.ui.theme.AppIcons
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,22 +9,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.finalworksystem.domain.common.util.DateUtils
 import com.finalworksystem.domain.event.model.Event
 import com.finalworksystem.presentation.ui.component.BaseCard
+import com.finalworksystem.ui.designsystem.AppIcon
+import com.finalworksystem.ui.designsystem.AppIconBadge
+import com.finalworksystem.ui.designsystem.AppTag
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.theme.AppTheme
 
 @Composable
 fun EventCard(
@@ -36,112 +36,86 @@ fun EventCard(
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = event.name ?: event.type.name,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
-                )
-
-                Icon(
-                    imageVector = Icons.Default.Info,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                AppIconBadge(icon = AppIcons.CalendarToday, size = 40)
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    AppText(
+                        text = event.name ?: event.type.name,
+                        style = AppTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = AppTheme.colors.onSurface,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (event.name != null) {
+                        AppText(
+                            text = event.type.name,
+                            style = AppTheme.typography.labelMedium,
+                            color = AppTheme.colors.onSurfaceVariant
+                        )
+                    }
+                }
             }
 
             event.participant?.let { participant ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "${participant.user.firstname} ${participant.user.lastname}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                EventMetaRow(
+                    icon = AppIcons.Person,
+                    text = "${participant.user.firstname} ${participant.user.lastname}"
+                )
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "${DateUtils.formatToReadableDateTime(event.start)} - ${DateUtils.formatToReadableDateTime(event.end)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            EventMetaRow(
+                icon = AppIcons.DateRange,
+                text = "${DateUtils.formatToReadableDateTime(event.start)} - ${DateUtils.formatToReadableDateTime(event.end)}"
+            )
 
             event.address?.let { address ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = buildString {
-                            address.name?.let { append(it) }
-                            address.street?.let { street ->
-                                if (isNotEmpty()) append(", ")
-                                append(street)
-                            }
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                EventMetaRow(
+                    icon = AppIcons.LocationOn,
+                    text = buildString {
+                        address.name?.let { append(it) }
+                        address.street?.let { street ->
+                            if (isNotEmpty()) append(", ")
+                            append(street)
+                        }
+                    }
+                )
             }
 
             event.comment?.takeIf { it.isNotEmpty() }?.let { comments ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "${comments.size} comment${if (comments.size != 1) "s" else ""}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                AppTag(
+                    text = androidx.compose.ui.res.pluralStringResource(com.finalworksystem.R.plurals.comments_count, comments.size, comments.size),
+                    color = AppTheme.colors.secondary,
+                    icon = AppIcons.Comment
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun EventMetaRow(icon: ImageVector, text: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AppIcon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+            tint = AppTheme.colors.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        AppText(
+            text = text,
+            style = AppTheme.typography.bodySmall,
+            color = AppTheme.colors.onSurfaceVariant
+        )
     }
 }

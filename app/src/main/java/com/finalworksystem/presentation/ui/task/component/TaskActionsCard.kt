@@ -2,28 +2,19 @@ package com.finalworksystem.presentation.ui.task.component
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.finalworksystem.R
 import com.finalworksystem.domain.task.model.Task
 import com.finalworksystem.presentation.ui.component.BaseCard
+import com.finalworksystem.ui.designsystem.AppButton
+import com.finalworksystem.ui.designsystem.AppButtonVariant
+import com.finalworksystem.ui.designsystem.AppSectionHeader
+import com.finalworksystem.ui.theme.AppIcons
 
 @Composable
 fun TaskActionsCard(
@@ -44,78 +35,50 @@ fun TaskActionsCard(
             modifier = modifier.fillMaxWidth()
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text(
-                    text = stringResource(R.string.actions),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
+                AppSectionHeader(
+                    title = stringResource(R.string.actions),
+                    icon = AppIcons.Edit
                 )
 
                 if (isSupervisor && isOwner) {
-                    OutlinedButton(
+                    AppButton(
+                        text = stringResource(R.string.change_status),
                         onClick = onChangeStatusClick,
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = !isChangingStatus
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.change_status))
-                    }
+                        variant = AppButtonVariant.Outline,
+                        leadingIcon = AppIcons.Edit,
+                        enabled = !isChangingStatus,
+                        loading = isChangingStatus
+                    )
 
-                    OutlinedButton(
+                    AppButton(
+                        text = if (isDeletingTask) stringResource(R.string.deleting) else stringResource(R.string.delete_task),
                         onClick = onDeleteTaskClick,
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = !isDeletingTask && !isChangingStatus
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        if (isDeletingTask) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.deleting))
-                        } else {
-                            Text(stringResource(R.string.delete_task))
-                        }
-                    }
+                        variant = AppButtonVariant.DangerSoft,
+                        leadingIcon = AppIcons.Delete,
+                        enabled = !isDeletingTask && !isChangingStatus,
+                        loading = isDeletingTask
+                    )
                 }
 
                 if (isStudent) {
-                    OutlinedButton(
+                    AppButton(
+                        text = when {
+                            isNotifyingComplete -> stringResource(R.string.notifying)
+                            task.notifyComplete -> stringResource(R.string.already_notified)
+                            else -> stringResource(R.string.notify_complete)
+                        },
                         onClick = onNotifyCompleteClick,
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = !isNotifyingComplete && !task.notifyComplete
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        if (isNotifyingComplete) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.notifying))
-                        } else {
-                            Text(if (task.notifyComplete) stringResource(R.string.already_notified) else stringResource(R.string.notify_complete))
-                        }
-                    }
+                        variant = if (task.notifyComplete) AppButtonVariant.Outline else AppButtonVariant.Primary,
+                        leadingIcon = AppIcons.CheckCircle,
+                        enabled = !isNotifyingComplete && !task.notifyComplete,
+                        loading = isNotifyingComplete
+                    )
                 }
             }
         }

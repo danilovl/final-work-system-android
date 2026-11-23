@@ -2,8 +2,8 @@ package com.finalworksystem
 
 import com.finalworksystem.data.event.model.response.EventListResponse
 import com.finalworksystem.data.event.model.response.EventResponse
-import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
+import com.finalworksystem.infrastructure.api.serialization.ApiJson
+import kotlinx.serialization.SerializationException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.fail
@@ -15,14 +15,13 @@ class EventDtoParsingTest {
     fun testEventDtoParsingWithAddress() {
         println("[DEBUG_LOG] Testing EventDto parsing with address field")
 
-        val gson = Gson()
 
         val eventJson = """{"id":147,"name":null,"start":"2025-05-30T08:30:00+02:00","end":"2025-05-30T13:00:00+02:00","type":{"id":1,"name":"Konzultace","description":null,"color":"#3b91ad","registrable":true},"owner":{"id":36,"username":"pecinovr","firstname":"Rudolf","lastname":"Pecinovský","email":"rudolf@pecinovsky.cz","degreeBefore":"Ing., CSc.","degreeAfter":null,"roles":["ROLE_SUPERVISOR","ROLE_USER"]},"address":{"id":1,"name":"JM 371","description":null,"street":"Chemická 951, 148 00 Praha-Kunratice, Česko","skype":false,"latitude":50.0205889,"longitude":14.4936111,"owner":{"id":36,"username":"pecinovr","firstname":"Rudolf","lastname":"Pecinovský","email":"rudolf@pecinovsky.cz","degreeBefore":"Ing., CSc.","degreeAfter":null,"roles":["ROLE_SUPERVISOR","ROLE_USER"]}}}"""
 
         println("[DEBUG_LOG] JSON length: ${eventJson.length}")
 
         try {
-            val eventDto = gson.fromJson(eventJson, EventResponse::class.java)
+            val eventDto = ApiJson.decodeFromString<EventResponse>(eventJson)
 
             assertNotNull(eventDto)
             assertEquals(147, eventDto.id)
@@ -57,8 +56,8 @@ class EventDtoParsingTest {
             println("[DEBUG_LOG] Event ID: ${eventDto.id}")
             println("[DEBUG_LOG] Address: ${eventDto.address!!.name} - ${eventDto.address!!.street}")
 
-        } catch (e: JsonSyntaxException) {
-            println("[DEBUG_LOG] JsonSyntaxException occurred: ${e.message}")
+        } catch (e: SerializationException) {
+            println("[DEBUG_LOG] SerializationException occurred: ${e.message}")
             e.printStackTrace()
             fail("JSON parsing should not fail with valid JSON: ${e.message}")
         } catch (e: Exception) {
@@ -72,14 +71,13 @@ class EventDtoParsingTest {
     fun testEventListResponseDtoParsingWithAddress() {
         println("[DEBUG_LOG] Testing EventListResponseDto parsing with address field")
 
-        val gson = Gson()
 
         val responseJson = """{"count":2,"totalCount":10,"success":true,"result":[{"id":147,"name":null,"start":"2025-05-30T08:30:00+02:00","end":"2025-05-30T13:00:00+02:00","type":{"id":1,"name":"Konzultace","description":null,"color":"#3b91ad","registrable":true},"owner":{"id":36,"username":"pecinovr","firstname":"Rudolf","lastname":"Pecinovský","email":"rudolf@pecinovsky.cz","degreeBefore":"Ing., CSc.","degreeAfter":null,"fullName":"Rudolf Pecinovský","token":null,"roles":[]},"address":{"id":1,"name":"JM 371","description":null,"street":"Chemická 951, 148 00 Praha-Kunratice, Česko","skype":false,"latitude":50.0205889,"longitude":14.4936111,"owner":{"id":36,"username":"pecinovr","firstname":"Rudolf","lastname":"Pecinovský","email":"rudolf@pecinovsky.cz","degreeBefore":"Ing., CSc.","degreeAfter":null,"fullName":"Rudolf Pecinovský","token":null,"roles":[]}},"comment":null,"participant":{"id":1,"firstName":"Test","secondName":"User","email":"test@example.com","user":{"id":1,"username":"testuser","firstname":"Test","lastname":"User","fullName":"Test User","degreeBefore":null,"degreeAfter":null,"email":"test@example.com","token":null,"roles":[]},"work":{"id":1,"title":"Test Work","type":{"id":1,"name":"Bachelor","description":null},"status":{"id":1,"name":"Active","description":null},"deadline":"2025-12-31","deadlineProgram":null,"author":{"id":1,"username":"testuser","firstname":"Test","lastname":"User","fullName":"Test User","degreeBefore":null,"degreeAfter":null,"email":"test@example.com","token":null,"roles":[]},"supervisor":{"id":36,"username":"pecinovr","firstname":"Rudolf","lastname":"Pecinovský","email":"rudolf@pecinovsky.cz","degreeBefore":"Ing., CSc.","degreeAfter":null,"fullName":"Rudolf Pecinovský","token":null,"roles":[]},"opponent":null,"consultant":null}}},{"id":132,"name":null,"start":"2019-10-25T17:00:00+02:00","end":"2019-10-25T19:30:00+02:00","type":{"id":1,"name":"Konzultace","description":null,"color":"#3b91ad","registrable":true},"owner":{"id":36,"username":"pecinovr","firstname":"Rudolf","lastname":"Pecinovský","email":"rudolf@pecinovsky.cz","degreeBefore":"Ing., CSc.","degreeAfter":null,"fullName":"Rudolf Pecinovský","token":null,"roles":[]},"address":{"id":1,"name":"JM 371","description":null,"street":"Chemická 951, 148 00 Praha-Kunratice, Česko","skype":false,"latitude":50.0205889,"longitude":14.4936111,"owner":{"id":36,"username":"pecinovr","firstname":"Rudolf","lastname":"Pecinovský","email":"rudolf@pecinovsky.cz","degreeBefore":"Ing., CSc.","degreeAfter":null,"fullName":"Rudolf Pecinovský","token":null,"roles":[]}},"comment":null,"participant":{"id":1,"firstName":"Test","secondName":"User","email":"test@example.com","user":{"id":1,"username":"testuser","firstname":"Test","lastname":"User","fullName":"Test User","degreeBefore":null,"degreeAfter":null,"email":"test@example.com","token":null,"roles":[]},"work":{"id":1,"title":"Test Work","type":{"id":1,"name":"Bachelor","description":null},"status":{"id":1,"name":"Active","description":null},"deadline":"2025-12-31","deadlineProgram":null,"author":{"id":1,"username":"testuser","firstname":"Test","lastname":"User","fullName":"Test User","degreeBefore":null,"degreeAfter":null,"email":"test@example.com","token":null,"roles":[]},"supervisor":{"id":36,"username":"pecinovr","firstname":"Rudolf","lastname":"Pecinovský","email":"rudolf@pecinovsky.cz","degreeBefore":"Ing., CSc.","degreeAfter":null,"fullName":"Rudolf Pecinovský","token":null,"roles":[]},"opponent":null,"consultant":null}}}]}"""
 
         println("[DEBUG_LOG] JSON length: ${responseJson.length}")
 
         try {
-            val responseDto = gson.fromJson(responseJson, EventListResponse::class.java)
+            val responseDto = ApiJson.decodeFromString<EventListResponse>(responseJson)
 
             assertNotNull(responseDto)
             assertEquals(2, responseDto.count)
@@ -103,8 +101,8 @@ class EventDtoParsingTest {
             println("[DEBUG_LOG] Event count: ${responseDto.count}")
             println("[DEBUG_LOG] First event address: ${firstEvent.address!!.name}")
 
-        } catch (e: JsonSyntaxException) {
-            println("[DEBUG_LOG] JsonSyntaxException occurred: ${e.message}")
+        } catch (e: SerializationException) {
+            println("[DEBUG_LOG] SerializationException occurred: ${e.message}")
             e.printStackTrace()
             fail("JSON parsing should not fail with valid JSON: ${e.message}")
         } catch (e: Exception) {

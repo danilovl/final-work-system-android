@@ -1,44 +1,50 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.event.model.response
 
 import com.finalworksystem.data.conversation.model.response.WorkStatusDto
 import com.finalworksystem.data.conversation.model.response.WorkTypeDto
 import com.finalworksystem.data.event.model.Work
 import com.finalworksystem.data.event.model.toDataModel
-import com.google.gson.annotations.SerializedName
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class WorkResponse(
-    @SerializedName("id")
-    val id: Int,
+    @SerialName("id")
+    val id: Int = 0,
 
-    @SerializedName("title")
-    val title: String,
+    @SerialName("title")
+    val title: String = "",
 
-    @SerializedName("shortcut")
-    val shortcut: String?,
+    @SerialName("shortcut")
+    val shortcut: String? = null,
 
-    @SerializedName("type")
-    val type: WorkTypeDto,
+    @SerialName("type")
+    val type: WorkTypeDto = WorkTypeDto(),
+    @SerialName("status")
+    val status: WorkStatusDto = WorkStatusDto(),
+    @SerialName("deadline")
+    val deadline: String = "",
 
-    @SerializedName("status")
-    val status: WorkStatusDto,
+    @SerialName("deadlineProgram")
+    val deadlineProgram: String? = null,
 
-    @SerializedName("deadline")
-    val deadline: String,
+    @SerialName("author")
+    val author: UserResponse? = null,
 
-    @SerializedName("deadlineProgram")
-    val deadlineProgram: String?,
+    @SerialName("supervisor")
+    val supervisor: UserResponse? = null,
 
-    @SerializedName("author")
-    val author: UserResponse?,
+    @SerialName("opponent")
+    val opponent: UserResponse? = null,
 
-    @SerializedName("supervisor")
-    val supervisor: UserResponse?,
-
-    @SerializedName("opponent")
-    val opponent: UserResponse?,
-
-    @SerializedName("consultant")
-    val consultant: UserResponse?
+    @SerialName("consultant")
+    val consultant: UserResponse? = null
 )
 
 fun WorkResponse.toDataModel(): Work {

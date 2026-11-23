@@ -1,32 +1,40 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.event.model.response
 
 import com.finalworksystem.data.event.model.EventAddress
-import com.google.gson.annotations.SerializedName
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class EventAddressResponse(
-    @SerializedName("id")
-    val id: Int,
+    @SerialName("id")
+    val id: Int = 0,
 
-    @SerializedName("name")
-    val name: String?,
+    @SerialName("name")
+    val name: String? = null,
 
-    @SerializedName("description")
-    val description: String?,
+    @SerialName("description")
+    val description: String? = null,
 
-    @SerializedName("street")
-    val street: String?,
+    @SerialName("street")
+    val street: String? = null,
 
-    @SerializedName("skype")
-    val skype: Boolean,
+    @SerialName("skype")
+    val skype: Boolean = false,
 
-    @SerializedName("latitude")
-    val latitude: Double?,
+    @SerialName("latitude")
+    val latitude: Double? = null,
 
-    @SerializedName("longitude")
-    val longitude: Double?,
+    @SerialName("longitude")
+    val longitude: Double? = null,
 
-    @SerializedName("owner")
-    val owner: UserResponse
+    @SerialName("owner")
+    val owner: UserResponse = UserResponse()
 )
 
 fun EventAddressResponse.toDataModel(): EventAddress {

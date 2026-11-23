@@ -1,26 +1,33 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.event.model.response
 
 import com.finalworksystem.data.event.model.Participant
-import com.google.gson.annotations.SerializedName
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class ParticipantResponse(
-    @SerializedName("id")
-    val id: Int?,
+    @SerialName("id")
+    val id: Int? = null,
 
-    @SerializedName("firstName")
-    val firstName: String?,
+    @SerialName("firstName")
+    val firstName: String? = null,
 
-    @SerializedName("secondName")
-    val secondName: String?,
+    @SerialName("secondName")
+    val secondName: String? = null,
 
-    @SerializedName("email")
-    val email: String?,
+    @SerialName("email")
+    val email: String? = null,
 
-    @SerializedName("user")
-    val user: UserResponse,
-
-    @SerializedName("work")
-    val work: WorkResponse?
+    @SerialName("user")
+    val user: UserResponse = UserResponse(),
+    @SerialName("work")
+    val work: WorkResponse? = null
 )
 
 fun ParticipantResponse.toDataModel(): Participant {

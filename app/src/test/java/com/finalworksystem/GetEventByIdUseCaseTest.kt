@@ -11,9 +11,9 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 
 class GetEventByIdUseCaseTest {
 
@@ -49,16 +49,16 @@ class GetEventByIdUseCaseTest {
             participant = null
         )
 
-        val mockRepository = mock(GetEventRepository::class.java)
-        `when`(mockRepository.getEvent(eventId)).thenReturn(flowOf(Result.success(expectedEvent)))
+        val mockRepository = mockk<GetEventRepository>()
+        every { mockRepository.getEvent(eventId) } returns flowOf(Result.success(expectedEvent))
 
         val useCase = GetEventByIdUseCase(mockRepository)
 
         val result = useCase(eventId).first()
 
-        assertTrue("[DEBUG_LOG] Result should be success", result.isSuccess)
-        assertEquals("[DEBUG_LOG] Event ID should match", eventId, result.getOrNull()?.id)
-        verify(mockRepository).getEvent(eventId)
+        assertTrue("Result should be success", result.isSuccess)
+        assertEquals("Event ID should match", eventId, result.getOrNull()?.id)
+        verify { mockRepository.getEvent(eventId) }
     }
 
     @Test
@@ -66,15 +66,15 @@ class GetEventByIdUseCaseTest {
         val eventId = 999
         val exception = Exception("Event not found")
 
-        val mockRepository = mock(GetEventRepository::class.java)
-        `when`(mockRepository.getEvent(eventId)).thenReturn(flowOf(Result.failure(exception)))
+        val mockRepository = mockk<GetEventRepository>()
+        every { mockRepository.getEvent(eventId) } returns flowOf(Result.failure(exception))
 
         val useCase = GetEventByIdUseCase(mockRepository)
 
         val result = useCase(eventId).first()
 
-        assertTrue("[DEBUG_LOG] Result should be failure", result.isFailure)
-        assertEquals("[DEBUG_LOG] Exception message should match", "Event not found", result.exceptionOrNull()?.message)
-        verify(mockRepository).getEvent(eventId)
+        assertTrue("Result should be failure", result.isFailure)
+        assertEquals("Exception message should match", "Event not found", result.exceptionOrNull()?.message)
+        verify { mockRepository.getEvent(eventId) }
     }
 }

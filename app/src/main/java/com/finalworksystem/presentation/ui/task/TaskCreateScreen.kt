@@ -1,29 +1,43 @@
 package com.finalworksystem.presentation.ui.task
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.finalworksystem.R
 import com.finalworksystem.presentation.ui.component.BaseTopAppBar
 import com.finalworksystem.presentation.ui.task.component.WorkSelectionDialog
 import com.finalworksystem.presentation.view_model.task.TaskCreateViewModel
-import java.time.Instant
-import java.time.ZoneId
+import com.finalworksystem.ui.designsystem.AppButton
+import com.finalworksystem.ui.designsystem.AppButtonVariant
+import com.finalworksystem.ui.designsystem.AppCard
+import com.finalworksystem.ui.designsystem.AppDatePickerDialog
+import com.finalworksystem.ui.designsystem.AppIcon
+import com.finalworksystem.ui.designsystem.AppScaffold
+import com.finalworksystem.ui.designsystem.AppSectionHeader
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.designsystem.AppTextField
+import com.finalworksystem.ui.designsystem.toUtcMillis
+import com.finalworksystem.ui.designsystem.utcMillisToLocalDate
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskCreateScreen(
     viewModel: TaskCreateViewModel,
@@ -31,13 +45,12 @@ fun TaskCreateScreen(
     onNavigateBack: () -> Unit,
     onTaskCreated: (Int) -> Unit
 ) {
-    val submissionState by viewModel.submissionState.collectAsState()
-    val workPickerState by viewModel.workPickerState.collectAsState()
+    val submissionState by viewModel.submissionState.collectAsStateWithLifecycle()
 
-    val name by viewModel.nameState.collectAsState()
-    val description by viewModel.descriptionState.collectAsState()
-    val deadline by viewModel.deadlineState.collectAsState()
-    val selectedWork by viewModel.selectedWork.collectAsState()
+    val name by viewModel.nameState.collectAsStateWithLifecycle()
+    val description by viewModel.descriptionState.collectAsStateWithLifecycle()
+    val deadline by viewModel.deadlineState.collectAsStateWithLifecycle()
+    val selectedWork by viewModel.selectedWork.collectAsStateWithLifecycle()
 
     var isWorkSelectionVisible by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
@@ -56,146 +69,128 @@ fun TaskCreateScreen(
         }
     }
 
-    Scaffold(
+    val isSubmitting = submissionState is TaskCreateViewModel.SubmissionState.Submitting
+
+    AppScaffold(
         topBar = {
             BaseTopAppBar(
                 title = stringResource(R.string.create_task),
                 onNavigateBack = onNavigateBack,
-                onReload = { viewModel.loadWorks() }
+                onReload = { viewModel.refreshWorks() }
             )
         }
     ) { paddingValues ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+            AppCard(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(16.dp)
             ) {
-                // Task Name
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { viewModel.nameState.value = it },
-                    label = { Text(stringResource(R.string.task_name)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    AppSectionHeader(
+                        title = stringResource(R.string.task_information),
+                        icon = AppIcons.Task
+                    )
 
-                // Description
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { viewModel.descriptionState.value = it },
-                    label = { Text(stringResource(R.string.description)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 3
-                )
+                    AppTextField(
+                        value = name,
+                        onValueChange = { viewModel.nameState.value = it },
+                        label = { AppText(stringResource(R.string.task_name)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
 
-                // Work Selection
-                OutlinedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { isWorkSelectionVisible = true },
-                    shape = RoundedCornerShape(4.dp),
-                    colors = CardDefaults.outlinedCardColors()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column {
-                            Text(
-                                text = stringResource(R.string.work_information),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.primary
+                    AppTextField(
+                        value = description,
+                        onValueChange = { viewModel.descriptionState.value = it },
+                        label = { AppText(stringResource(R.string.description)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3
+                    )
+
+                    AppTextField(
+                        value = selectedWork?.title ?: "",
+                        onValueChange = { },
+                        label = { AppText(stringResource(R.string.work_information)) },
+                        placeholder = { AppText(stringResource(R.string.select_work)) },
+                        leadingIcon = {
+                            AppIcon(
+                                imageVector = AppIcons.Work,
+                                contentDescription = null,
+                                tint = AppTheme.colors.onSurfaceVariant
                             )
-                            Text(
-                                text = selectedWork?.title ?: stringResource(R.string.select_work),
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = if (selectedWork != null) FontWeight.Bold else FontWeight.Normal
+                        },
+                        trailingIcon = {
+                            AppIcon(
+                                imageVector = AppIcons.ArrowDropDown,
+                                contentDescription = null,
+                                tint = AppTheme.colors.onSurfaceVariant
                             )
-                        }
-                        Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = null)
-                    }
-                }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        readOnly = true,
+                        singleLine = true,
+                        onClick = { isWorkSelectionVisible = true }
+                    )
 
-                // Deadline
-                OutlinedTextField(
-                    value = deadline,
-                    onValueChange = { },
-                    label = { Text(stringResource(R.string.deadline)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    readOnly = true,
-                    trailingIcon = {
-                        IconButton(onClick = { showDatePicker = true }) {
-                            Icon(imageVector = Icons.Default.DateRange, contentDescription = null)
-                        }
-                    }
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                Button(
-                    onClick = { viewModel.submitCreateTask() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    enabled = submissionState !is TaskCreateViewModel.SubmissionState.Submitting
-                ) {
-                    if (submissionState is TaskCreateViewModel.SubmissionState.Submitting) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(stringResource(R.string.create))
-                    }
+                    AppTextField(
+                        value = deadline,
+                        onValueChange = { },
+                        label = { AppText(stringResource(R.string.deadline)) },
+                        leadingIcon = {
+                            AppIcon(
+                                imageVector = AppIcons.DateRange,
+                                contentDescription = null,
+                                tint = AppTheme.colors.onSurfaceVariant
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        readOnly = true,
+                        singleLine = true,
+                        onClick = { showDatePicker = true }
+                    )
                 }
             }
 
-            if (showDatePicker) {
-                val datePickerState = rememberDatePickerState()
-                DatePickerDialog(
-                    onDismissRequest = { showDatePicker = false },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            datePickerState.selectedDateMillis?.let { millis ->
-                                val date = Instant.ofEpochMilli(millis)
-                                    .atZone(ZoneId.systemDefault())
-                                    .toLocalDate()
-                                viewModel.deadlineState.value = date.format(DateTimeFormatter.ISO_LOCAL_DATE)
-                            }
-                            showDatePicker = false
-                        }) {
-                            Text(stringResource(R.string.ok))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showDatePicker = false }) {
-                            Text(stringResource(R.string.cancel))
-                        }
-                    }
-                ) {
-                    DatePicker(state = datePickerState)
-                }
-            }
+            AppButton(
+                text = stringResource(R.string.create),
+                onClick = { viewModel.submitCreateTask() },
+                modifier = Modifier.fillMaxWidth(),
+                variant = AppButtonVariant.Primary,
+                leadingIcon = AppIcons.Add,
+                loading = isSubmitting,
+                enabled = !isSubmitting
+            )
         }
+    }
+
+    if (showDatePicker) {
+        AppDatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            onDateSelected = { millis ->
+                millis?.let {
+                    viewModel.deadlineState.value =
+                        utcMillisToLocalDate(it).format(DateTimeFormatter.ISO_LOCAL_DATE)
+                }
+                showDatePicker = false
+            },
+            initialSelectedDateMillis = runCatching { LocalDate.parse(deadline).toUtcMillis() }.getOrNull(),
+            title = stringResource(R.string.deadline)
+        )
     }
 
     WorkSelectionDialog(
         isVisible = isWorkSelectionVisible,
         selectedWork = selectedWork,
-        pickerState = workPickerState,
-        onSearch = { viewModel.loadWorks(it) },
-        onLoadMore = { viewModel.loadMoreWorks() },
+        works = viewModel.works,
+        initialQuery = viewModel.workSearchQuery,
+        onSearch = { viewModel.searchWorks(it) },
         onWorkSelected = {
             viewModel.selectedWork.value = it
             isWorkSelectionVisible = false

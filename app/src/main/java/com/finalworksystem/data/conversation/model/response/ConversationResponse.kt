@@ -1,3 +1,5 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.conversation.model.response
 
 import com.finalworksystem.data.conversation.model.ConversationParticipantDto
@@ -5,28 +7,34 @@ import com.finalworksystem.data.conversation.model.ConversationUserDto
 import com.finalworksystem.data.conversation.model.ConversationWorkDto
 import com.finalworksystem.data.conversation.model.LastMessageDto
 import com.finalworksystem.data.conversation.model.toEntity
-import com.google.gson.annotations.SerializedName
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class ConversationResponse(
-    @SerializedName("id")
-    val id: Int,
+    @SerialName("id")
+    val id: Int = 0,
 
-    @SerializedName("name")
-    val name: String?,
+    @SerialName("name")
+    val name: String? = null,
 
-    @SerializedName("isRead")
-    val isRead: Boolean,
+    @SerialName("isRead")
+    val isRead: Boolean = false,
 
-    @SerializedName("recipient")
-    val recipient: ConversationUserDto?,
+    @SerialName("recipient")
+    val recipient: ConversationUserDto? = null,
 
-    @SerializedName("work")
-    val work: ConversationWorkDto?,
+    @SerialName("work")
+    val work: ConversationWorkDto? = null,
 
-    @SerializedName("lastMessage")
-    val lastMessage: LastMessageDto?,
+    @SerialName("lastMessage")
+    val lastMessage: LastMessageDto? = null,
 
-    @SerializedName("participants")
+    @SerialName("participants")
     val participants: List<ConversationParticipantDto>? = null
 )
 

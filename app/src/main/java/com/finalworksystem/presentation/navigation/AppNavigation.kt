@@ -1,12 +1,14 @@
 package com.finalworksystem.presentation.navigation
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.toRoute
 import com.finalworksystem.domain.user.model.UserRole
 import com.finalworksystem.infrastructure.network.NetworkConnectivityService
 import com.finalworksystem.infrastructure.popup.PopupMessageService
@@ -41,34 +43,6 @@ import com.finalworksystem.presentation.view_model.work.WorkListViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
-object AppRoutes {
-    const val LOGIN = "login"
-    const val HOME = "home"
-    const val USER_DETAIL = "user_detail"
-    const val USER_LIST = "user_list/{type}"
-    const val WORK_LIST = "work_list/{type}"
-    const val WORK_DETAIL = "work_detail/{workId}"
-    const val WORK_CREATE = "work_create"
-    const val TASK_LIST_OWNER = "task_list_owner"
-    const val TASK_LIST_SOLVER = "task_list_solver"
-    const val TASK_DETAIL = "task_detail/{workId}/{taskId}"
-    const val TASK_CREATE = "task_create/{workId}"
-    const val CONVERSATION_LIST = "conversation_list"
-    const val CONVERSATION_DETAIL = "conversation_detail/{conversationId}"
-    const val CALENDAR_RESERVATION = "calendar_reservation"
-    const val CALENDAR_MANAGE = "calendar_manage"
-    const val EVENT_DETAIL = "event_detail/{eventId}"
-    const val NO_CONNECTION = "no_connection"
-
-    fun workDetailRoute(workId: Int) = "work_detail/$workId"
-    fun eventDetailRoute(eventId: Int) = "event_detail/$eventId"
-    fun workListRoute(type: String) = "work_list/$type"
-    fun taskDetailRoute(workId: Int, taskId: Int) = "task_detail/$workId/$taskId"
-    fun taskCreateRoute(workId: Int = -1) = "task_create/$workId"
-    fun conversationDetailRoute(conversationId: Int) = "conversation_detail/$conversationId"
-    fun userListRoute(type: String) = "user_list/$type"
-}
-
 @Composable
 fun AppNavigation(
     navController: NavHostController = rememberNavController(),
@@ -81,16 +55,16 @@ fun AppNavigation(
     conversationListViewModel: ConversationListViewModel = koinViewModel(),
     conversationDetailViewModel: ConversationDetailViewModel = koinViewModel(),
     userViewModel: UserViewModel = koinViewModel(),
-    startDestination: String = AppRoutes.LOGIN
+    startDestination: AppRoute = AppRoute.Login
 ) {
     val networkConnectivityService = koinInject<NetworkConnectivityService>()
-    val actions = remember(navController) { AppActions(navController, workListViewModel, networkConnectivityService) }
+    val actions = remember(navController) { AppActions(navController, networkConnectivityService) }
 
     NavHost(
         navController = navController,
         startDestination = startDestination
     ) {
-        composable(AppRoutes.LOGIN) {
+        composable<AppRoute.Login> {
             val popupMessageService = koinInject<PopupMessageService>()
             LoginScreen(
                 authViewModel = authViewModel,
@@ -99,18 +73,18 @@ fun AppNavigation(
             )
         }
 
-        composable(AppRoutes.HOME) {
+        composable<AppRoute.Home> {
             HomeScreen(systemEventViewModel = systemEventViewModel)
         }
 
-        composable(AppRoutes.USER_DETAIL) {
+        composable<AppRoute.UserDetail> {
             UserDetailScreen(
                 onNavigateBack = actions.navigateBack
             )
         }
 
-        composable(AppRoutes.USER_LIST) { backStackEntry ->
-            val userType = backStackEntry.arguments?.getString("type") ?: ""
+        composable<AppRoute.UserList> { backStackEntry ->
+            val userType = backStackEntry.toRoute<AppRoute.UserList>().type
             UserListScreen(
                 userType = userType,
                 userViewModel = userViewModel,
@@ -119,10 +93,10 @@ fun AppNavigation(
             )
         }
 
-        composable(AppRoutes.WORK_LIST) { backStackEntry ->
-            val workListType = backStackEntry.arguments?.getString("type") ?: "author"
+        composable<AppRoute.WorkList> { backStackEntry ->
+            val workListType = backStackEntry.toRoute<AppRoute.WorkList>().type
             val userService = koinInject<UserService>()
-            val currentUser = userService.getUserFlowSafe().collectAsState(initial = null).value
+            val currentUser = userService.getUserFlowSafe().collectAsStateWithLifecycle(initialValue = null).value
             val isSupervisor = currentUser?.roles?.contains(UserRole.SUPERVISOR.value) == true
             WorkListScreen(
                 workListType = workListType,
@@ -133,7 +107,7 @@ fun AppNavigation(
             )
         }
 
-        composable(AppRoutes.WORK_CREATE) {
+        composable<AppRoute.WorkCreate> {
             val workCreateViewModel: WorkCreateViewModel = koinViewModel()
             WorkCreateScreen(
                 viewModel = workCreateViewModel,
@@ -144,10 +118,10 @@ fun AppNavigation(
             )
         }
 
-        composable(AppRoutes.WORK_DETAIL) { backStackEntry ->
-            val workId = backStackEntry.arguments?.getString("workId")?.toIntOrNull() ?: 0
+        composable<AppRoute.WorkDetail> { backStackEntry ->
+            val workId = backStackEntry.toRoute<AppRoute.WorkDetail>().workId
             val userService = koinInject<UserService>()
-            val currentUser = userService.getUserFlowSafe().collectAsState(initial = null).value
+            val currentUser = userService.getUserFlowSafe().collectAsStateWithLifecycle(initialValue = null).value
             WorkDetailScreen(
                 workId = workId,
                 currentUserId = currentUser?.id ?: 0,
@@ -160,7 +134,7 @@ fun AppNavigation(
             )
         }
 
-        composable(AppRoutes.TASK_LIST_OWNER) {
+        composable<AppRoute.TaskListOwner> {
             TaskListOwnerScreen(
                 taskListViewModel = taskListViewModel,
                 onNavigateBack = actions.navigateBack,
@@ -169,7 +143,7 @@ fun AppNavigation(
             )
         }
 
-        composable(AppRoutes.TASK_LIST_SOLVER) {
+        composable<AppRoute.TaskListSolver> {
             TaskListSolverScreen(
                 taskListViewModel = taskListViewModel,
                 onNavigateBack = actions.navigateBack,
@@ -178,13 +152,12 @@ fun AppNavigation(
             )
         }
 
-        composable(AppRoutes.TASK_DETAIL) { backStackEntry ->
-            val workId = backStackEntry.arguments?.getString("workId")?.toIntOrNull() ?: 0
-            val taskId = backStackEntry.arguments?.getString("taskId")?.toIntOrNull() ?: 0
+        composable<AppRoute.TaskDetail> { backStackEntry ->
+            val (workId, taskId) = backStackEntry.toRoute<AppRoute.TaskDetail>()
             val userService = koinInject<UserService>()
-            val previousRoute = navController.previousBackStackEntry?.destination?.route
-            val isOwner = previousRoute?.contains("task_list_owner") == true || 
-                         previousRoute?.contains("work_detail") == true
+            val previousDestination = navController.previousBackStackEntry?.destination
+            val isOwner = previousDestination?.hasRoute<AppRoute.TaskListOwner>() == true ||
+                previousDestination?.hasRoute<AppRoute.WorkDetail>() == true
             TaskDetailScreen(
                 workId = workId,
                 taskId = taskId,
@@ -196,8 +169,8 @@ fun AppNavigation(
             )
         }
 
-        composable(AppRoutes.TASK_CREATE) { backStackEntry ->
-            val workId = backStackEntry.arguments?.getString("workId")?.toIntOrNull() ?: -1
+        composable<AppRoute.TaskCreate> { backStackEntry ->
+            val workId = backStackEntry.toRoute<AppRoute.TaskCreate>().workId
             val taskCreateViewModel: TaskCreateViewModel = koinViewModel()
             TaskCreateScreen(
                 viewModel = taskCreateViewModel,
@@ -209,7 +182,7 @@ fun AppNavigation(
             )
         }
 
-        composable(AppRoutes.CONVERSATION_LIST) {
+        composable<AppRoute.ConversationList> {
             val popupMessageService = koinInject<PopupMessageService>()
             ConversationListScreen(
                 conversationListViewModel = conversationListViewModel,
@@ -219,10 +192,10 @@ fun AppNavigation(
             )
         }
 
-        composable(AppRoutes.CONVERSATION_DETAIL) { backStackEntry ->
-            val conversationId = backStackEntry.arguments?.getString("conversationId")?.toIntOrNull() ?: 0
+        composable<AppRoute.ConversationDetail> { backStackEntry ->
+            val conversationId = backStackEntry.toRoute<AppRoute.ConversationDetail>().conversationId
             val userService = koinInject<UserService>()
-            val currentUser = userService.getUserFlowSafe().collectAsState(initial = null).value
+            val currentUser = userService.getUserFlowSafe().collectAsStateWithLifecycle(initialValue = null).value
             ConversationDetailScreen(
                 conversationId = conversationId,
                 currentUserId = currentUser?.id ?: 0,
@@ -232,7 +205,7 @@ fun AppNavigation(
             )
         }
 
-        composable(AppRoutes.CALENDAR_RESERVATION) {
+        composable<AppRoute.CalendarReservation> {
             CalendarScreen(
                 calendarType = "reservation",
                 onNavigateBack = actions.navigateBack,
@@ -240,7 +213,7 @@ fun AppNavigation(
             )
         }
 
-        composable(AppRoutes.CALENDAR_MANAGE) {
+        composable<AppRoute.CalendarManage> {
             CalendarScreen(
                 calendarType = "manage",
                 onNavigateBack = actions.navigateBack,
@@ -248,8 +221,8 @@ fun AppNavigation(
             )
         }
 
-        composable(AppRoutes.EVENT_DETAIL) { backStackEntry ->
-            val eventId = backStackEntry.arguments?.getString("eventId")?.toIntOrNull() ?: 0
+        composable<AppRoute.EventDetail> { backStackEntry ->
+            val eventId = backStackEntry.toRoute<AppRoute.EventDetail>().eventId
             EventDetailScreen(
                 eventId = eventId,
                 onNavigateBack = actions.navigateBack,
@@ -257,7 +230,7 @@ fun AppNavigation(
             )
         }
 
-        composable(AppRoutes.NO_CONNECTION) {
+        composable<AppRoute.NoConnection> {
             NoConnectionScreen(
                 onRetry = {
                     val isConnected = networkConnectivityService.checkInternetConnectivity()
@@ -272,81 +245,76 @@ fun AppNavigation(
 
 class AppActions(
     private val navController: NavHostController,
-    private val workListViewModel: WorkListViewModel,
     networkConnectivityService: NetworkConnectivityService
 ) {
     private val connectivityAwareNavController = ConnectivityAwareNavController(navController, networkConnectivityService)
-    
+
     val navigateToHome: () -> Unit = {
-        workListViewModel.markLeftWorkListSection()
-        connectivityAwareNavController.navigate(AppRoutes.HOME) {
-            popUpTo(AppRoutes.LOGIN) { inclusive = true }
+        connectivityAwareNavController.navigate(AppRoute.Home) {
+            popUpTo<AppRoute.Login> { inclusive = true }
         }
     }
 
     val navigateToLogin: () -> Unit = {
-        workListViewModel.markLeftWorkListSection()
-        navController.navigate(AppRoutes.LOGIN) {
-            popUpTo(AppRoutes.HOME) { inclusive = true }
+        navController.navigate(AppRoute.Login) {
+            popUpTo<AppRoute.Home> { inclusive = true }
         }
     }
 
     val navigateToUserDetail: () -> Unit = {
-        workListViewModel.markLeftWorkListSection()
-        connectivityAwareNavController.navigate(AppRoutes.USER_DETAIL)
+        connectivityAwareNavController.navigate(AppRoute.UserDetail)
     }
 
     val navigateToWorkList: (String) -> Unit = { type ->
-        workListViewModel.markEnteredWorkListSection()
-        connectivityAwareNavController.navigate(AppRoutes.workListRoute(type))
+        connectivityAwareNavController.navigate(AppRoute.WorkList(type))
     }
 
     val navigateToTaskListOwner: () -> Unit = {
-        connectivityAwareNavController.navigate(AppRoutes.TASK_LIST_OWNER)
+        connectivityAwareNavController.navigate(AppRoute.TaskListOwner)
     }
 
     val navigateToTaskListSolver: () -> Unit = {
-        connectivityAwareNavController.navigate(AppRoutes.TASK_LIST_SOLVER)
+        connectivityAwareNavController.navigate(AppRoute.TaskListSolver)
     }
 
     val navigateToConversationList: () -> Unit = {
-        connectivityAwareNavController.navigate(AppRoutes.CONVERSATION_LIST)
+        connectivityAwareNavController.navigate(AppRoute.ConversationList)
     }
 
     val navigateToUserList: (String) -> Unit = { type ->
-        connectivityAwareNavController.navigate(AppRoutes.userListRoute(type))
+        connectivityAwareNavController.navigate(AppRoute.UserList(type))
     }
 
     val navigateToWorkDetail: (Int) -> Unit = { workId ->
-        connectivityAwareNavController.navigate(AppRoutes.workDetailRoute(workId))
+        connectivityAwareNavController.navigate(AppRoute.WorkDetail(workId))
     }
 
     val navigateToWorkCreate: () -> Unit = {
-        connectivityAwareNavController.navigate(AppRoutes.WORK_CREATE)
+        connectivityAwareNavController.navigate(AppRoute.WorkCreate)
     }
 
     val navigateToTaskDetail: (Int, Int) -> Unit = { workId, taskId ->
-        connectivityAwareNavController.navigate(AppRoutes.taskDetailRoute(workId, taskId))
+        connectivityAwareNavController.navigate(AppRoute.TaskDetail(workId, taskId))
     }
 
     val navigateToTaskCreate: (Int) -> Unit = { workId ->
-        connectivityAwareNavController.navigate(AppRoutes.taskCreateRoute(workId))
+        connectivityAwareNavController.navigate(AppRoute.TaskCreate(workId))
     }
 
     val navigateToConversationDetail: (Int) -> Unit = { conversationId ->
-        connectivityAwareNavController.navigate(AppRoutes.conversationDetailRoute(conversationId))
+        connectivityAwareNavController.navigate(AppRoute.ConversationDetail(conversationId))
     }
 
     val navigateToCalendarReservation: () -> Unit = {
-        connectivityAwareNavController.navigate(AppRoutes.CALENDAR_RESERVATION)
+        connectivityAwareNavController.navigate(AppRoute.CalendarReservation)
     }
 
     val navigateToCalendarManage: () -> Unit = {
-        connectivityAwareNavController.navigate(AppRoutes.CALENDAR_MANAGE)
+        connectivityAwareNavController.navigate(AppRoute.CalendarManage)
     }
 
     val navigateToEventDetail: (Int) -> Unit = { eventId ->
-        connectivityAwareNavController.navigate(AppRoutes.eventDetailRoute(eventId))
+        connectivityAwareNavController.navigate(AppRoute.EventDetail(eventId))
     }
 
     val navigateBack: () -> Unit = {

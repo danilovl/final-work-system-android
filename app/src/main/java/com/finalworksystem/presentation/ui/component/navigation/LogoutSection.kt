@@ -1,33 +1,26 @@
 package com.finalworksystem.presentation.ui.component.navigation
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material3.DrawerState
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.res.stringResource
 import com.finalworksystem.R
+import com.finalworksystem.ui.designsystem.AppDrawerItem
+import com.finalworksystem.ui.designsystem.AppDrawerState
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
 import kotlinx.coroutines.launch
 
 @Composable
 fun LogoutSection(
-    drawerState: DrawerState,
+    drawerState: AppDrawerState,
     onLogout: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
 
-    NavigationDrawerItem(
-        label = { Text(stringResource(R.string.logout)) },
-        icon = { 
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                contentDescription = stringResource(R.string.logout)
-            )
-        },
-        selected = false,
+    AppDrawerItem(
+        label = stringResource(R.string.logout),
+        icon = AppIcons.ExitToApp,
+        tint = AppTheme.colors.error,
         onClick = {
             scope.launch {
                 drawerState.close()

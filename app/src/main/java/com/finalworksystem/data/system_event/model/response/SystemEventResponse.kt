@@ -1,35 +1,44 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.system_event.model.response
 
-import com.google.gson.annotations.SerializedName
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class SystemEvent(
-    @SerializedName("id")
-    val id: Int,
+    @SerialName("id")
+    val id: Int = 0,
 
-    @SerializedName("title")
-    val title: String,
+    @SerialName("title")
+    val title: String = "",
 
-    @SerializedName("owner")
-    val owner: String,
+    @SerialName("owner")
+    val owner: String = "",
 
-    @SerializedName("createdAt")
-    val createdAt: String,
+    @SerialName("createdAt")
+    val createdAt: String = "",
 
-    @SerializedName("viewed")
+    @SerialName("viewed")
     val viewed: Boolean = false
 )
 
+@Serializable
 data class SystemEventListResponse(
-    @SerializedName("count")
-    val count: Int,
+    @SerialName("count")
+    val count: Int = 0,
 
-    @SerializedName("totalCount")
-    val totalCount: Int,
+    @SerialName("totalCount")
+    val totalCount: Int = 0,
 
-    @SerializedName("success")
-    val success: Boolean,
+    @SerialName("success")
+    val success: Boolean = false,
 
-    @SerializedName("result")
-    val result: List<SystemEvent>
+    @SerialName("result")
+    val result: List<SystemEvent> = emptyList()
 )
 

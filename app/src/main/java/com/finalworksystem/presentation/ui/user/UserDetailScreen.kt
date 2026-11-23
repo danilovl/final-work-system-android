@@ -1,29 +1,23 @@
 package com.finalworksystem.presentation.ui.user
 
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.border
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,78 +25,97 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.finalworksystem.R
 import com.finalworksystem.domain.user.model.User
 import com.finalworksystem.domain.user.model.UserRole
+import com.finalworksystem.infrastructure.locale.AppLanguage
 import com.finalworksystem.infrastructure.popup.PopupMessageService
-import com.finalworksystem.infrastructure.session.SessionManager
 import com.finalworksystem.infrastructure.user.UserService
+import com.finalworksystem.presentation.ui.component.BackNavigationButton
+import com.finalworksystem.presentation.ui.user.component.ChangePasswordDialog
+import com.finalworksystem.presentation.ui.user.component.UserAvatar
+import com.finalworksystem.presentation.view_model.user.ChangePasswordViewModel
+import com.finalworksystem.ui.designsystem.AppButton
+import com.finalworksystem.ui.designsystem.AppButtonVariant
+import com.finalworksystem.ui.designsystem.AppCard
+import com.finalworksystem.ui.designsystem.AppDivider
+import com.finalworksystem.ui.designsystem.AppDropdownMenu
+import com.finalworksystem.ui.designsystem.AppDropdownMenuItem
+import com.finalworksystem.ui.designsystem.AppIconButton
+import com.finalworksystem.ui.designsystem.AppIconButtonVariant
+import com.finalworksystem.ui.designsystem.AppInfoRow
+import com.finalworksystem.ui.designsystem.AppLoadingState
+import com.finalworksystem.ui.designsystem.AppScaffold
+import com.finalworksystem.ui.designsystem.AppSectionHeader
+import com.finalworksystem.ui.designsystem.AppTag
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.designsystem.AppTopBar
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserDetailScreen(
     userService: UserService = koinInject(),
-    sessionManager: SessionManager = koinInject(),
     popupMessageService: PopupMessageService = koinInject(),
+    changePasswordViewModel: ChangePasswordViewModel = koinViewModel(),
     onNavigateBack: () -> Unit
 ) {
-    val user by userService.getUserFlow().collectAsState(initial = null)
+    // Safe flow: emits null after logout instead of throwing and crashing the screen.
+    val user by userService.getUserFlowSafe().collectAsStateWithLifecycle(initialValue = null)
     val scope = rememberCoroutineScope()
     var showLanguageMenu by remember { mutableStateOf(false) }
-    val context = androidx.compose.ui.platform.LocalContext.current
+    var showChangePassword by remember { mutableStateOf(false) }
+    val resources = androidx.compose.ui.platform.LocalResources.current
 
-    Scaffold(
+    AppScaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.user_profile)) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back)
-                        )
-                    }
-                },
+            AppTopBar(
+                title = stringResource(R.string.user_profile),
+                navigationIcon = { BackNavigationButton(onClick = onNavigateBack) },
                 actions = {
                     Box {
-                        IconButton(onClick = { showLanguageMenu = true }) {
-                            Icon(
-                                imageVector = Icons.Default.Language,
-                                contentDescription = stringResource(R.string.select_language)
-                            )
-                        }
-                        DropdownMenu(
+                        AppIconButton(
+                            icon = AppIcons.Language,
+                            contentDescription = stringResource(R.string.select_language),
+                            onClick = { showLanguageMenu = true },
+                            variant = AppIconButtonVariant.Tonal
+                        )
+                        AppDropdownMenu(
                             expanded = showLanguageMenu,
                             onDismissRequest = { showLanguageMenu = false }
                         ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.language_en)) },
+                            AppDropdownMenuItem(
+                                text = stringResource(R.string.language_en),
                                 onClick = {
                                     scope.launch {
-                                        sessionManager.saveLanguage("en")
+                                        AppLanguage.set("en")
                                         showLanguageMenu = false
 
                                         popupMessageService.showMessage(
-                                            context.getString(R.string.language_changed),
+                                            resources.getString(R.string.language_changed),
                                             PopupMessageService.MessageLevel.SUCCESS
                                         )
                                     }
                                 }
                             )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.language_ru)) },
+                            AppDropdownMenuItem(
+                                text = stringResource(R.string.language_ru),
                                 onClick = {
                                     scope.launch {
-                                        sessionManager.saveLanguage("ru")
+                                        AppLanguage.set("ru")
                                         showLanguageMenu = false
 
                                         popupMessageService.showMessage(
-                                            context.getString(R.string.language_changed),
+                                            resources.getString(R.string.language_changed),
                                             PopupMessageService.MessageLevel.SUCCESS
                                         )
                                     }
@@ -120,80 +133,172 @@ fun UserDetailScreen(
                 .padding(paddingValues)
         ) {
             user?.let { userInfo ->
-                UserDetailContent(user = userInfo)
-            } ?: run {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
+                UserDetailContent(
+                    user = userInfo,
+                    onChangePasswordClick = { showChangePassword = true }
                 )
+            } ?: run {
+                AppLoadingState()
             }
         }
     }
+
+    val changePasswordState by changePasswordViewModel.state.collectAsStateWithLifecycle()
+    LaunchedEffect(changePasswordState) {
+        if (changePasswordState == ChangePasswordViewModel.State.Success) {
+            showChangePassword = false
+            changePasswordViewModel.reset()
+        }
+    }
+
+    if (showChangePassword) {
+        ChangePasswordDialog(
+            state = changePasswordState,
+            onSubmit = changePasswordViewModel::changePassword,
+            onDismiss = {
+                showChangePassword = false
+                changePasswordViewModel.reset()
+            }
+        )
+    }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun UserDetailContent(user: User) {
+fun UserDetailContent(user: User, onChangePasswordClick: () -> Unit) {
+    val colors = AppTheme.colors
+    val fullName = user.fullName ?: "${user.firstname} ${user.lastname}"
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        UserInfoItem(stringResource(R.string.username), user.username)
-        UserInfoItem(stringResource(R.string.full_name), user.fullName ?: "${user.firstname} ${user.lastname}")
-        UserInfoItem(stringResource(R.string.email), user.email)
+        AppCard(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                UserAvatar(
+                    firstname = user.firstname,
+                    lastname = user.lastname,
+                    userId = user.id,
+                    modifier = Modifier
+                        .size(104.dp)
+                        .border(3.dp, colors.primary.copy(alpha = 0.25f), CircleShape)
+                )
 
-        if (!user.degreeBefore.isNullOrBlank()) {
-            UserInfoItem(stringResource(R.string.degree_before), user.degreeBefore)
-        }
+                Spacer(modifier = Modifier.height(16.dp))
 
-        if (!user.degreeAfter.isNullOrBlank()) {
-            UserInfoItem(stringResource(R.string.degree_after), user.degreeAfter)
-        }
+                AppText(
+                    text = fullName,
+                    style = AppTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center
+                )
 
-        Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-        Text(
-            text = stringResource(R.string.roles),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
+                AppText(
+                    text = "@${user.username}",
+                    style = AppTheme.typography.bodyMedium,
+                    color = colors.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
 
-        if (user.roles.isNotEmpty()) {
-            user.roles.forEach { role ->
-                val displayName = try {
-                    UserRole.getDisplayName(role)
-                } catch (_: Exception) {
-                    role
+                if (user.email.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    AppTag(text = user.email, color = colors.primary, icon = AppIcons.Email)
                 }
+            }
+        }
 
-                Text(
-                    text = "• $displayName",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(start = 8.dp)
+        val infoItems = buildList {
+            add(Triple(stringResource(R.string.username), user.username, AppIcons.Person))
+            add(Triple(stringResource(R.string.full_name), fullName, AppIcons.Person))
+            add(Triple(stringResource(R.string.email), user.email, AppIcons.Email))
+            if (!user.degreeBefore.isNullOrBlank()) {
+                add(Triple(stringResource(R.string.degree_before), user.degreeBefore, AppIcons.Article))
+            }
+            if (!user.degreeAfter.isNullOrBlank()) {
+                add(Triple(stringResource(R.string.degree_after), user.degreeAfter, AppIcons.Article))
+            }
+        }
+
+        AppCard(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(16.dp)) {
+            infoItems.forEachIndexed { index, (label, value, icon) ->
+                UserInfoItem(label, value, icon, showDivider = index < infoItems.lastIndex)
+            }
+        }
+
+        AppCard(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(16.dp)) {
+            AppSectionHeader(title = stringResource(R.string.roles), icon = AppIcons.Groups)
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (user.roles.isNotEmpty()) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    user.roles.forEach { role ->
+                        AppTag(text = roleDisplayName(role), color = colors.secondary, icon = AppIcons.CheckCircle)
+                    }
+                }
+            } else {
+                AppText(
+                    text = stringResource(R.string.no_roles_assigned),
+                    style = AppTheme.typography.bodyMedium,
+                    color = colors.onSurfaceVariant
                 )
             }
-        } else {
-            Text(
-                text = "• ${stringResource(R.string.no_roles_assigned)}",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(start = 8.dp)
+        }
+
+        AppCard(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(16.dp)) {
+            AppSectionHeader(title = stringResource(R.string.security), icon = AppIcons.Lock)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            AppText(
+                text = stringResource(R.string.change_password_description),
+                style = AppTheme.typography.bodyMedium,
+                color = colors.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            AppButton(
+                text = stringResource(R.string.change_password),
+                onClick = onChangePasswordClick,
+                variant = AppButtonVariant.Secondary,
+                leadingIcon = AppIcons.Lock,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
 }
 
+private fun roleDisplayName(role: String): String = try {
+    UserRole.getDisplayName(role)
+} catch (_: Exception) {
+    role
+}
+
 @Composable
-fun UserInfoItem(label: String, value: String) {
+fun UserInfoItem(
+    label: String,
+    value: String,
+    icon: ImageVector? = null,
+    showDivider: Boolean = true
+) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium
-        )
-        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+        AppInfoRow(label = label, value = value, icon = icon)
+        if (showDivider) {
+            AppDivider(modifier = Modifier.padding(vertical = 4.dp))
+        }
     }
 }

@@ -1,19 +1,19 @@
 package com.finalworksystem
 
 import com.finalworksystem.data.work.model.request.WorkCreateRequest
-import com.google.gson.Gson
+import com.finalworksystem.infrastructure.api.serialization.ApiJson
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class WorkCreateModelsTest {
 
-    private val gson = Gson()
-
     @Test
-    fun testWorkCreateRequest_serialization() {
-        println("[DEBUG_LOG] Testing WorkCreateRequest serialization")
-
+    fun `WorkCreateRequest is serialized with API field names`() {
         val request = WorkCreateRequest(
             title = "Test Final Work",
             shortcut = "TFW",
@@ -28,23 +28,35 @@ class WorkCreateModelsTest {
             consultantId = 40
         )
 
-        val json = gson.toJson(request)
+        val json = ApiJson.parseToJsonElement(ApiJson.encodeToString(request)).jsonObject
 
-        assertNotNull(json)
-        val jsonObject = gson.fromJson(json, Map::class.java)
+        assertEquals("Test Final Work", json["title"]!!.jsonPrimitive.content)
+        assertEquals("TFW", json["shortcut"]!!.jsonPrimitive.content)
+        assertEquals(1, json["typeId"]!!.jsonPrimitive.int)
+        assertEquals(2, json["statusId"]!!.jsonPrimitive.int)
+        assertEquals(listOf(1, 2), json["categoriesIds"]!!.jsonArray.map { it.jsonPrimitive.int })
+        assertEquals("2026-10-15", json["deadline"]!!.jsonPrimitive.content)
+        assertEquals("2026-10-01", json["deadlineProgram"]!!.jsonPrimitive.content)
+        assertEquals(10, json["authorId"]!!.jsonPrimitive.int)
+        assertEquals(20, json["supervisorId"]!!.jsonPrimitive.int)
+        assertEquals(30, json["opponentId"]!!.jsonPrimitive.int)
+        assertEquals(40, json["consultantId"]!!.jsonPrimitive.int)
+    }
 
-        assertEquals("Test Final Work", jsonObject["title"])
-        assertEquals("TFW", jsonObject["shortcut"])
-        assertEquals(1.0, jsonObject["typeId"])
-        assertEquals(2.0, jsonObject["statusId"])
-        assertEquals(listOf(1.0, 2.0), jsonObject["categoriesIds"])
-        assertEquals("2026-10-15", jsonObject["deadline"])
-        assertEquals("2026-10-01", jsonObject["deadlineProgram"])
-        assertEquals(10.0, jsonObject["authorId"])
-        assertEquals(20.0, jsonObject["supervisorId"])
-        assertEquals(30.0, jsonObject["opponentId"])
-        assertEquals(40.0, jsonObject["consultantId"])
+    @Test
+    fun `null optional fields are omitted from the request body`() {
+        val request = WorkCreateRequest(
+            title = "Minimal",
+            typeId = 1,
+            statusId = 1,
+            deadline = "2026-10-15"
+        )
 
-        println("[DEBUG_LOG] WorkCreateRequest serialization test passed successfully")
+        val json = ApiJson.parseToJsonElement(ApiJson.encodeToString(request)).jsonObject
+
+        assertEquals("Minimal", json["title"]!!.jsonPrimitive.content)
+        assertFalse(json.containsKey("shortcut"))
+        assertFalse(json.containsKey("authorId"))
+        assertFalse(json.containsKey("categoriesIds"))
     }
 }

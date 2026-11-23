@@ -1,38 +1,29 @@
 package com.finalworksystem.presentation.ui.user
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.finalworksystem.R
 import com.finalworksystem.domain.user.model.UserType
 import com.finalworksystem.presentation.ui.component.BaseTopAppBar
+import com.finalworksystem.presentation.ui.component.PagedLazyColumn
+import com.finalworksystem.presentation.ui.component.SearchModal
+import com.finalworksystem.presentation.ui.component.SearchResetFloatingActionButton
+import com.finalworksystem.presentation.ui.component.isRefreshing
 import com.finalworksystem.presentation.ui.user.component.UserWithWorksCard
 import com.finalworksystem.presentation.view_model.user.UserViewModel
+import com.finalworksystem.ui.designsystem.AppScaffold
 
 @Composable
 fun UserListScreen(
@@ -41,37 +32,15 @@ fun UserListScreen(
     onNavigateBack: () -> Unit,
     onNavigateToWorkDetail: (Int) -> Unit
 ) {
-    val userListState by userViewModel.userListState.collectAsState()
+    val users = userViewModel.users.collectAsLazyPagingItems()
+    val totalCount by userViewModel.totalCount.collectAsStateWithLifecycle()
+    val searchQuery by userViewModel.searchQuery.collectAsStateWithLifecycle()
     val enumUserType = UserType.fromString(userType)
-    val listState = rememberLazyListState()
-    val snackbarHostState = remember { SnackbarHostState() }
+    var isSearchModalVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(userType) {
         enumUserType?.let { type ->
             userViewModel.loadUserList(type)
-        }
-    }
-
-    val shouldLoadMore = remember {
-        derivedStateOf {
-            val layoutInfo = listState.layoutInfo
-            val totalItemsNumber = layoutInfo.totalItemsCount
-            val lastVisibleItemIndex = (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) + 1
-
-            lastVisibleItemIndex > (totalItemsNumber - 5)
-        }
-    }
-
-    LaunchedEffect(shouldLoadMore.value) {
-        if (shouldLoadMore.value && enumUserType != null) {
-            when (val currentState = userListState) {
-                is UserViewModel.UserListState.Success -> {
-                    if (currentState.userListResult.currentItemCount < currentState.userListResult.totalCount) {
-                        userViewModel.loadMoreUsers(enumUserType)
-                    }
-                }
-                else -> {}
-            }
         }
     }
 
@@ -83,159 +52,45 @@ fun UserListScreen(
         else -> userType.replaceFirstChar { it.uppercase() }
     }
 
-    Scaffold(
+    AppScaffold(
         topBar = {
             BaseTopAppBar(
                 title = title,
                 onNavigateBack = onNavigateBack,
-                onReload = {
-                    enumUserType?.let { type ->
-                        userViewModel.loadUserList(type)
-                    }
-                },
-                loadedCount = when (val state = userListState) {
-                    is UserViewModel.UserListState.Success -> state.userListResult.currentItemCount
-                    is UserViewModel.UserListState.LoadingMore -> state.currentUserListResult.currentItemCount
-                    else -> 0
-                },
-                totalCount = when (val state = userListState) {
-                    is UserViewModel.UserListState.Success -> state.userListResult.totalCount
-                    is UserViewModel.UserListState.LoadingMore -> state.currentUserListResult.totalCount
-                    else -> 0
-                },
-                isLoading = userListState is UserViewModel.UserListState.Loading
+                onReload = { userViewModel.refresh() },
+                loadedCount = users.itemCount,
+                totalCount = totalCount,
+                isLoading = users.isRefreshing
             )
         },
-        snackbarHost = {
-            SnackbarHost(
-                hostState = snackbarHostState,
-                snackbar = { data ->
-                    Snackbar(
-                        snackbarData = data,
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
-                }
+        floatingActionButton = {
+            SearchResetFloatingActionButton(
+                searchQuery = searchQuery,
+                onSearchClick = { isSearchModalVisible = true },
+                onResetClick = { userViewModel.clearSearch() }
             )
         }
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            when (userListState) {
-                is UserViewModel.UserListState.Idle -> {}
-
-                is UserViewModel.UserListState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-
-                is UserViewModel.UserListState.LoadingMore -> {
-                    val userListResult = (userListState as UserViewModel.UserListState.LoadingMore).currentUserListResult
-
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        item {
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-
-                        items(userListResult.result) { userWithWorks ->
-                            UserWithWorksCard(
-                                userWithWorks = userWithWorks,
-                                onNavigateToWorkDetail = onNavigateToWorkDetail
-                            )
-                        }
-
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        }
-
-                        item {
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-                    }
-                }
-
-                is UserViewModel.UserListState.Success -> {
-                    val userListResult = (userListState as UserViewModel.UserListState.Success).userListResult
-
-                    if (userListResult.result.isEmpty()) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                            text = stringResource(R.string.no_users_found),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        item {
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-
-                        items(userListResult.result) { userWithWorks ->
-                            UserWithWorksCard(
-                                userWithWorks = userWithWorks,
-                                onNavigateToWorkDetail = onNavigateToWorkDetail
-                            )
-                        }
-
-                        item {
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-                    }
-                }
-            }
-
-            is UserViewModel.UserListState.Error -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = stringResource(R.string.error_loading_users),
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = (userListState as UserViewModel.UserListState.Error).message,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-            }
+        PagedLazyColumn(
+            items = users,
+            emptyText = stringResource(R.string.no_users_found),
+            modifier = Modifier.padding(paddingValues),
+            contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 160.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) { userWithWorks ->
+            UserWithWorksCard(
+                userWithWorks = userWithWorks,
+                onNavigateToWorkDetail = onNavigateToWorkDetail
+            )
         }
     }
+
+    SearchModal(
+        isVisible = isSearchModalVisible,
+        searchQuery = searchQuery,
+        onSearchQueryChange = { userViewModel.updateSearchQuery(it) },
+        onSearch = { userViewModel.performSearch(it) },
+        onDismiss = { isSearchModalVisible = false },
+        placeholder = stringResource(R.string.search_users_placeholder)
+    )
 }

@@ -1,8 +1,9 @@
 package com.finalworksystem.presentation.view_model.conversation
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.map
 import com.finalworksystem.application.use_case.conversation.CreateMessageUseCase
 import com.finalworksystem.application.use_case.conversation.GetConversationDetailUseCase
 import com.finalworksystem.application.use_case.conversation.GetConversationMessagesUseCase
@@ -10,27 +11,44 @@ import com.finalworksystem.application.use_case.conversation.MarkMessageAsReadUs
 import com.finalworksystem.data.util.isNotFound
 import com.finalworksystem.infrastructure.popup.PopupMessageService
 import com.finalworksystem.presentation.view_model.conversation.state.ConversationDetailState
-import com.finalworksystem.presentation.view_model.conversation.state.MessagesState
+import com.finalworksystem.domain.conversation.model.ConversationMessage
+import com.finalworksystem.presentation.paging.Page
+import com.finalworksystem.presentation.paging.PagedList
 import com.finalworksystem.presentation.view_model.conversation.state.SendMessageState
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ConversationDetailViewModel(
-    application: Application,
     private val getConversationDetailUseCase: GetConversationDetailUseCase,
     private val getConversationMessagesUseCase: GetConversationMessagesUseCase,
     private val createMessageUseCase: CreateMessageUseCase,
     private val markMessageAsReadUseCase: MarkMessageAsReadUseCase,
     private val popupMessageService: PopupMessageService
-) : AndroidViewModel(application) {
+) : ViewModel() {
+
+    data class MessagesQuery(val conversationId: Int, val search: String? = null)
 
     private val _conversationDetailState = MutableStateFlow<ConversationDetailState>(ConversationDetailState.Idle)
     val conversationDetailState: StateFlow<ConversationDetailState> = _conversationDetailState.asStateFlow()
 
-    private val _messagesState = MutableStateFlow<MessagesState>(MessagesState.Idle)
-    val messagesState: StateFlow<MessagesState> = _messagesState.asStateFlow()
+    private val pagedMessages = PagedList<MessagesQuery, ConversationMessage>(viewModelScope, MESSAGES_PAGE_SIZE) { query, page, pageSize ->
+        getConversationMessagesUseCase(query.conversationId, page, pageSize, query.search).first()
+            .map { Page(it.result, it.totalCount) }
+    }
+
+    /** Messages marked as read since the last load; updated without reloading the list. */
+    private val readMessageIds = MutableStateFlow<Set<Int>>(emptySet())
+
+    val messages: Flow<PagingData<ConversationMessage>> =
+        combine(pagedMessages.items, readMessageIds) { data, readIds ->
+            if (readIds.isEmpty()) data else data.map { if (it.id in readIds) it.copy(isRead = true) else it }
+        }
 
     private val _sendMessageState = MutableStateFlow<SendMessageState>(SendMessageState.Idle)
     val sendMessageState: StateFlow<SendMessageState> = _sendMessageState.asStateFlow()
@@ -38,10 +56,6 @@ class ConversationDetailViewModel(
     private val _messageSearchQuery = MutableStateFlow("")
     val messageSearchQuery: StateFlow<String> = _messageSearchQuery.asStateFlow()
 
-    private var currentMessagesPage = 1
-    private val messagesPageSize = 10
-    private var isLoadingMoreMessages = false
-    private var currentSearch: String? = null
 
     fun loadConversationDetail(id: Int) {
         viewModelScope.launch {
@@ -70,61 +84,10 @@ class ConversationDetailViewModel(
         }
     }
 
+    /** Shows the messages; they change often, so an already shown list is fetched again. */
     fun loadMessages(conversationId: Int, search: String? = null) {
-        viewModelScope.launch {
-            _messagesState.value = MessagesState.Loading
-            currentMessagesPage = 1
-            currentSearch = search
-
-            getConversationMessagesUseCase(conversationId, currentMessagesPage, messagesPageSize, search).collect { result ->
-                result.fold(
-                    onSuccess = { messagesResponse ->
-                        val hasMore = messagesResponse.result.size == messagesPageSize
-                        _messagesState.value = MessagesState.Success(messagesResponse.result, hasMore, false)
-                    },
-                    onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        _messagesState.value = MessagesState.Error(errorMessage)
-                        if (!error.isNotFound()) {
-                            popupMessageService.showMessage(errorMessage, PopupMessageService.MessageLevel.ERROR)
-                        }
-                    }
-                )
-            }
-        }
-    }
-
-    fun loadMoreMessages(conversationId: Int) {
-        val currentState = _messagesState.value
-        if (currentState !is MessagesState.Success || !currentState.hasMoreMessages || isLoadingMoreMessages || currentState.isLoadingMore) {
-            return
-        }
-
-        isLoadingMoreMessages = true
-        _messagesState.value = currentState.copy(isLoadingMore = true)
-
-        viewModelScope.launch {
-            currentMessagesPage++
-
-            getConversationMessagesUseCase(conversationId, currentMessagesPage, messagesPageSize, currentSearch).collect { result ->
-                isLoadingMoreMessages = false
-                result.fold(
-                    onSuccess = { messagesResponse ->
-                        val newMessages = messagesResponse.result
-                        val currentMessages = currentState.messages
-                        val updatedMessages = currentMessages + newMessages
-                        val hasMore = newMessages.size == messagesPageSize
-
-                        _messagesState.value = MessagesState.Success(updatedMessages, hasMore, false)
-                    },
-                    onFailure = { error ->
-                        val errorMessage = error.message ?: "Unknown error"
-                        _messagesState.value = currentState.copy(isLoadingMore = false)
-                        popupMessageService.showMessage("Failed to load more messages: $errorMessage", PopupMessageService.MessageLevel.ERROR)
-                    }
-                )
-            }
-        }
+        readMessageIds.value = emptySet()
+        pagedMessages.reload(MessagesQuery(conversationId, search?.ifBlank { null }))
     }
 
     fun sendMessage(conversationId: Int, message: String) {
@@ -135,7 +98,7 @@ class ConversationDetailViewModel(
                 result.fold(
                     onSuccess = {
                         _sendMessageState.value = SendMessageState.Success
-                        loadMessages(conversationId, currentSearch)
+                        loadMessages(conversationId, pagedMessages.query?.search)
                     },
                     onFailure = { error ->
                         val errorMessage = error.message ?: "Unknown error"
@@ -152,17 +115,7 @@ class ConversationDetailViewModel(
             markMessageAsReadUseCase(conversationId, messageId).collect { result ->
                 result.fold(
                     onSuccess = {
-                        val currentState = _messagesState.value
-                        if (currentState is MessagesState.Success) {
-                            val updatedMessages = currentState.messages.map { message ->
-                                if (message.id == messageId) {
-                                    message.copy(isRead = true)
-                                } else {
-                                    message
-                                }
-                            }
-                            _messagesState.value = currentState.copy(messages = updatedMessages)
-                        }
+                        readMessageIds.update { it + messageId }
                     },
                     onFailure = { error ->
                         val errorMessage = error.message ?: "Unknown error"
@@ -178,11 +131,15 @@ class ConversationDetailViewModel(
     }
 
     fun performMessageSearch(conversationId: Int, query: String) {
-        viewModelScope.launch { loadMessages(conversationId, query) }
+        loadMessages(conversationId, query)
     }
 
     fun clearMessageSearch(conversationId: Int) {
         _messageSearchQuery.value = ""
         loadMessages(conversationId)
+    }
+
+    private companion object {
+        const val MESSAGES_PAGE_SIZE = 10
     }
 }

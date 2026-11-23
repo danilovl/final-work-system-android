@@ -1,34 +1,40 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.event.model.response
 
 import com.finalworksystem.data.event.model.Event
-import com.google.gson.annotations.SerializedName
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class EventResponse(
-    @SerializedName("id")
-    val id: Int,
+    @SerialName("id")
+    val id: Int = 0,
 
-    @SerializedName("type")
-    val type: EventTypeResponse,
+    @SerialName("type")
+    val type: EventTypeResponse = EventTypeResponse(),
+    @SerialName("name")
+    val name: String? = null,
 
-    @SerializedName("name")
-    val name: String?,
+    @SerialName("start")
+    val start: String = "",
 
-    @SerializedName("start")
-    val start: String,
+    @SerialName("end")
+    val end: String = "",
 
-    @SerializedName("end")
-    val end: String,
+    @SerialName("owner")
+    val owner: UserResponse = UserResponse(),
+    @SerialName("address")
+    val address: EventAddressResponse? = null,
 
-    @SerializedName("owner")
-    val owner: UserResponse,
-
-    @SerializedName("address")
-    val address: EventAddressResponse?,
-
-    @SerializedName("comment")
+    @SerialName("comment")
     val comment: List<CommentResponse>? = null,
 
-    @SerializedName("participant")
+    @SerialName("participant")
     val participant: ParticipantResponse? = null
 )
 

@@ -1,32 +1,40 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.event.model.response
 
 import com.finalworksystem.data.event.model.User
-import com.google.gson.annotations.SerializedName
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class UserResponse(
-    @SerializedName("id")
-    val id: Int,
+    @SerialName("id")
+    val id: Int = 0,
 
-    @SerializedName("username")
-    val username: String,
+    @SerialName("username")
+    val username: String = "",
 
-    @SerializedName("firstname")
-    val firstname: String,
+    @SerialName("firstname")
+    val firstname: String = "",
 
-    @SerializedName("lastname")
-    val lastname: String,
+    @SerialName("lastname")
+    val lastname: String = "",
 
-    @SerializedName("degreeBefore")
-    val degreeBefore: String?,
+    @SerialName("degreeBefore")
+    val degreeBefore: String? = null,
 
-    @SerializedName("degreeAfter")
-    val degreeAfter: String?,
+    @SerialName("degreeAfter")
+    val degreeAfter: String? = null,
 
-    @SerializedName("email")
-    val email: String,
+    @SerialName("email")
+    val email: String = "",
 
-    @SerializedName("roles")
-    val roles: List<String>
+    @SerialName("roles")
+    val roles: List<String> = emptyList()
 )
 
 fun UserResponse.toDataModel(): User {

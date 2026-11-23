@@ -1,8 +1,8 @@
 package com.finalworksystem
 
 import com.finalworksystem.data.user.model.response.UserDetailResponse
-import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
+import com.finalworksystem.infrastructure.api.serialization.ApiJson
+import kotlinx.serialization.SerializationException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -15,7 +15,6 @@ class JsonParsingErrorTest {
     fun testJsonParsingErrorAtColumn231() {
         println("[DEBUG_LOG] Testing JSON parsing error at column 231 - roles field")
 
-        val gson = Gson()
         
         val jsonResponse = """{"id":155,"username":"testuser","firstname":"Test","lastname":"User","fullName":"Test User","degreeBefore":"Bc.","degreeAfter":null,"email":"test@example.com","token":"1234567890abcdef","roles":["ROLE_STUDENT","ROLE_ADMIN","ROLE_USER"]}"""
         
@@ -23,7 +22,7 @@ class JsonParsingErrorTest {
         println("[DEBUG_LOG] Position of 'roles': ${jsonResponse.indexOf("\"roles\"")}")
         
         try {
-            val userDetailResponse = gson.fromJson(jsonResponse, UserDetailResponse::class.java)
+            val userDetailResponse = ApiJson.decodeFromString<UserDetailResponse>(jsonResponse)
             
             assertNotNull(userDetailResponse)
             val roles = userDetailResponse.roles ?:  emptyList()
@@ -35,8 +34,8 @@ class JsonParsingErrorTest {
             println("[DEBUG_LOG] JSON parsing successful!")
             println("[DEBUG_LOG] Roles: $roles")
             
-        } catch (e: JsonSyntaxException) {
-            println("[DEBUG_LOG] JsonSyntaxException occurred: ${e.message}")
+        } catch (e: SerializationException) {
+            println("[DEBUG_LOG] SerializationException occurred: ${e.message}")
             e.printStackTrace()
             fail("JSON parsing should not fail with valid JSON: ${e.message}")
         } catch (e: Exception) {
@@ -50,7 +49,6 @@ class JsonParsingErrorTest {
     fun testJsonParsingWithLongerContent() {
         println("[DEBUG_LOG] Testing JSON parsing with longer content to reach column 231")
 
-        val gson = Gson()
         
         val jsonResponse = """{"id":155,"username":"verylongusernamethatmakesthejsonlonger","firstname":"VeryLongFirstName","lastname":"VeryLongLastName","fullName":"VeryLongFirstName VeryLongLastName","degreeBefore":"Bc.","degreeAfter":"Ph.D.","email":"verylongusername@verylongdomainname.com","token":"verylongtokenthatmakesthejsonlongerandlonger1234567890","roles":["ROLE_STUDENT","ROLE_ADMIN","ROLE_USER"]}"""
         
@@ -58,7 +56,7 @@ class JsonParsingErrorTest {
         println("[DEBUG_LOG] Position of 'roles': ${jsonResponse.indexOf("\"roles\"")}")
         
         try {
-            val userDetailResponse = gson.fromJson(jsonResponse, UserDetailResponse::class.java)
+            val userDetailResponse = ApiJson.decodeFromString<UserDetailResponse>(jsonResponse)
             
             assertNotNull(userDetailResponse)
             val roles = userDetailResponse.roles ?: emptyList()
@@ -70,8 +68,8 @@ class JsonParsingErrorTest {
             println("[DEBUG_LOG] JSON parsing successful!")
             println("[DEBUG_LOG] Roles: $roles")
             
-        } catch (e: JsonSyntaxException) {
-            println("[DEBUG_LOG] JsonSyntaxException occurred: ${e.message}")
+        } catch (e: SerializationException) {
+            println("[DEBUG_LOG] SerializationException occurred: ${e.message}")
             e.printStackTrace()
             fail("JSON parsing should not fail with valid JSON: ${e.message}")
         } catch (e: Exception) {
@@ -85,7 +83,6 @@ class JsonParsingErrorTest {
     fun testJsonParsingWithNullRoles() {
         println("[DEBUG_LOG] Testing JSON parsing with null roles")
 
-        val gson = Gson()
         
         val jsonResponse = """{"id":155,"username":"testuser","firstname":"Test","lastname":"User","fullName":"Test User","degreeBefore":"Bc.","degreeAfter":null,"email":"test@example.com","token":"1234567890abcdef","roles":null}"""
         
@@ -93,7 +90,7 @@ class JsonParsingErrorTest {
         println("[DEBUG_LOG] Position of 'roles': ${jsonResponse.indexOf("\"roles\"")}")
         
         try {
-            val userDetailResponse = gson.fromJson(jsonResponse, UserDetailResponse::class.java)
+            val userDetailResponse = ApiJson.decodeFromString<UserDetailResponse>(jsonResponse)
             
             assertNotNull(userDetailResponse)
             val roles = userDetailResponse.roles ?: emptyList()
@@ -103,8 +100,8 @@ class JsonParsingErrorTest {
             println("[DEBUG_LOG] JSON parsing with null roles successful!")
             println("[DEBUG_LOG] Roles: $roles")
             
-        } catch (e: JsonSyntaxException) {
-            println("[DEBUG_LOG] JsonSyntaxException occurred: ${e.message}")
+        } catch (e: SerializationException) {
+            println("[DEBUG_LOG] SerializationException occurred: ${e.message}")
             e.printStackTrace()
             fail("JSON parsing should not fail with null roles: ${e.message}")
         } catch (e: Exception) {
@@ -118,7 +115,6 @@ class JsonParsingErrorTest {
     fun testJsonParsingWithMalformedRoles() {
         println("[DEBUG_LOG] Testing JSON parsing with potentially malformed roles")
 
-        val gson = Gson()
         
         val testCases = listOf(
             """{"id":155,"username":"user1","firstname":"Test","lastname":"User","fullName":"Test User","degreeBefore":"Bc.","degreeAfter":null,"email":"test@example.com","token":"token123","roles":["ROLE_STUDENT","ROLE_USER"]}""",
@@ -134,7 +130,7 @@ class JsonParsingErrorTest {
             println("[DEBUG_LOG] Position of 'roles': ${jsonResponse.indexOf("\"roles\"")}")
             
             try {
-                val userDetailResponse = gson.fromJson(jsonResponse, UserDetailResponse::class.java)
+                val userDetailResponse = ApiJson.decodeFromString<UserDetailResponse>(jsonResponse)
                 
                 assertNotNull(userDetailResponse)
                 val roles = userDetailResponse.roles ?: emptyList()
@@ -142,8 +138,8 @@ class JsonParsingErrorTest {
                 println("[DEBUG_LOG] Case ${index + 1} parsing successful!")
                 println("[DEBUG_LOG] Roles: $roles")
                 
-            } catch (e: JsonSyntaxException) {
-                println("[DEBUG_LOG] Case ${index + 1} JsonSyntaxException: ${e.message}")
+            } catch (e: SerializationException) {
+                println("[DEBUG_LOG] Case ${index + 1} SerializationException: ${e.message}")
                 e.printStackTrace()
                 fail("JSON parsing should not fail for case ${index + 1}: ${e.message}")
             } catch (e: Exception) {

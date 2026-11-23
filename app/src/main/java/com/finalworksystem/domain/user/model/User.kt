@@ -1,7 +1,10 @@
 package com.finalworksystem.domain.user.model
 
 import com.finalworksystem.data.user.model.User as DataUser
+import kotlinx.serialization.Serializable
 
+/** Stored in the session DataStore as JSON. */
+@Serializable
 data class User(
     val id: Int,
     val username: String,

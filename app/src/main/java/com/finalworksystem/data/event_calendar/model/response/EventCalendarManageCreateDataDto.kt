@@ -1,3 +1,5 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.event_calendar.model.response
 
 import com.finalworksystem.data.event.model.response.EventAddressResponse
@@ -5,17 +7,23 @@ import com.finalworksystem.data.event.model.response.ParticipantResponse
 import com.finalworksystem.data.event.model.response.toDataModel
 import com.finalworksystem.data.event.model.toDomainModel
 import com.finalworksystem.domain.event_calendar.model.EventCalendarManageCreateData
-import com.google.gson.annotations.SerializedName
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class EventCalendarManageCreateDataDto(
-    @SerializedName("types")
-    val types: List<EventTypeDto>,
+    @SerialName("types")
+    val types: List<EventTypeDto> = emptyList(),
 
-    @SerializedName("addresses")
-    val addresses: List<EventAddressResponse>,
+    @SerialName("addresses")
+    val addresses: List<EventAddressResponse> = emptyList(),
 
-    @SerializedName("participants")
-    val participants: List<ParticipantResponse>
+    @SerialName("participants")
+    val participants: List<ParticipantResponse> = emptyList()
 )
 
 fun EventCalendarManageCreateDataDto.toDomainModel(): EventCalendarManageCreateData {

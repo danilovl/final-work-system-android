@@ -1,3 +1,5 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.version.model.response
 
 import com.finalworksystem.data.user.model.User
@@ -7,34 +9,38 @@ import com.finalworksystem.data.work.model.response.TypeResponse
 import com.finalworksystem.data.work.model.response.UserResponse
 import com.finalworksystem.data.work.model.response.WorkResponse
 import com.finalworksystem.data.work.model.response.toDomainModel
-import com.google.gson.annotations.SerializedName
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
+@Serializable
 data class VersionResponse(
-    @SerializedName("id")
-    val id: Int,
+    @SerialName("id")
+    val id: Int = 0,
 
-    @SerializedName("type")
-    val type: TypeResponse,
+    @SerialName("type")
+    val type: TypeResponse = TypeResponse(),
+    @SerialName("name")
+    val name: String = "",
 
-    @SerializedName("name")
-    val name: String,
+    @SerialName("description")
+    val description: String? = null,
 
-    @SerializedName("description")
-    val description: String?,
+    @SerialName("mediaName")
+    val mediaName: String = "",
 
-    @SerializedName("mediaName")
-    val mediaName: String,
+    @SerialName("mediaSize")
+    val mediaSize: Int = 0,
 
-    @SerializedName("mediaSize")
-    val mediaSize: Int,
+    @SerialName("originalExtension")
+    val originalExtension: String? = null,
 
-    @SerializedName("originalExtension")
-    val originalExtension: String?,
-
-    @SerializedName("owner")
-    val owner: UserResponse,
-
-    @SerializedName("work")
+    @SerialName("owner")
+    val owner: UserResponse = UserResponse(),
+    @SerialName("work")
     val work: WorkResponse
 )
 

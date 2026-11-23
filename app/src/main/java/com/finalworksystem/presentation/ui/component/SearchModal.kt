@@ -8,28 +8,28 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.finalworksystem.R
+import com.finalworksystem.ui.designsystem.AppButton
+import com.finalworksystem.ui.designsystem.AppButtonVariant
+import com.finalworksystem.ui.designsystem.AppDialog
+import com.finalworksystem.ui.designsystem.AppIcon
+import com.finalworksystem.ui.designsystem.AppIconBadge
+import com.finalworksystem.ui.designsystem.AppIconButton
+import com.finalworksystem.ui.designsystem.AppIconButtonVariant
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.designsystem.AppTextField
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
 
 @Composable
 fun SearchModal(
@@ -37,81 +37,88 @@ fun SearchModal(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     onSearch: (String) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    placeholder: String? = null
 ) {
     if (isVisible) {
-        Dialog(
+        val submit = {
+            onSearch(searchQuery)
+            onDismiss()
+        }
+
+        AppDialog(
             onDismissRequest = onDismiss,
             properties = DialogProperties(
                 dismissOnBackPress = true,
                 dismissOnClickOutside = true
             )
         ) {
-            Card(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                    .fillMaxWidth()
+                    .padding(24.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 24.dp, horizontal = 24.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.search),
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        IconButton(onClick = onDismiss) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = stringResource(R.string.close)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = onSearchQueryChange,
-                        label = { Text(stringResource(R.string.search)) },
-                        placeholder = { Text(stringResource(R.string.search_placeholder)) },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = stringResource(R.string.search)
-                            )
-                        },
-                        minLines = 1,
-                        maxLines = 3
+                    AppIconBadge(icon = AppIcons.Search)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    AppText(
+                        text = stringResource(R.string.search),
+                        style = AppTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.weight(1f)
                     )
+                    AppIconButton(
+                        icon = AppIcons.Close,
+                        contentDescription = stringResource(R.string.close),
+                        onClick = onDismiss,
+                        variant = AppIconButtonVariant.Tonal,
+                        size = 36.dp,
+                        iconSize = 18.dp
+                    )
+                }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        TextButton(onClick = onDismiss) {
-                            Text(stringResource(R.string.cancel))
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Button(
-                            onClick = {
-                                onSearch(searchQuery)
-                                onDismiss()
-                            }
-                        ) {
-                            Text(stringResource(R.string.search))
-                        }
-                    }
+                AppTextField(
+                    value = searchQuery,
+                    onValueChange = onSearchQueryChange,
+                    label = { AppText(stringResource(R.string.search)) },
+                    placeholder = { AppText(placeholder ?: stringResource(R.string.search_placeholder)) },
+                    leadingIcon = {
+                        AppIcon(
+                            imageVector = AppIcons.Search,
+                            contentDescription = stringResource(R.string.search)
+                        )
+                    },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(onSearch = { submit() }),
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 1,
+                    maxLines = 3
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    AppButton(
+                        text = stringResource(R.string.cancel),
+                        onClick = onDismiss,
+                        variant = AppButtonVariant.Outline,
+                        modifier = Modifier.weight(1f)
+                    )
+                    AppButton(
+                        text = stringResource(R.string.search),
+                        onClick = submit,
+                        variant = AppButtonVariant.Primary,
+                        leadingIcon = AppIcons.Search,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         }

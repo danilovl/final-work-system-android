@@ -1,12 +1,14 @@
 package com.finalworksystem.presentation.ui.component
 
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import com.finalworksystem.R
+import com.finalworksystem.ui.designsystem.AppAlertDialog
+import com.finalworksystem.ui.designsystem.AppButton
+import com.finalworksystem.ui.designsystem.AppButtonVariant
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.theme.AppTheme
 
 @Composable
 fun TitleDialog(
@@ -15,20 +17,21 @@ fun TitleDialog(
     onDismiss: () -> Unit
 ) {
     if (isVisible) {
-        AlertDialog(
+        AppAlertDialog(
             onDismissRequest = onDismiss,
             title = {
-                Text(
+                AppText(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium
+                    style = AppTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
                 )
             },
             confirmButton = {
-                TextButton(
-                    onClick = onDismiss
-                ) {
-                    Text(stringResource(R.string.ok))
-                }
+                AppButton(
+                    text = stringResource(R.string.ok),
+                    onClick = onDismiss,
+                    variant = AppButtonVariant.Ghost
+                )
             }
         )
     }

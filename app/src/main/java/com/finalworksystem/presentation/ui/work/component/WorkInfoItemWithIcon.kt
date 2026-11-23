@@ -5,11 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,23 +13,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.finalworksystem.ui.designsystem.AppIconBadge
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.theme.AppTheme
 
 @Composable
 fun WorkInfoItemWithIcon(
     icon: ImageVector,
     label: String,
     value: String,
-    iconTint: Color = MaterialTheme.colorScheme.onSurfaceVariant
+    iconTint: Color = AppTheme.colors.primary
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp),
-            tint = iconTint
+        AppIconBadge(
+            icon = icon,
+            tint = iconTint,
+            size = 40
         )
 
         Spacer(modifier = Modifier.width(12.dp))
@@ -41,18 +39,18 @@ fun WorkInfoItemWithIcon(
         Column(
             modifier = Modifier.weight(1f)
         ) {
-            Text(
+            AppText(
                 text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = AppTheme.typography.labelMedium,
+                color = AppTheme.colors.onSurfaceVariant,
                 fontWeight = FontWeight.Medium
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
+            Spacer(modifier = Modifier.height(2.dp))
+            AppText(
                 text = value,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Normal
+                style = AppTheme.typography.bodyLarge,
+                color = AppTheme.colors.onSurface,
+                fontWeight = FontWeight.Medium
             )
         }
     }

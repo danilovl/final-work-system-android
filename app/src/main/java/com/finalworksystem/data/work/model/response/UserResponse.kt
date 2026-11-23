@@ -1,38 +1,50 @@
+@file:UseSerializers(SafeIntSerializer::class, SafeLongSerializer::class, SafeDoubleSerializer::class)
+
 package com.finalworksystem.data.work.model.response
 
-import com.google.gson.annotations.SerializedName
 import com.finalworksystem.domain.user.model.User as DomainUser
+import com.finalworksystem.infrastructure.api.serialization.SafeDoubleSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeIntSerializer
+import com.finalworksystem.infrastructure.api.serialization.SafeLongSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
+@Serializable
 data class UserResponse(
-    @SerializedName("id")
-    val id: Int,
+    @SerialName("id")
+    val id: Int = 0,
 
-    @SerializedName("username")
-    val username: String,
+    @SerialName("username")
+    val username: String = "",
 
-    @SerializedName("firstname")
-    val firstname: String,
+    @SerialName("firstname")
+    val firstname: String = "",
 
-    @SerializedName("lastname")
-    val lastname: String,
+    @SerialName("lastname")
+    val lastname: String = "",
 
-    @SerializedName("fullName")
-    val fullName: String?,
+    @SerialName("fullName")
+    val fullName: String? = null,
 
-    @SerializedName("degreeBefore")
-    val degreeBefore: String?,
+    @SerialName("degreeBefore")
+    val degreeBefore: String? = null,
 
-    @SerializedName("degreeAfter")
-    val degreeAfter: String?,
+    @SerialName("degreeAfter")
+    val degreeAfter: String? = null,
 
-    @SerializedName("email")
-    val email: String,
+    @SerialName("email")
+    val email: String = "",
 
-    @SerializedName("token")
-    val token: String?,
+    @SerialName("token")
+    val token: String? = null,
 
-    @SerializedName("roles")
-    val roles: Any
+    @SerialName("roles")
+    val roles: JsonElement? = null
 )
 
 fun UserResponse.toDataModel(): DomainUser {
@@ -47,9 +59,13 @@ fun UserResponse.toDataModel(): DomainUser {
         email = email,
         token = token,
         roles = when (roles) {
-            is Map<*, *> -> roles.values.map { it.toString() }
-            is List<*> -> roles.map { it.toString() }
+            is JsonObject -> roles.values.map { it.roleName() }
+            is JsonArray -> roles.map { it.roleName() }
             else -> emptyList()
         }
     )
 }
+
+/** Roles come as strings; keep the raw text for anything else. */
+private fun JsonElement.roleName(): String =
+    if (this is JsonPrimitive) content else toString()

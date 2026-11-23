@@ -1,20 +1,17 @@
 package com.finalworksystem.presentation.ui.component
 
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.finalworksystem.R
+import com.finalworksystem.ui.designsystem.AppIconButton
+import com.finalworksystem.ui.designsystem.AppIconButtonVariant
+import com.finalworksystem.ui.designsystem.AppTopBar
+import com.finalworksystem.ui.theme.AppIcons
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BaseTopAppBar(
     title: String,
@@ -26,16 +23,10 @@ fun BaseTopAppBar(
     modifier: Modifier = Modifier,
     additionalActions: @Composable RowScope.() -> Unit = {}
 ) {
-    TopAppBar(
-        title = { Text(title) },
-        navigationIcon = {
-            IconButton(onClick = onNavigateBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.back)
-                )
-            }
-        },
+    AppTopBar(
+        title = title,
+        modifier = modifier,
+        navigationIcon = { BackNavigationButton(onClick = onNavigateBack) },
         actions = {
             LoadingProgressIndicator(
                 loadedCount = loadedCount,
@@ -43,13 +34,38 @@ fun BaseTopAppBar(
                 isLoading = isLoading
             )
             additionalActions()
-            IconButton(onClick = onReload) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = stringResource(R.string.refresh)
-                )
-            }
-        },
+            AppIconButton(
+                icon = AppIcons.Refresh,
+                contentDescription = stringResource(R.string.refresh),
+                onClick = onReload
+            )
+        }
+    )
+}
+
+/** Standard "back" button for top bars. */
+@Composable
+fun BackNavigationButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    AppIconButton(
+        icon = AppIcons.ArrowBack,
+        contentDescription = stringResource(R.string.back),
+        onClick = onClick,
+        variant = AppIconButtonVariant.Tonal,
         modifier = modifier
     )
 }
+
+/** Opens the global navigation drawer; renders nothing when no drawer is available. */
+@Composable
+fun DrawerMenuButton(modifier: Modifier = Modifier) {
+    val drawerState = LocalDrawerState.current ?: return
+    val scope = rememberCoroutineScope()
+    AppIconButton(
+        icon = AppIcons.List,
+        contentDescription = stringResource(R.string.open_menu),
+        onClick = { scope.launch { drawerState.open() } },
+        variant = AppIconButtonVariant.Tonal,
+        modifier = modifier
+    )
+}
+

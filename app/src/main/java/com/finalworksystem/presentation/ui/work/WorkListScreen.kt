@@ -1,21 +1,14 @@
 package com.finalworksystem.presentation.ui.work
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.finalworksystem.ui.theme.AppIcons
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import com.finalworksystem.ui.designsystem.AppFab
+import com.finalworksystem.ui.designsystem.AppScaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +23,8 @@ import com.finalworksystem.domain.work.model.WorkListType
 import com.finalworksystem.infrastructure.user.UserService
 import com.finalworksystem.presentation.ui.component.BaseTopAppBar
 import com.finalworksystem.presentation.ui.component.SearchResetFloatingActionButton
+import com.finalworksystem.presentation.ui.component.isRefreshing
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.finalworksystem.presentation.ui.work.component.WorkFilterDialog
 import com.finalworksystem.presentation.ui.work.component.WorksList
 import com.finalworksystem.presentation.view_model.work.WorkListViewModel
@@ -44,30 +39,22 @@ fun WorkListScreen(
     onNavigateToWorkCreate: (() -> Unit)? = null
 ) {
     val userService: UserService = koinInject()
-    val currentUser by userService.getUserFlowSafe().collectAsState(initial = null)
+    val currentUser by userService.getUserFlowSafe().collectAsStateWithLifecycle(initialValue = null)
     val isSupervisor = currentUser?.roles?.contains(UserRole.SUPERVISOR.value) == true
 
-    val worksState by workListViewModel.worksState.collectAsState()
-    val searchQuery by workListViewModel.searchQuery.collectAsState()
-    val filter by workListViewModel.filter.collectAsState()
-    val workTypes by workListViewModel.workTypes.collectAsState()
-    val workStatuses by workListViewModel.workStatuses.collectAsState()
-    val userPickersState by workListViewModel.userPickersState.collectAsState()
-    val selectedAuthor by workListViewModel.selectedAuthor.collectAsState()
-    val selectedOpponent by workListViewModel.selectedOpponent.collectAsState()
+    val works = workListViewModel.works.collectAsLazyPagingItems()
+    val totalCount by workListViewModel.totalCount.collectAsStateWithLifecycle()
+    val filter by workListViewModel.filter.collectAsStateWithLifecycle()
+    val workTypes by workListViewModel.workTypes.collectAsStateWithLifecycle()
+    val workStatuses by workListViewModel.workStatuses.collectAsStateWithLifecycle()
+    val selectedAuthor by workListViewModel.selectedAuthor.collectAsStateWithLifecycle()
+    val selectedOpponent by workListViewModel.selectedOpponent.collectAsStateWithLifecycle()
     val workListTypeEnum = WorkListType.fromString(workListType)
 
     var isSearchModalVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(workListType) {
         workListViewModel.loadWorks(workListTypeEnum)
-    }
-
-    DisposableEffect(Unit) {
-        workListViewModel.markEnteredWorkListSection()
-        onDispose {
-            workListViewModel.markLeftWorkListSection()
-        }
     }
 
     val title = when (workListTypeEnum) {
@@ -77,15 +64,15 @@ fun WorkListScreen(
         WorkListType.SUPERVISOR -> stringResource(R.string.supervisor_works_title)
     }
 
-    Scaffold(
+    AppScaffold(
         topBar = {
             BaseTopAppBar(
                 title = title,
                 onNavigateBack = onNavigateBack,
-                onReload = { workListViewModel.loadWorks(workListTypeEnum, forceRefresh = true) },
-                loadedCount = (worksState as? WorkListViewModel.WorksState.Success)?.works?.size ?: 0,
-                totalCount = (worksState as? WorkListViewModel.WorksState.Success)?.totalCount ?: 0,
-                isLoading = worksState is WorkListViewModel.WorksState.Loading
+                onReload = { workListViewModel.refresh() },
+                loadedCount = works.itemCount,
+                totalCount = totalCount,
+                isLoading = works.isRefreshing
             )
         },
         floatingActionButton = {
@@ -94,12 +81,11 @@ fun WorkListScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 if (onNavigateToWorkCreate != null && isSupervisor) {
-                    FloatingActionButton(onClick = onNavigateToWorkCreate) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = stringResource(R.string.create_work)
-                        )
-                    }
+                    AppFab(
+                        onClick = onNavigateToWorkCreate,
+                        icon = AppIcons.Add,
+                        contentDescription = stringResource(R.string.create_work)
+                    )
                 }
                 SearchResetFloatingActionButton(
                     searchQuery = if (filter.isEmpty()) "" else "filtered",
@@ -109,52 +95,11 @@ fun WorkListScreen(
             }
         }
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            when (worksState) {
-                is WorkListViewModel.WorksState.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-                is WorkListViewModel.WorksState.Success -> {
-                    val works = (worksState as WorkListViewModel.WorksState.Success).works
-                    if (works.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.no_works_found),
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .padding(8.dp)
-                        )
-                    } else {
-                        WorksList(
-                            works = works,
-                            hasMoreWorks = (worksState as WorkListViewModel.WorksState.Success).hasMoreWorks,
-                            isLoadingMore = (worksState as WorkListViewModel.WorksState.Success).isLoadingMore,
-                            onWorkClick = onNavigateToWorkDetail,
-                            onLoadMore = {
-                                workListViewModel.loadMoreWorks()
-                            }
-                        )
-                    }
-                }
-                is WorkListViewModel.WorksState.Error -> {
-                    Text(
-                        text = stringResource(R.string.error_prefix, (worksState as WorkListViewModel.WorksState.Error).message),
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(8.dp),
-                        color = androidx.compose.material3.MaterialTheme.colorScheme.error
-                    )
-                }
-                else -> {
-                    // nothing
-                }
-            }
-        }
+        WorksList(
+            works = works,
+            onWorkClick = onNavigateToWorkDetail,
+            modifier = Modifier.padding(paddingValues)
+        )
     }
 
     WorkFilterDialog(
@@ -162,11 +107,9 @@ fun WorkListScreen(
         initialFilter = filter,
         workTypes = workTypes,
         workStatuses = workStatuses,
-        userPickersState = userPickersState,
+        userPicker = workListViewModel.userPicker,
         selectedAuthor = selectedAuthor,
         selectedOpponent = selectedOpponent,
-        onLoadUsers = { type, query -> workListViewModel.loadUsers(type, query) },
-        onLoadMoreUsers = { type -> workListViewModel.loadMoreUsers(type) },
         onAuthorSelected = { workListViewModel.selectedAuthor.value = it },
         onOpponentSelected = { workListViewModel.selectedOpponent.value = it },
         onApplyFilter = { workListViewModel.updateFilter(it) },

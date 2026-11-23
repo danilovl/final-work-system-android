@@ -7,21 +7,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,54 +24,48 @@ import com.finalworksystem.R
 import com.finalworksystem.domain.common.util.DateUtils
 import com.finalworksystem.domain.work.model.Work
 import com.finalworksystem.presentation.ui.component.BaseCard
+import com.finalworksystem.ui.designsystem.AppBottomSheet
+import com.finalworksystem.ui.designsystem.AppButton
+import com.finalworksystem.ui.designsystem.AppButtonSize
+import com.finalworksystem.ui.designsystem.AppButtonVariant
+import com.finalworksystem.ui.designsystem.AppCardStyle
+import com.finalworksystem.ui.designsystem.AppIconBadge
+import com.finalworksystem.ui.designsystem.AppIconButton
+import com.finalworksystem.ui.designsystem.AppIconButtonVariant
+import com.finalworksystem.ui.designsystem.AppInfoRow
+import com.finalworksystem.ui.designsystem.AppTag
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorksList(works: List<Work>, onNavigateToWorkDetail: (Int) -> Unit) {
     var showWorksSheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
 
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
-        Button(
+        AppButton(
+            text = stringResource(R.string.works_with_count, works.size),
             onClick = { showWorksSheet = true },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
-            ),
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 0.dp,
-                pressedElevation = 0.dp,
-                focusedElevation = 0.dp,
-                hoveredElevation = 0.dp,
-                disabledElevation = 0.dp
-            ),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                horizontal = 16.dp,
-                vertical = 4.dp
-            )
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.List,
-                contentDescription = stringResource(R.string.works),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            Text(stringResource(R.string.works_with_count, works.size))
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
+            variant = AppButtonVariant.Secondary,
+            size = AppButtonSize.Small,
+            leadingIcon = AppIcons.List,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 
     if (showWorksSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showWorksSheet = false },
-            sheetState = sheetState
+        AppBottomSheet(
+            onDismissRequest = { showWorksSheet = false }
         ) {
             WorksFullList(
                 works = works,
                 onDismiss = { showWorksSheet = false },
-                onNavigateToWorkDetail = onNavigateToWorkDetail
+                onNavigateToWorkDetail = { workId ->
+                    showWorksSheet = false
+                    onNavigateToWorkDetail(workId)
+                }
             )
         }
     }
@@ -98,31 +80,35 @@ fun WorksFullList(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
+            AppIconBadge(icon = AppIcons.Work, size = 40)
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            AppText(
                 text = stringResource(R.string.works_with_count, works.size),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                style = AppTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f)
             )
 
-            IconButton(onClick = onDismiss) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(R.string.close)
-                )
-            }
+            AppIconButton(
+                icon = AppIcons.Close,
+                contentDescription = stringResource(R.string.close),
+                onClick = onDismiss,
+                variant = AppIconButtonVariant.Tonal
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             items(works) { work ->
@@ -139,11 +125,11 @@ fun WorksFullList(
 
 @Composable
 fun WorkFullWidthItem(work: Work, onClick: () -> Unit) {
+    val colors = AppTheme.colors
+
     BaseCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ),
+        style = AppCardStyle.Tonal,
         onClick = onClick
     ) {
         Column(
@@ -151,36 +137,32 @@ fun WorkFullWidthItem(work: Work, onClick: () -> Unit) {
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(
+            AppText(
                 text = work.title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
+                style = AppTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                text = stringResource(R.string.type_prefix, work.type.name),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                AppTag(text = stringResource(R.string.type_prefix, work.type.name), color = colors.secondary)
+                AppTag(text = stringResource(R.string.status_prefix, work.status.name), color = colors.primary)
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            AppInfoRow(
+                label = stringResource(R.string.supervisor),
+                value = work.supervisor?.let { "${it.firstname} ${it.lastname}" } ?: "N/A",
+                icon = AppIcons.Person
             )
 
-            Text(
-                text = stringResource(R.string.status_prefix, work.status.name),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Text(
+            AppText(
                 text = stringResource(R.string.deadline_prefix, DateUtils.formatToReadable(work.deadline)),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Text(
-                text = stringResource(R.string.supervisor) + ": ${work.supervisor?.let { "${it.firstname} ${it.lastname}" } ?: "N/A"}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = AppTheme.typography.labelMedium,
+                color = colors.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp)
             )
         }
     }

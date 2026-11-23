@@ -9,13 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +23,15 @@ import androidx.compose.ui.unit.dp
 import com.finalworksystem.R
 import com.finalworksystem.domain.system_event.model.SystemEvent
 import com.finalworksystem.presentation.ui.component.BaseCard
+import com.finalworksystem.ui.designsystem.AppDivider
+import com.finalworksystem.ui.designsystem.AppIcon
+import com.finalworksystem.ui.designsystem.AppIconBadge
+import com.finalworksystem.ui.designsystem.AppIconButton
+import com.finalworksystem.ui.designsystem.AppIconButtonVariant
+import com.finalworksystem.ui.designsystem.AppTag
+import com.finalworksystem.ui.designsystem.AppText
+import com.finalworksystem.ui.theme.AppIcons
+import com.finalworksystem.ui.theme.AppTheme
 
 @Composable
 fun SystemEventItem(
@@ -41,78 +44,96 @@ fun SystemEventItem(
 
     BaseCard {
         Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+            modifier = Modifier.padding(16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
+                AppIconBadge(icon = AppIcons.Notifications, size = 36)
+
+                Spacer(modifier = Modifier.width(12.dp))
+
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .clickable(enabled = isTitleLong) { isExpanded = !isExpanded }
+                        .clickable(enabled = isTitleLong) { isExpanded = !isExpanded },
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text(
+                    AppText(
                         text = if (isTitleLong && !isExpanded) titleText.take(80) + "..." else titleText,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        style = AppTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = AppTheme.colors.onSurface
                     )
 
                     if (isTitleLong) {
-                        Text(
+                        AppText(
                             text = if (isExpanded) stringResource(R.string.tap_to_collapse) else stringResource(R.string.tap_to_expand),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
+                            style = AppTheme.typography.labelMedium,
+                            color = AppTheme.colors.primary
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AppIcon(
+                    imageVector = AppIcons.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = AppTheme.colors.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                AppText(
                     text = stringResource(R.string.by_prefix, event.owner),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = AppTheme.typography.bodyMedium,
+                    color = AppTheme.colors.onSurface
                 )
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AppIcon(
+                    imageVector = AppIcons.CalendarToday,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = AppTheme.colors.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                AppText(
                     text = event.createdAt,
-                    style = MaterialTheme.typography.bodySmall
+                    style = AppTheme.typography.bodySmall,
+                    color = AppTheme.colors.onSurfaceVariant
                 )
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+            AppDivider(modifier = Modifier.padding(vertical = 12.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
+                AppTag(
                     text = stringResource(R.string.id_prefix, event.id.toString()),
-                    style = MaterialTheme.typography.bodySmall
+                    color = AppTheme.colors.onSurfaceVariant
                 )
 
-                IconButton(
+                AppIconButton(
+                    icon = AppIcons.Check,
+                    contentDescription = stringResource(R.string.mark_as_viewed),
                     onClick = {
                         onViewedChange(event.id, true)
                     },
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = stringResource(R.string.mark_as_viewed),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
+                    variant = AppIconButtonVariant.Tonal,
+                    tint = AppTheme.colors.primary,
+                    size = 36.dp,
+                    iconSize = 20.dp
+                )
             }
         }
     }

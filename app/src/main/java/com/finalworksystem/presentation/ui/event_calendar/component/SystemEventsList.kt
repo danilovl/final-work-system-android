@@ -4,17 +4,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,91 +16,59 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.paging.compose.LazyPagingItems
+import com.finalworksystem.R
 import com.finalworksystem.domain.system_event.model.SystemEvent
+import com.finalworksystem.presentation.ui.component.PagedLazyColumn
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
 fun SystemEventsList(
-    events: List<SystemEvent>,
-    hasMoreEvents: Boolean = false,
-    isLoadingMore: Boolean = false,
+    events: LazyPagingItems<SystemEvent>,
     onViewedChange: (Int, Boolean) -> Unit,
-    onLoadMore: () -> Unit = {}
+    modifier: Modifier = Modifier
 ) {
-    val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
-    val shouldLoadMore = remember {
-        derivedStateOf {
-            val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisibleItem != null && 
-            lastVisibleItem.index >= listState.layoutInfo.totalItemsCount - 3 &&
-            hasMoreEvents && 
-            !isLoadingMore
-        }
-    }
+    PagedLazyColumn(
+        items = events,
+        emptyText = stringResource(R.string.no_unread_events),
+        modifier = modifier,
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.Top
+    ) { event ->
+        var visible by remember(event.id) { mutableStateOf(true) }
+        var isProcessing by remember(event.id) { mutableStateOf(false) }
 
-    LaunchedEffect(shouldLoadMore.value) {
-        if (shouldLoadMore.value) {
-            onLoadMore()
-        }
-    }
-
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp, vertical = 8.dp)
+        AnimatedVisibility(
+            visible = visible,
+            exit = shrinkVertically(
+                animationSpec = tween(durationMillis = 500),
+                shrinkTowards = Alignment.Top
+            ) + fadeOut(
+                animationSpec = tween(durationMillis = 500)
+            )
         ) {
-            items(events, key = { it.id }) { event ->
-                var visible by remember(event.id) { mutableStateOf(true) }
-                var isProcessing by remember(event.id) { mutableStateOf(false) }
+            Column(
+                modifier = Modifier.padding(bottom = 12.dp)
+            ) {
+                SystemEventItem(
+                    event = event,
+                    onViewedChange = { eventId, isViewed ->
+                        if (isViewed && !isProcessing) {
+                            isProcessing = true
+                            visible = false
 
-                AnimatedVisibility(
-                    visible = visible,
-                    exit = shrinkVertically(
-                        animationSpec = tween(durationMillis = 500),
-                        shrinkTowards = Alignment.Top
-                    ) + fadeOut(
-                        animationSpec = tween(durationMillis = 500)
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    ) {
-                        SystemEventItem(
-                            event = event,
-                            onViewedChange = { eventId, isViewed ->
-                                if (isViewed && !isProcessing) {
-                                    isProcessing = true
-                                    visible = false
-
-                                    scope.launch {
-                                        delay(500)
-                                        onViewedChange(eventId, isViewed)
-                                    }
-                                }
+                            scope.launch {
+                                delay(500)
+                                onViewedChange(eventId, isViewed)
                             }
-                        )
+                        }
                     }
-                }
-            }
-
-            if (isLoadingMore) {
-                item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
+                )
             }
         }
     }

@@ -10,7 +10,9 @@ import com.finalworksystem.infrastructure.api.ApiAuthService
 import com.finalworksystem.infrastructure.api.ApiUserService
 import com.finalworksystem.infrastructure.session.AuthData
 import com.finalworksystem.infrastructure.session.SessionManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
@@ -30,7 +32,7 @@ class AuthRepository(
         }
 
         if (loginResult.isFailure) {
-            return@safeFlowResult Result.failure(loginResult.exceptionOrNull()!!)
+            return@safeFlowResult Result.failure(loginResult.exceptionOrNull() ?: Exception("Login failed"))
         }
 
         val token = loginResult.getOrThrow()
@@ -40,19 +42,21 @@ class AuthRepository(
             sessionManager.saveAuthData(authData)
         }
 
-        val userDetailResponse = apiUserService.getUserDetail()
-
-        val userDetailResult = userDetailResponse.handleResponse { userDetail ->
-            userDetail
-        }
-
-        if (userDetailResult.isFailure) {
-            return@safeFlowResult Result.failure(userDetailResult.exceptionOrNull()!!)
-        }
-
-        val userDetail = userDetailResult.getOrThrow()
-
         try {
+            val userDetailResponse = apiUserService.getUserDetail()
+
+            val userDetailResult = userDetailResponse.handleResponse { userDetail ->
+                userDetail
+            }
+
+            if (userDetailResult.isFailure) {
+                rollbackAuthData()
+                return@safeFlowResult Result.failure(
+                    userDetailResult.exceptionOrNull() ?: Exception("Failed to load user detail")
+                )
+            }
+
+            val userDetail = userDetailResult.getOrThrow()
             val dataUser = userDetail.toDataModel()
             val domainUser = dataUser.toDomainModel().copy(token = token)
 
@@ -61,8 +65,19 @@ class AuthRepository(
             }
 
             Result.success(token)
-        } catch (conversionException: Exception) {
-            Result.failure(Exception("Error processing login user detail: ${conversionException.message}", conversionException))
+        } catch (e: CancellationException) {
+            rollbackAuthData()
+            throw e
+        } catch (e: Exception) {
+            // Do not leave a half-created session (token without user) on disk.
+            rollbackAuthData()
+            Result.failure(Exception("Error processing login user detail: ${e.message}", e))
+        }
+    }
+
+    private suspend fun rollbackAuthData() {
+        withContext(NonCancellable + Dispatchers.IO) {
+            sessionManager.clearAuthData()
         }
     }
 

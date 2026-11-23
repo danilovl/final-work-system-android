@@ -6,6 +6,7 @@ object ApiEndpoint {
         const val GET_LIST = "/api/key/users/{type}"
         const val GET_SEARCH = "/api/key/users/search/{type}"
         const val GET_PROFILE_IMAGE = "/api/key/users/{id}/profile/image"
+        const val PUT_CHANGE_PASSWORD = "/api/key/users/password"
     }
 
     object Work {
